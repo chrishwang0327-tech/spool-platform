@@ -1017,7 +1017,7 @@ function garmentSVG(type, color, size, customization={}){
   const normalizedLargeView=normalizedBackView || normalizedSweatshirtFront;
   const sourceScale=normalizedLargeView ? 1.5 : 1;
   const sourceOffset=normalizedLargeView ? -50 : 0;
-  return `<svg class="garment-preview ${(brushMode||state.areaSelectMode)?'brush-active':''}" width="${size}" height="${size}" viewBox="0 0 200 200" aria-label="Customized ${type} preview" onpointerdown="drawStart(event)" onpointermove="drawMove(event)" onpointerrawupdate="drawMove(event)" onpointerup="drawEnd(event)" onpointercancel="drawEnd(event)" onlostpointercapture="drawEnd(event)">
+  return `<svg class="garment-preview ${(brushMode||state.areaSelectMode)?'brush-active':''}" width="${size}" height="${size}" viewBox="0 0 200 200" aria-label="Customized ${type} preview" onpointerdown="drawStart(event)" onpointermove="drawMove(event)" onpointerrawupdate="drawMove(event)" onpointerup="drawEnd(event)" onpointercancel="drawEnd(event)">
     <defs>
       <filter id="bodyColor" color-interpolation-filters="sRGB"><feColorMatrix values="${matrixFor(bodyColor,sourceToneBoost)}"/></filter>
       <filter id="leftSleeveColor" color-interpolation-filters="sRGB"><feColorMatrix values="${matrixFor(leftSleeveColor,sourceToneBoost)}"/></filter>
@@ -2326,6 +2326,7 @@ function drawMove(event){
   // `buttons` can briefly report 0 on touch screens and on some Chrome pointer
   // capture paths. `isDrawing` is the reliable source of truth until pointerup.
   if(isDrawing){
+    event.__spoolBrushHandled=true;
     event.preventDefault();
     const svg=event.currentTarget;
     // Coalesced pointer samples preserve the real hand path when Chrome batches
@@ -2362,13 +2363,28 @@ function drawEnd(event){
 // are a fallback only when the move/up event is no longer inside the active board.
 // They keep one continuous decoration stroke instead of turning a drag into clicks.
 window.addEventListener('pointermove',event=>{
-  if(!isDrawing||!activeDecorationSvg||activeDecorationSvg.contains(event.target))return;
+  if(!isDrawing||!activeDecorationSvg||event.__spoolBrushHandled)return;
   event.preventDefault();
   const samples=typeof event.getCoalescedEvents==='function'?event.getCoalescedEvents():[event];
   (samples.length?samples:[event]).forEach(sample=>addBrushMark(sample,activeDecorationSvg));
 },{passive:false});
 window.addEventListener('pointerup',event=>{
-  if(!isDrawing||!activeDecorationSvg||activeDecorationSvg.contains(event.target))return;
+  if(!isDrawing||!activeDecorationSvg)return;
+  event.preventDefault();
+  addBrushMark(event,activeDecorationSvg);
+  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+},{passive:false});
+// Some embedded browsers emit mouse movement without a matching pointermove
+// while dragging over inline SVG. Keep a mouse fallback so a held drag always
+// paints a continuous path. Duplicate pointer/mouse coordinates are harmless
+// because the distance sampler ignores zero-length movement.
+window.addEventListener('mousemove',event=>{
+  if(!isDrawing||!activeDecorationSvg||!(event.buttons&1))return;
+  event.preventDefault();
+  addBrushMark(event,activeDecorationSvg);
+},{passive:false});
+window.addEventListener('mouseup',event=>{
+  if(!isDrawing||!activeDecorationSvg)return;
   event.preventDefault();
   addBrushMark(event,activeDecorationSvg);
   isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
