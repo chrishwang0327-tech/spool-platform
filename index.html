@@ -287,7 +287,7 @@
   /* ITEM PAGE */
   .item-wrap{
     display:grid;
-    grid-template-columns:minmax(0,1.6fr) minmax(380px,1fr);
+    grid-template-columns:minmax(0,1.82fr) minmax(360px,.88fr);
     gap:0;
     align-items:flex-start;
   }
@@ -391,7 +391,7 @@
   .garment-stage{
     background:#fff;
     padding:20px;
-    width:80%;
+    width:94%;
     margin:0 auto 22px;
     display:block;
   }
@@ -399,7 +399,7 @@
   .garment-canvas-viewport{position:relative;overflow:hidden;min-width:0;min-height:450px;display:flex;align-items:center;justify-content:center;cursor:default;}
   .garment-canvas-viewport.space-ready{cursor:grab;}
   .garment-canvas-viewport.panning{cursor:grabbing;}
-  .garment-canvas-inner{width:80%;transform-origin:center center;will-change:transform;}
+  .garment-canvas-inner{width:88%;transform-origin:center center;will-change:transform;}
   .garment-canvas-inner > svg{display:block;width:100%;height:auto;}
   .canvas-controls{position:absolute;left:12px;top:12px;display:flex;gap:6px;z-index:4;}
   .canvas-control{width:34px;height:34px;border:2px solid var(--ink);background:var(--cream);font:800 17px 'Poppins',sans-serif;cursor:pointer;}
@@ -408,10 +408,17 @@
   .pattern-card{position:static;width:100%;max-width:180px;margin:32px 0 0 auto;background:rgba(239,247,226,.94);padding:10px;}
   .pattern-card-title{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;text-align:left;}
   .pattern-card svg{display:block;width:100%;height:auto;}
-  .view-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:-10px 0 22px;}
+  .view-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:-10px 0 10px;}
   .view-tab{border:2px solid var(--ink);background:var(--cream);padding:8px 18px;font:700 11px 'Poppins',sans-serif;text-transform:uppercase;cursor:pointer;}
   .view-tab.active{background:var(--ink);color:#fff;}
-  .preview-tip{font-size:11px;font-weight:600;opacity:.65;margin-top:-12px;}
+  .preview-tip{position:relative;display:block;clear:both;font-size:11px;font-weight:600;line-height:1.55;opacity:.65;margin:7px auto 0;max-width:92%;}
+  .config-reference-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:12px;}
+  .config-reference-card{position:relative;background:#fff;padding:8px;text-align:center;}
+  .config-reference-card img{display:block;width:100%;height:92px;object-fit:contain;background:#ecebe6;}
+  .config-reference-card button{position:absolute;right:5px;top:5px;border:0;background:#1a1a1a;color:#fff;width:25px;height:25px;font-weight:800;cursor:pointer;}
+  .decoration-spacing-row{display:grid;grid-template-columns:minmax(0,1fr) 58px;gap:10px;align-items:center;}
+  .decoration-spacing-row input[type=range]{width:100%;accent-color:#d6281f;}
+  .decoration-spacing-value{background:#fff;padding:8px 5px;text-align:center;font-size:11px;font-weight:800;}
   .graphic-tools{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
   .graphic-tool{background:var(--cream);border:2px solid var(--ink);padding:7px 11px;font:700 11px 'Poppins',sans-serif;cursor:pointer;text-transform:uppercase;}
   .graphic-tool:hover{background:#fff;box-shadow:2px 2px 0 var(--ink);}
@@ -756,14 +763,14 @@
 </head>
 <body>
 <div id="app"></div>
-<audio id="background-music" src="assets/background-music.mp3" loop preload="auto"></audio>
+<audio id="background-music" src="assets/background-music.mp3" loop preload="none"></audio>
 
 <script>
 /* ---------------- DATA ---------------- */
 
 const OPTION_VALUES = {
   Fit: ['Regular','Oversized','Slim','Relaxed'],
-  Fabric: ['100% Cotton','Cotton Fleece','French Terry','Heavyweight Jersey'],
+  Fabric: ['Single Jersey','French Terry','Fleece','CVC','TC','Poly'],
   Color: ['Off White','Powder Blue','Cream','Forest Green','Black','White','Red'],
   Print: ['None','Screen Print','Embroidery','Puff Print'],
   Technique: ['Pearls','Stud','Rhinestones','Hand Stitch'],
@@ -778,17 +785,17 @@ const ARTWORK_TECHNIQUES = ['Screen Print','Puff Print','Embroidery','DTG Print'
 
 const PRODUCTS = {
   tee: { label:'Tee', color:'var(--tee-color)', svg:'tee',
-    configs:['Fit & Specs','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
   hoodie: { label:'Hoodie', color:'var(--hoodie-color)', svg:'hoodie',
-    configs:['Fit & Specs','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
   sweatshirt: { label:'Sweatshirt', color:'var(--sweatshirt-color)', svg:'sweatshirt',
-    configs:['Fit & Specs','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
   sweatpants: { label:'Sweatpants', color:'var(--sweatpants-color)', svg:'sweatpants',
-    configs:['Fit & Specs','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
   fullzip: { label:'Full-Zip Hoodie', color:'var(--hoodie-color)', svg:'hoodie',
-    configs:['Fit & Specs','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
   denim: { label:'Denim Pants', color:'var(--sweatpants-color)', svg:'sweatpants',
-    configs:['Fit & Specs','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
 };
 
 const FAQS = [
@@ -814,10 +821,12 @@ let state = {
   history: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
   marks: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
   decorationReferences: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
+  configReferences: { tee:{fit:[],wash:[]}, hoodie:{fit:[],wash:[]}, sweatshirt:{fit:[],wash:[]}, sweatpants:{fit:[],wash:[]}, fullzip:{fit:[],wash:[]}, denim:{fit:[],wash:[]} },
   referenceStudio: { tee:{images:[],services:[],notes:'',target:'Entire Design',deadline:'',email:''}, hoodie:{images:[],services:[],notes:'',target:'Entire Design',deadline:'',email:''}, sweatshirt:{images:[],services:[],notes:'',target:'Entire Design',deadline:'',email:''}, sweatpants:{images:[],services:[],notes:'',target:'Entire Design',deadline:'',email:''}, fullzip:{images:[],services:[],notes:'',target:'Entire Design',deadline:'',email:''}, denim:{images:[],services:[],notes:'',target:'Entire Design',deadline:'',email:''} },
   brushMode: null,
   decorationSize: 4,
   decorationColor: '#EAFcff',
+  decorationSpacing: 100,
   activeZone: 'Front',
   fabricZone: 'Front',
   garmentView: 'Front',
@@ -1017,7 +1026,7 @@ function garmentSVG(type, color, size, customization={}){
   const normalizedLargeView=normalizedBackView || normalizedSweatshirtFront;
   const sourceScale=normalizedLargeView ? 1.5 : 1;
   const sourceOffset=normalizedLargeView ? -50 : 0;
-  return `<svg class="garment-preview ${(brushMode||state.areaSelectMode)?'brush-active':''}" width="${size}" height="${size}" viewBox="0 0 200 200" aria-label="Customized ${type} preview" onpointerdown="drawStart(event)" onpointermove="drawMove(event)" onpointerrawupdate="drawMove(event)" onpointerup="drawEnd(event)" onpointercancel="drawEnd(event)">
+  return `<svg class="garment-preview ${(brushMode||state.areaSelectMode)?'brush-active':''}" width="${size}" height="${size}" viewBox="0 0 200 200" aria-label="Customized ${type} preview" onpointerdown="drawStart(event)" onpointermove="drawMove(event)" onpointerup="drawEnd(event)" onpointercancel="drawEnd(event)">
     <defs>
       <filter id="bodyColor" color-interpolation-filters="sRGB"><feColorMatrix values="${matrixFor(bodyColor,sourceToneBoost)}"/></filter>
       <filter id="leftSleeveColor" color-interpolation-filters="sRGB"><feColorMatrix values="${matrixFor(leftSleeveColor,sourceToneBoost)}"/></filter>
@@ -1234,7 +1243,7 @@ function renderAccountModal(){
 function renderHome(){
   return `<main class="model-home combined-model-home" id="model-home">
     <div class="model-group combined-model-group">
-      <img class="model-home-image" src="assets/model-home-combined.png" alt="Men and women wearing customizable Spool garments">
+      <img class="model-home-image" src="assets/model-home-combined.jpg" alt="Men and women wearing customizable Spool garments" decoding="async" fetchpriority="high">
       <button class="model-hotspot men-tee" data-label="Customize Tee" aria-label="Customize men's Tee" onclick="focusModelAndStart(event,'tee')"></button>
       <button class="model-hotspot men-hoodie" data-label="Customize Hoodie" aria-label="Customize men's Hoodie" onclick="focusModelAndStart(event,'hoodie')"></button>
       <button class="model-hotspot men-sweatshirt" data-label="Customize Sweatshirt" aria-label="Customize men's Sweatshirt" onclick="focusModelAndStart(event,'sweatshirt')"></button>
@@ -1293,15 +1302,20 @@ function renderItem(){
   const optionGrid=(key,options,fit=false)=>`<div class="sub-grid">${options.map(o=>`
     <div class="sub-btn ${sel[key]===o?'selected':''}" ${fit?`onclick="selectFitOption(event,'${o}')"`:`onclick="selectOption('${key}','${o.replace(/'/g,"\\'")}')"`}>${o}</div>
   `).join('')}</div>`;
+  const configReferencePanel=(kind,label)=>{
+    const refs=(state.configReferences[state.productKey]?.[kind]||[]);
+    return `<div class="fabric-section"><div class="fabric-label">${label}</div><label class="layer-upload-btn">+ Upload Reference Image<input type="file" multiple accept="image/png,image/jpeg,image/webp" onchange="handleConfigReferenceUpload(event,'${kind}')"></label><div class="config-reference-grid">${refs.map(ref=>`<div class="config-reference-card"><button onclick="removeConfigReference('${kind}','${ref.id}')" title="Remove reference">×</button><img src="${ref.src}" alt="${label}"><div class="upload-note">${String(ref.name||'Reference').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div></div>`).join('')}</div></div>`;
+  };
   const configButtons = p.configs.map(c => {
     const isOpen = state.configurable === c;
     let panel='';
-    if(c==='Fit & Specs'){
-      panel=`<div class="fabric-section"><div class="fabric-label">Fit & Size</div>${optionGrid('Fit',OPTION_VALUES.Fit,true)}<div class="fit-help">Double-click a fit to edit size specifications and notes.</div></div>
-        ${state.productKey==='sweatpants'?`<div class="fabric-section"><div class="fabric-label">Waistband</div>${optionGrid('Waistband',OPTION_VALUES.Waistband)}</div>`:''}`;
+    if(c==='Fit (Spec) & Construction'){
+      panel=`<div class="fabric-section">${optionGrid('Fit',OPTION_VALUES.Fit,true)}<div class="fit-help">Double-click a fit to edit size specifications, construction details, and notes.</div></div>
+        ${state.productKey==='sweatpants'?`<div class="fabric-section"><div class="fabric-label">Waistband</div>${optionGrid('Waistband',OPTION_VALUES.Waistband)}</div>`:''}
+        ${configReferencePanel('fit','Fit / Construction Reference')}`;
     } else if(c==='Fabric & Color'){
       const fabricZone=state.fabricZone||'Front';
-      const placementZones=['Front','Back','Right Sleeve','Left Sleeve','Rib','All',...((state.productKey==='hoodie'||state.productKey==='fullzip')?['Hood']:[])];
+      const placementZones=['Front','Back','Right Sleeve','Left Sleeve','Rib',...((state.productKey==='hoodie'||state.productKey==='fullzip')?['Hood']:[]),'All'];
       const tabs=`<div class="placement-tabs">${placementZones.map(z=>`<button class="placement-tab ${fabricZone===z?'active':''}" onclick="setFabricZone('${z}')">${z}</button>`).join('')}</div>`;
       const fabricControl=(key,label)=>`<div class="fabric-section"><div class="fabric-label">${label}</div>${optionGrid(key,OPTION_VALUES.Fabric)}
         <textarea class="fabric-note" placeholder="${label} notes…" oninput="updateFabricNote('${key}Note',this.value)">${sel[key+'Note']||''}</textarea></div>`;
@@ -1329,7 +1343,7 @@ function renderItem(){
       }else{
         zoneControls='<div class="confirm-box">This garment does not use a separate hood panel.</div>';
       }
-      panel=`<div class="sub-heading">Fabric Placement</div>${tabs}${zoneControls}`;
+      panel=`${tabs}${zoneControls}`;
     } else if(c==='Artwork & Technique'){
       const zoneKey=state.activeZone.replace(/\s/g,'');
       const decorationRefs=(state.decorationReferences[state.productKey]||[]).filter(r=>(r.zone||'Front')===state.activeZone&&(!state.brushMode||r.type===state.brushMode));
@@ -1367,7 +1381,7 @@ function renderItem(){
       panel=`<div class="inline-options-head"><label class="upload-btn">&#8593; Upload Image<input type="file" multiple accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="handleImageUpload(event)"></label></div>
         <div class="placement-tabs">${['Front','Back','Right Sleeve','Left Sleeve',...((state.productKey==='hoodie'||state.productKey==='fullzip')?['Hood']:[])].map(z=>`<button class="placement-tab ${state.activeZone===z?'active':''}" onclick="setActiveZone('${z}')">${z}</button>`).join('')}</div>
         ${inspector}
-        <div class="fabric-section"><div class="fabric-label">Decoration Technique</div>${optionGrid('Technique'+zoneKey,OPTION_VALUES.Technique)}${state.brushMode?`<details class="decoration-settings"><summary>Size & Color — ${state.decorationSize||4} mm</summary><div class="decoration-settings-body"><div class="fabric-label">Size</div><select class="layer-technique" onchange="setDecorationSize(this.value)">${[2,4,6,8,10].map(size=>`<option value="${size}" ${(state.decorationSize||4)===size?'selected':''}>${size} mm</option>`).join('')}</select><div class="fabric-label" style="margin-top:14px">Color</div><div style="display:flex;align-items:center;gap:10px"><input type="color" value="${state.decorationColor||'#eafcff'}" oninput="setDecorationColor(this.value)" aria-label="Decoration color" style="width:46px;height:38px;border:0;background:transparent"><input value="${state.decorationColor||'#eafcff'}" onchange="setDecorationColor(this.value)" aria-label="Decoration color hex" style="width:105px;padding:9px;background:#fff;border:0;font-weight:700;text-transform:uppercase"></div></div></details><button class="remove-decoration-btn" onclick="removeActiveDecoration()">Remove ${brushDisplayName(state.brushMode)}</button>${decorationReferenceHtml}`:''}</div>
+        <div class="fabric-section"><div class="fabric-label">Decoration Technique</div>${optionGrid('Technique'+zoneKey,OPTION_VALUES.Technique)}${state.brushMode?`<details class="decoration-settings"><summary>Size, Color & Spacing — ${state.decorationSize||4} mm</summary><div class="decoration-settings-body"><div class="fabric-label">Size</div><select class="layer-technique" onchange="setDecorationSize(this.value)">${[2,4,6,8,10].map(size=>`<option value="${size}" ${(state.decorationSize||4)===size?'selected':''}>${size} mm</option>`).join('')}</select><div class="fabric-label" style="margin-top:14px">Color</div><div style="display:flex;align-items:center;gap:10px"><input type="color" value="${state.decorationColor||'#eafcff'}" oninput="setDecorationColor(this.value)" aria-label="Decoration color" style="width:46px;height:38px;border:0;background:transparent"><input value="${state.decorationColor||'#eafcff'}" onchange="setDecorationColor(this.value)" aria-label="Decoration color hex" style="width:105px;padding:9px;background:#fff;border:0;font-weight:700;text-transform:uppercase"></div><div class="fabric-label" style="margin-top:14px">Brush Spacing</div><div class="decoration-spacing-row"><input type="range" min="45" max="250" step="5" value="${state.decorationSpacing||100}" oninput="previewDecorationSpacing(this)" onchange="setDecorationSpacing(this.value)" aria-label="Decoration spacing"><span class="decoration-spacing-value">${state.decorationSpacing||100}%</span></div></div></details><button class="remove-decoration-btn" onclick="removeActiveDecoration()">Remove ${brushDisplayName(state.brushMode)}</button>${decorationReferenceHtml}`:''}</div>
         <div class="upload-note">Each placement keeps its own artwork and technique settings.</div>`;
     } else if(c==='Trim'){
       panel=`<div class="fabric-section"><div class="fabric-label">Trim Type</div>${optionGrid('TrimType',OPTION_VALUES.Trim)}</div>
@@ -1383,14 +1397,15 @@ function renderItem(){
         <div class="reference-studio-fields"><label>Apply Request To<select onchange="updateStudioField('target',this.value)">${targetOptions.map(t=>`<option ${studio.target===t?'selected':''}>${t}</option>`).join('')}</select></label><label>Requested Deadline<input type="date" value="${studio.deadline||''}" onchange="updateStudioField('deadline',this.value)"></label><label>Customer Email<input type="email" placeholder="you@example.com" value="${studio.email||getAccountUser()?.email||''}" oninput="updateStudioField('email',this.value)"></label><label>Style / Product<input value="${PRODUCTS[state.productKey].label}" readonly></label></div>
         <div class="graphic-tools" style="margin-top:18px"><button class="graphic-tool" onclick="saveStudioReference()">Save Reference</button><button class="submit-btn" onclick="submitDesignRequest()">Submit Design Request</button></div>`;
     } else {
-      panel=`<div class="fabric-section"><div class="fabric-label">Washing</div>${optionGrid('Washing',OPTION_VALUES.Washing)}</div>
-        <div class="fabric-section"><div class="fabric-label">Distressing</div>${optionGrid('Distressed',OPTION_VALUES.Distressed)}</div>`;
+      panel=`<div class="fabric-section"><div class="fabric-label">Finish</div>${optionGrid('Distressed',OPTION_VALUES.Distressed)}</div>
+        ${configReferencePanel('wash','Wash / Finish Reference')}`;
     }
     const optionPanel=isOpen?`<div class="inline-options">${c==='Artwork & Technique'?'':`<div class="sub-heading">${c}</div>`}${panel}
       <div class="close-config-row"><button class="close-config-btn" onclick="goSubOption('${c}')"><span style="font-size:18px;line-height:1">×</span> Close</button></div>
     </div>`:'';
-    const summary=c==='Fit & Specs'?sel.Fit:c==='Fabric & Color'?sel.BodyFabric:c==='Trim'?sel.TrimType:c==='Wash & Finish'?sel.Washing:c==='Reference & Design Studio'&&state.referenceStudio[state.productKey].images.length?`${state.referenceStudio[state.productKey].images.length} reference(s)`:null;
-    const valHtml=summary?`<span class="value">${summary}</span>`:`<span class="value unset">${c==='Artwork & Technique'&&state.uploads[state.productKey].length?state.uploads[state.productKey].length+' artwork item(s)':'Not set'}</span>`;
+    const summary=c==='Fit (Spec) & Construction'?sel.Fit:c==='Fabric & Color'?sel.BodyFabric:c==='Trim'?sel.TrimType:c==='Wash & Finish'?sel.Distressed:c==='Reference & Design Studio'&&state.referenceStudio[state.productKey].images.length?`${state.referenceStudio[state.productKey].images.length} reference(s)`:null;
+    const artworkCount=c==='Artwork & Technique'&&state.uploads[state.productKey].length;
+    const valHtml=summary?`<span class="value">${summary}</span>`:`<span class="value ${artworkCount?'':'unset'}">${artworkCount?state.uploads[state.productKey].length+' artwork item(s)':'Not set'}</span>`;
     return `<div class="config-btn ${isOpen?'active':''}" onclick="goSubOption('${c}')">
         <span class="name">${c}</span>
         ${valHtml}
@@ -1597,7 +1612,7 @@ function renderTechPackModal(){
     ['COLORS',colors],
     ['TECHNIQUE DETAILS',techniques.join(', ')||'Not set'],
     ['TRIM',[sel.TrimType,sel.TrimMaterialNote,sel.TrimFinishNote,sel.TrimPlacementNote].filter(Boolean).join(' / ')||'Not set'],
-    ['WASH / FINISH',[sel.Washing,sel.Distressed].filter(Boolean).join(' / ')||'Not set'],
+    ['WASH / FINISH',sel.Distressed||'Not set'],
     ['NOTES',notes]
   ];
   return `<div class="modal-backdrop" onclick="closeTechPack(event)">
@@ -1774,7 +1789,7 @@ function pushHistory(){
   const key=state.productKey;
   if(!key)return;
   const snapshot=JSON.stringify({
-    selections:state.selections[key],uploads:state.uploads[key],marks:state.marks[key],decorationReferences:state.decorationReferences[key],fitSpecs:state.fitSpecs[key],referenceStudio:state.referenceStudio[key]
+    selections:state.selections[key],uploads:state.uploads[key],marks:state.marks[key],decorationReferences:state.decorationReferences[key],configReferences:state.configReferences[key],fitSpecs:state.fitSpecs[key],referenceStudio:state.referenceStudio[key]
   });
   const stack=state.history[key];
   if(stack[stack.length-1]!==snapshot)stack.push(snapshot);
@@ -1806,6 +1821,7 @@ function undoDesign(){
   state.uploads[key]=previous.uploads||[];
   state.marks[key]=previous.marks||[];
   state.decorationReferences[key]=previous.decorationReferences||[];
+  state.configReferences[key]=previous.configReferences||{fit:[],wash:[]};
   state.fitSpecs[key]=previous.fitSpecs||{};
   state.referenceStudio[key]=previous.referenceStudio||state.referenceStudio[key];
   state.selectedGraphic[key]=null;
@@ -1896,6 +1912,7 @@ function resetProductDesign(key){
   state.history[key]=[];
   state.marks[key]=[];
   state.decorationReferences[key]=[];
+  state.configReferences[key]={fit:[],wash:[]};
   state.fitSpecs[key]={};
   state.referenceStudio[key]={images:[],services:[],notes:'',target:'Entire Design',deadline:'',email:''};
   state.previewView[key]={zoom:1,x:0,y:0};
@@ -1918,7 +1935,7 @@ async function saveDesign(addToLibrary=true){
   const key=state.productKey;
   try{
     const savedAt=new Date().toISOString();
-    const designData=cleanDesignForStorage({selections:state.selections[key],uploads:state.uploads[key],marks:state.marks[key],decorationReferences:state.decorationReferences[key],fitSpecs:state.fitSpecs[key]||{},referenceStudio:state.referenceStudio[key],savedAt});
+    const designData=cleanDesignForStorage({selections:state.selections[key],uploads:state.uploads[key],marks:state.marks[key],decorationReferences:state.decorationReferences[key],configReferences:state.configReferences[key],fitSpecs:state.fitSpecs[key]||{},referenceStudio:state.referenceStudio[key],savedAt});
     await spoolDBPut(`current-${key}`,designData);
     const saved=JSON.parse(localStorage.getItem('spoolDesigns') || '{}');saved[key]={selections:designData.selections,fitSpecs:designData.fitSpecs,savedAt};localStorage.setItem('spoolDesigns',JSON.stringify(saved));
     if(addToLibrary){
@@ -1957,6 +1974,7 @@ async function loadSavedDesign(id){
   state.uploads[key]=data.uploads||[];
   state.marks[key]=data.marks||[];
   state.decorationReferences[key]=data.decorationReferences||[];
+  state.configReferences[key]=data.configReferences||{fit:[],wash:[]};
   state.fitSpecs[key]=data.fitSpecs||{};
   state.referenceStudio[key]=data.referenceStudio||state.referenceStudio[key];
   state.selectedGraphic[key]=null;
@@ -2169,7 +2187,7 @@ function selectOption(configurable, value){
   }
   state.view='item';
   const isArtwork=configurable.startsWith('Print') || configurable.startsWith('Technique');
-  if(configurable==='Fit' || configurable==='Waistband') state.configurable='Fit & Specs';
+  if(configurable==='Fit' || configurable==='Waistband') state.configurable='Fit (Spec) & Construction';
   else if(configurable.endsWith('Color') || configurable.endsWith('Rib') || configurable.endsWith('Fabric')) state.configurable='Fabric & Color';
   else if(isArtwork) state.configurable='Artwork & Technique';
   else state.configurable='Wash & Finish';
@@ -2248,7 +2266,7 @@ function decorationPathFor(type,zone){
 function pointInsideDecoration(type,zone,x,y){
   try{const c=pointInsideDecoration.canvas||(pointInsideDecoration.canvas=document.createElement('canvas'));return c.getContext('2d').isPointInPath(new Path2D(decorationPathFor(type,zone)),x,y);}catch(_){return x>=5&&x<=195&&y>=5&&y<=195;}
 }
-let decorationStroke=null,activeDecorationSvg=null;
+let decorationStroke=null,activeDecorationSvg=null,lastPointerBrushMoveAt=0,lastPointerBrushEventStamp=-1;
 function appendDecorationMark(svg,p,angle=0){
   if(!pointInsideDecoration(state.productKey,state.activeZone,p.x,p.y))return false;
   const size=state.decorationSize||4,type=state.brushMode;
@@ -2282,7 +2300,8 @@ function addBrushMark(event,svgOverride){
   const angle=Math.atan2(dy,dx)*180/Math.PI;
   // Sample by travelled distance rather than by browser event count. This makes
   // a slow drag, fast drag, mouse drag, and finger drag produce the same line.
-  const spacing=Math.max(1.4,size*.85);
+  const spacingMultiplier=Math.max(.45,Math.min(2.5,(state.decorationSpacing||100)/100));
+  const spacing=Math.max(.7,size*.85*spacingMultiplier);
   let next=spacing-(decorationStroke.remainder||0);
   while(next<=distance+.001){
     const ratio=next/distance,q={x:from.x+dx*ratio,y:from.y+dy*ratio};
@@ -2312,6 +2331,7 @@ function drawStart(event){
   event.stopPropagation();
   pushHistory();
   isDrawing=true;decorationStroke=null;activeDecorationSvg=event.currentTarget;
+  lastPointerBrushMoveAt=Date.now();lastPointerBrushEventStamp=event.timeStamp;
   // Capture on the transparent hit layer rather than an SVG image. Chrome and
   // mobile Safari then keep sending every movement even when the stroke crosses
   // an uploaded graphic or a garment seam.
@@ -2330,6 +2350,8 @@ function drawMove(event){
   // capture paths. `isDrawing` is the reliable source of truth until pointerup.
   if(isDrawing){
     event.__spoolBrushHandled=true;
+    lastPointerBrushMoveAt=Date.now();
+    lastPointerBrushEventStamp=event.timeStamp;
     event.preventDefault();
     const svg=event.currentTarget;
     // Coalesced pointer samples preserve the real hand path when Chrome batches
@@ -2360,7 +2382,7 @@ function drawEnd(event){
   }
   if(isDrawing){
     if(event.type==='pointerup')addBrushMark(event,event.currentTarget||activeDecorationSvg);
-    isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+    isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
   }
 }
 
@@ -2369,7 +2391,9 @@ function drawEnd(event){
 // are a fallback only when the move/up event is no longer inside the active board.
 // They keep one continuous decoration stroke instead of turning a drag into clicks.
 window.addEventListener('pointermove',event=>{
-  if(!isDrawing||!activeDecorationSvg||event.__spoolBrushHandled)return;
+  if(!isDrawing||!activeDecorationSvg||event.__spoolBrushHandled||event.timeStamp===lastPointerBrushEventStamp)return;
+  lastPointerBrushMoveAt=Date.now();
+  lastPointerBrushEventStamp=event.timeStamp;
   event.preventDefault();
   const samples=typeof event.getCoalescedEvents==='function'?event.getCoalescedEvents():[event];
   (samples.length?samples:[event]).forEach(sample=>addBrushMark(sample,activeDecorationSvg));
@@ -2378,14 +2402,16 @@ window.addEventListener('pointerup',event=>{
   if(!isDrawing||!activeDecorationSvg)return;
   event.preventDefault();
   addBrushMark(event,activeDecorationSvg);
-  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
 },{passive:false});
-// Some embedded browsers emit mouse movement without a matching pointermove
-// while dragging over inline SVG. Keep a mouse fallback so a held drag always
-// paints a continuous path. Duplicate pointer/mouse coordinates are harmless
-// because the distance sampler ignores zero-length movement.
+// Some embedded browsers emit mouse movement without a matching pointermove.
+// Keep a delayed fallback, but never process mousemove immediately after a
+// pointermove. Modern Chrome emits both event families for the same physical
+// motion; processing both makes the sampled path double back and scatters the
+// stones. The delay preserves the fallback without duplicating coordinates.
 window.addEventListener('mousemove',event=>{
   if(!isDrawing||!activeDecorationSvg||!(event.buttons&1))return;
+  if(Date.now()-lastPointerBrushMoveAt<120)return;
   event.preventDefault();
   addBrushMark(event,activeDecorationSvg);
 },{passive:false});
@@ -2393,15 +2419,21 @@ window.addEventListener('mouseup',event=>{
   if(!isDrawing||!activeDecorationSvg)return;
   event.preventDefault();
   addBrushMark(event,activeDecorationSvg);
-  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
 },{passive:false});
 window.addEventListener('pointercancel',event=>{
   if(event.pointerType==='mouse')return;
   if(!isDrawing)return;
-  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
 },{passive:false});
 function stopBrush(){ state.brushMode=null; render(); }
 function setDecorationSize(size){state.decorationSize=Number(size)||4;render();}
+function previewDecorationSpacing(input){
+  state.decorationSpacing=Math.max(45,Math.min(250,Number(input.value)||100));
+  const output=input.parentElement?.querySelector('.decoration-spacing-value');
+  if(output)output.textContent=`${state.decorationSpacing}%`;
+}
+function setDecorationSpacing(value){state.decorationSpacing=Math.max(45,Math.min(250,Number(value)||100));}
 function setDecorationColor(value){
   const v=String(value||'').trim();
   if(/^#[0-9a-f]{6}$/i.test(v)){state.decorationColor=v;render();}
@@ -2419,6 +2451,27 @@ function handleDecorationReferenceUpload(event){
 }
 function removeDecorationReference(id){
   const key=state.productKey;pushHistory();state.decorationReferences[key]=state.decorationReferences[key].filter(r=>r.id!==id);render();
+}
+function handleConfigReferenceUpload(event,kind){
+  const files=Array.from(event.target.files||[]).filter(file=>file.type.startsWith('image/'));
+  if(!files.length)return;
+  const key=state.productKey;
+  state.configReferences[key]=state.configReferences[key]||{fit:[],wash:[]};
+  state.configReferences[key][kind]=state.configReferences[key][kind]||[];
+  pushHistory();
+  let completed=0;
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      state.configReferences[key][kind].push({id:`${kind}-ref-${Date.now()}-${completed}`,src:reader.result,name:file.name});
+      completed+=1;if(completed===files.length)render();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function removeConfigReference(kind,id){
+  const key=state.productKey;if(!state.configReferences[key]?.[kind])return;
+  pushHistory();state.configReferences[key][kind]=state.configReferences[key][kind].filter(ref=>ref.id!==id);render();
 }
 
 const ARTWORK_ZONE_ORDER=['Front','Back','Right Sleeve','Left Sleeve','Hood','Pocket','Rib','All'];
