@@ -2269,7 +2269,10 @@ function addBrushMark(event,svgOverride){
   if(!svg?.createSVGPoint)return;
   const p=garmentPoint(event,svg),size=state.decorationSize||4;
   if(!decorationStroke){
-    decorationStroke={lastPoint:{...p},remainder:0,hasPlaced:false};
+    // SVGPoint's x/y values are prototype accessors, so spreading it produces
+    // an empty object in Chrome. Copy the coordinates explicitly so every
+    // pointermove can measure the real distance from the previous point.
+    decorationStroke={lastPoint:{x:p.x,y:p.y},remainder:0,hasPlaced:false};
     decorationStroke.hasPlaced=appendDecorationMark(svg,p,0);
     return;
   }
@@ -2287,7 +2290,7 @@ function addBrushMark(event,svgOverride){
     next+=spacing;
   }
   decorationStroke.remainder=((decorationStroke.remainder||0)+distance)%spacing;
-  decorationStroke.lastPoint={...p};
+  decorationStroke.lastPoint={x:p.x,y:p.y};
   // If the stroke started outside the garment, begin immediately at the first
   // valid point instead of waiting for another full spacing interval.
   if(!decorationStroke.hasPlaced&&appendDecorationMark(svg,p,angle)){
@@ -2336,6 +2339,9 @@ function drawMove(event){
   }
 }
 function drawEnd(event){
+  // Chrome can emit pointercancel during an ordinary mouse drag over inline
+  // SVG. Keep that stroke alive; mouseup/pointerup will finish it normally.
+  if(event?.type==='pointercancel' && event.pointerType==='mouse')return;
   if(areaSelection){
     const p=garmentPoint(event),x=Math.min(areaSelection.x,p.x),y=Math.min(areaSelection.y,p.y),w=Math.abs(p.x-areaSelection.x),h=Math.abs(p.y-areaSelection.y);
     const key=state.productKey,index=state.selectedGraphic[key];
@@ -2389,7 +2395,8 @@ window.addEventListener('mouseup',event=>{
   addBrushMark(event,activeDecorationSvg);
   isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
 },{passive:false});
-window.addEventListener('pointercancel',()=>{
+window.addEventListener('pointercancel',event=>{
+  if(event.pointerType==='mouse')return;
   if(!isDrawing)return;
   isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
 },{passive:false});
