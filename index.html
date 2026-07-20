@@ -340,7 +340,7 @@
     margin-top:4px;
     font-size:12px;
     font-weight:400;
-    color:var(--accent);
+    color:#d6281f;
     text-transform:none;
     letter-spacing:0;
   }
@@ -348,6 +348,7 @@
     color:#8a8a8a;
     font-style:italic;
   }
+  .sub-btn.selected{color:#d6281f;}
   .config-btn.active{
     background:#fff;
     border-color:var(--accent);
@@ -417,7 +418,14 @@
   .graphic-tool.active{background:var(--accent);color:#fff;border-color:var(--accent);}
   .garment-preview image{cursor:move;}
   .garment-preview image.locked{pointer-events:none;cursor:default;}
-  .garment-preview.brush-active{cursor:crosshair;touch-action:none;}
+  .garment-preview.brush-active{cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none;}
+  /* While a decoration brush is active the artwork must not steal the
+     pointer. This lets one continuous stroke travel across artwork, sleeves,
+     body and hood instead of turning into an artwork drag. */
+  .garment-preview.brush-active .uploaded-graphic,
+  .garment-preview.brush-active .graphic-resize-handle{pointer-events:none!important;cursor:crosshair;}
+  .garment-preview.brush-active image{pointer-events:none!important;-webkit-user-drag:none;}
+  .garment-preview .brush-hit-layer{touch-action:none;pointer-events:all;}
   .color-options{margin-top:18px;padding-top:18px;border-top:1px dashed rgba(26,26,26,.4);}
   .color-circles{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
   .color-dot{width:34px;height:34px;border-radius:50%;border:2px solid rgba(26,26,26,.25);cursor:pointer;position:relative;transition:transform .15s;}
@@ -479,6 +487,13 @@
   .techpack-color-chip i{width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.25);display:inline-block;}
   .artwork-card-actions{display:flex;gap:6px;margin-top:8px;}
   .artwork-card-actions button{flex:1;border:0;background:#222;color:#fff;padding:8px 5px;font:700 9px 'Poppins',sans-serif;text-transform:uppercase;cursor:pointer;}
+  .artwork-align-tools{margin-top:9px;padding-top:9px;border-top:1px solid rgba(30,30,30,.16);}
+  .artwork-align-label{display:block;margin-bottom:6px;color:#555;font:800 8px 'Poppins',sans-serif;letter-spacing:.8px;text-transform:uppercase;}
+  .artwork-align-row{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:3px;}
+  .artwork-align-row button{height:28px;border:0;background:#f2efe6;color:#222;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:1px 1px 0 rgba(30,30,30,.12);}
+  .artwork-align-row button:hover{background:#fff;}
+  .artwork-align-row svg{width:20px!important;height:20px!important;overflow:visible!important;background:transparent!important;}
+  .artwork-file-meta{margin:7px 0 2px;color:#666;font:700 8px/1.4 'Poppins',sans-serif;letter-spacing:.4px;text-transform:uppercase;}
   .artwork-editor-modal{width:min(980px,96vw);max-height:92vh;overflow:auto;}
   .artwork-editor-backdrop{z-index:120;}
   .artwork-editor-layout{display:grid;grid-template-columns:minmax(300px,1.25fr) minmax(280px,.75fr);gap:24px;align-items:start;}
@@ -521,9 +536,10 @@
   .decoration-reference-item button{position:absolute;right:2px;top:2px;width:22px;height:22px;border:0;background:#222;color:#fff;font-weight:900;cursor:pointer;}
   .artwork-palette{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(30,30,30,.35);}
   .artwork-palette-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;}
-  .artwork-color-row{display:grid;grid-template-columns:28px 1fr;gap:7px;align-items:center;background:#fff;padding:6px;}
+  .artwork-color-row{position:relative;display:grid;grid-template-columns:28px 1fr 24px;gap:7px;align-items:center;background:#fff;padding:6px;}
   .artwork-color-row input[type="color"]{width:28px;height:28px;border:0;padding:0;background:transparent;cursor:pointer;}
   .artwork-color-hex{width:100%;border:0;background:#f4f1e8;padding:6px;font:700 9px monospace;text-transform:uppercase;}
+  .artwork-color-remove{width:24px;height:24px;border:0;background:#222;color:#fff;font:900 13px 'Poppins',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;}
   .techpack-artwork-page{break-before:page;page-break-before:always;padding-top:12px;min-height:680px;}
   .techpack-artwork-title{text-align:center;font-size:28px;letter-spacing:2px;text-transform:uppercase;margin:0 0 24px;}
   .techpack-artwork-layout{display:grid;grid-template-columns:1.2fr .8fr;gap:34px;align-items:start;}
@@ -758,6 +774,8 @@ const OPTION_VALUES = {
   Waistband: ['Elastic','Drawstring','Elastic + Drawstring','Ribbed Waistband'],
 };
 
+const ARTWORK_TECHNIQUES = ['Screen Print','Puff Print','Embroidery','DTG Print','HD Print','Chenille Patch','Applique','Patch'];
+
 const PRODUCTS = {
   tee: { label:'Tee', color:'var(--tee-color)', svg:'tee',
     configs:['Fit & Specs','Fabric & Color','Artwork & Technique','Trim','Wash & Finish','Reference & Design Studio'] },
@@ -956,7 +974,7 @@ function garmentSVG(type, color, size, customization={}){
     if(type==='hand-stitch') return `<g><path d="M${x-2.2} ${y+1.1}L${x+2.2} ${y-1.1}" stroke="${color}" stroke-width="1.15" stroke-linecap="round"/><circle cx="${x-2.2}" cy="${y+1.1}" r=".35" fill="${color}"/><circle cx="${x+2.2}" cy="${y-1.1}" r=".35" fill="${color}"/></g>`;
     return `<path d="M${x-4} ${y+1} L${x+4} ${y-1} M${x-2} ${y-3} L${x+2} ${y+3}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity=".9"/>`;
   };
-  const renderMarkSet=list=>list.map(m => {const scale=(m.size||4)/4;return `<g transform="translate(${m.x} ${m.y}) scale(${scale}) translate(${-m.x} ${-m.y})">${markSVG(m.type,m.x,m.y,m.color)}</g>`;}).join('');
+  const renderMarkSet=list=>list.map(m => {const scale=(m.size||4)/4,rotation=Number(m.rotation)||0;return `<g transform="rotate(${rotation} ${m.x} ${m.y}) translate(${m.x} ${m.y}) scale(${scale}) translate(${-m.x} ${-m.y})">${markSVG(m.type,m.x,m.y,m.color)}</g>`;}).join('');
   const drawnMarks = renderMarkSet(marks);
   const compositeMarks=(activeZone==='Front'||activeZone==='Back') ? `
     <g class="current-zone-marks" clip-path="url(#garmentArtworkClip)">${renderMarkSet(allMarks.filter(m=>(m.zone||'Front')===activeZone))}</g>
@@ -999,7 +1017,7 @@ function garmentSVG(type, color, size, customization={}){
   const normalizedLargeView=normalizedBackView || normalizedSweatshirtFront;
   const sourceScale=normalizedLargeView ? 1.5 : 1;
   const sourceOffset=normalizedLargeView ? -50 : 0;
-  return `<svg class="garment-preview ${(brushMode||state.areaSelectMode)?'brush-active':''}" width="${size}" height="${size}" viewBox="0 0 200 200" aria-label="Customized ${type} preview" onpointerdown="drawStart(event)" onpointermove="drawMove(event)" onpointerup="drawEnd(event)" onpointerleave="drawEnd(event)">
+  return `<svg class="garment-preview ${(brushMode||state.areaSelectMode)?'brush-active':''}" width="${size}" height="${size}" viewBox="0 0 200 200" aria-label="Customized ${type} preview" onpointerdown="drawStart(event)" onpointermove="drawMove(event)" onpointerrawupdate="drawMove(event)" onpointerup="drawEnd(event)" onpointercancel="drawEnd(event)" onlostpointercapture="drawEnd(event)">
     <defs>
       <filter id="bodyColor" color-interpolation-filters="sRGB"><feColorMatrix values="${matrixFor(bodyColor,sourceToneBoost)}"/></filter>
       <filter id="leftSleeveColor" color-interpolation-filters="sRGB"><feColorMatrix values="${matrixFor(leftSleeveColor,sourceToneBoost)}"/></filter>
@@ -1035,6 +1053,7 @@ function garmentSVG(type, color, size, customization={}){
       <g class="live-marks">${compositeMarks}</g>
       </g>
     </g>
+    ${(brushMode||state.areaSelectMode)?'<rect class="brush-hit-layer" x="0" y="0" width="200" height="200" fill="transparent" pointer-events="all" style="cursor:crosshair;touch-action:none"/>':''}
   </svg>`;
 }
 
@@ -1230,9 +1249,46 @@ function renderHome(){
   </main>`;
 }
 
+function artworkFormatLabel(graphic){
+  if(graphic?.fileFormat) return String(graphic.fileFormat).toUpperCase();
+  const match=String(graphic?.src||'').match(/^data:image\/([^;,]+)/i);
+  return match?match[1].replace('jpeg','jpg').replace('svg+xml','svg').toUpperCase():'IMAGE';
+}
+function artworkFileMeta(graphic){
+  const dimensions=graphic?.pixelWidth&&graphic?.pixelHeight?`${graphic.pixelWidth} × ${graphic.pixelHeight} px`:'Dimensions unavailable';
+  return `${artworkFormatLabel(graphic)} · ${dimensions}`;
+}
+function ensureArtworkFileMetadata(key){
+  (state.uploads[key]||[]).forEach(graphic=>{
+    if((graphic.pixelWidth&&graphic.pixelHeight)||graphic.metadataLoading||graphic.metadataFailed||!graphic.src)return;
+    graphic.metadataLoading=true;
+    const image=new Image();
+    image.onload=()=>{
+      graphic.pixelWidth=image.naturalWidth||0;graphic.pixelHeight=image.naturalHeight||0;
+      graphic.fileFormat=artworkFormatLabel(graphic);graphic.metadataLoading=false;
+      if(state.view==='item'&&state.productKey===key)render();
+    };
+    image.onerror=()=>{graphic.metadataLoading=false;graphic.metadataFailed=true;};
+    image.src=graphic.src;
+  });
+}
+function artworkAlignmentControls(index){
+  const icon=(kind)=>({
+    left:'<svg viewBox="0 0 24 24"><path d="M5 3v18M8 12h11M12 8l-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+    center:'<svg viewBox="0 0 24 24"><path d="M12 3v18M5 12h14M8 8l4 4-4 4M16 8l-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+    right:'<svg viewBox="0 0 24 24"><path d="M19 3v18M5 12h11M12 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+    top:'<svg viewBox="0 0 24 24"><path d="M3 5h18M12 8v11M8 12l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+    middle:'<svg viewBox="0 0 24 24"><path d="M3 12h18M12 5v14M8 9l4 3 4-3M8 15l4-3 4 3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+    bottom:'<svg viewBox="0 0 24 24"><path d="M3 19h18M12 5v11M8 12l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>'
+  })[kind];
+  return `<div class="artwork-align-tools" onclick="event.stopPropagation()"><span class="artwork-align-label">Align artwork</span><div class="artwork-align-row"><button title="Align left" onclick="alignGraphicAt(${index},'x','start')">${icon('left')}</button><button title="Align center" onclick="alignGraphicAt(${index},'x','center')">${icon('center')}</button><button title="Align right" onclick="alignGraphicAt(${index},'x','end')">${icon('right')}</button></div><div class="artwork-align-row"><button title="Align top" onclick="alignGraphicAt(${index},'y','start')">${icon('top')}</button><button title="Align middle" onclick="alignGraphicAt(${index},'y','center')">${icon('middle')}</button><button title="Align bottom" onclick="alignGraphicAt(${index},'y','end')">${icon('bottom')}</button></div></div>`;
+}
+
 function renderItem(){
   const p = PRODUCTS[state.productKey];
   const sel = state.selections[state.productKey];
+  state.uploads[state.productKey].forEach(g=>{if(!ARTWORK_TECHNIQUES.includes(g.technique))g.technique='Screen Print';});
+  ensureArtworkFileMetadata(state.productKey);
   const colorHex={'Off White':'#eee9dc','Powder Blue':'#a9c6da','Cream':'#e5d5bc','Forest Green':'#456b3d','Black':'#111111','White':'#f7f7f3','Red':'#a92f2a'};
   const optionGrid=(key,options,fit=false)=>`<div class="sub-grid">${options.map(o=>`
     <div class="sub-btn ${sel[key]===o?'selected':''}" ${fit?`onclick="selectFitOption(event,'${o}')"`:`onclick="selectOption('${key}','${o.replace(/'/g,"\\'")}')"`}>${o}</div>
@@ -1284,10 +1340,12 @@ function renderItem(){
       const metric=selected?getArtworkMetrics(selected):null;
       const inspector=zoneGraphics.length?`<div class="artwork-inspector">
         <div>${zoneGraphics.map((g,i)=>`<div class="artwork-thumb ${g.index===selectedIndex?'active':''} ${g.hidden?'is-hidden':''}" draggable="true" ondragstart="startArtworkReorder(event,${g.index})" ondragend="endArtworkReorder(event)" ondragover="event.preventDefault()" ondrop="dropArtworkReorder(event,${g.index})" onclick="selectGraphic(${g.index})"><div class="artwork-card-head"><span class="artwork-thumb-title">Artwork ${g.index+1}</span><span class="artwork-placement-label">${g.zone||'Front'}</span><div class="artwork-card-head-actions"><button class="layer-remove" title="Delete artwork" onclick="event.stopPropagation();deleteGraphic(${g.index})">×</button><button type="button" class="artwork-edit-button" onclick="event.preventDefault();event.stopPropagation();openArtworkEditor(${g.index});return false">Edit</button><button type="button" class="artwork-hide-button ${g.hidden?'hidden':''}" title="${g.hidden?'Show':'Hide'} artwork" aria-label="${g.hidden?'Show':'Hide'} artwork" onclick="event.preventDefault();event.stopPropagation();toggleArtworkVisibility(${g.index});return false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/>${g.hidden?'<path d="M3.5 3.5 20.5 20.5" stroke-width="2.6"/>':''}</svg></button></div></div>${g.crop?`<svg viewBox="${g.crop.x-g.crop.w*.12} ${g.crop.y-g.crop.h*.12} ${g.crop.w*1.24} ${g.crop.h*1.24}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}" preserveAspectRatio="xMidYMid meet"/></svg>`:`<img src="${g.src}" alt="Uploaded artwork ${g.index+1}">`}
+          <div class="artwork-file-meta">${artworkFileMeta(g)}</div>
           <select class="layer-technique" onclick="event.stopPropagation()" onchange="setGraphicTechnique(${g.index},this.value)">
-            ${['Screen Print','Puff Print','Embroidery','Pearls','Stud','Rhinestones','Hand Stitch'].map(t=>`<option value="${t}" ${(g.technique||'Screen Print')===t?'selected':''}>${t}</option>`).join('')}
+            ${ARTWORK_TECHNIQUES.map(t=>`<option value="${t}" ${(ARTWORK_TECHNIQUES.includes(g.technique)?g.technique:'Screen Print')===t?'selected':''}>${t}</option>`).join('')}
           </select>
           <div class="artwork-card-actions"><button onclick="event.stopPropagation();toggleGraphicLockAt(${g.index})">${g.locked?'Unlock':'Lock'}</button><button onclick="event.stopPropagation();duplicateGraphicAt(${g.index})">Duplicate</button></div>
+          ${artworkAlignmentControls(g.index)}
         </div>`).join('')}</div>
         ${selected&&((selected.zone||'Front')===state.activeZone)?`<div class="artwork-fields">
           <div class="upload-note" style="grid-column:1/-1">Actual measurements based on ${state.fitSize||'M'} size fit specs.</div>
@@ -1447,9 +1505,9 @@ function renderArtworkEditorModal(){
       <div class="upload-note">Magic Wand selects a connected color. Choose + Add Selection to keep selecting more areas on desktop or mobile. On desktop, hold Shift while clicking to add quickly.</div>
       <div class="artwork-editor-actions"><button class="graphic-tool" onclick="updateGraphicMetric('rotation',${(g.rotation||0)-15})">Rotate Left</button><button class="graphic-tool" onclick="updateGraphicMetric('rotation',${(g.rotation||0)+15})">Rotate Right</button><button class="graphic-tool" onclick="resizeGraphic(.9)">Smaller</button><button class="graphic-tool" onclick="resizeGraphic(1.1)">Larger</button><button class="graphic-tool" onclick="duplicateGraphic()">Duplicate</button><button class="graphic-tool" onclick="deleteGraphic(${index});closeArtworkEditor()">Delete</button><button class="graphic-tool" onclick="downloadEditedArtwork()">Save Edited PNG</button></div>
     </div><div class="artwork-editor-controls">
-      <div class="artwork-editor-meta"><div><strong>Artwork</strong>Artwork ${n}</div><div><strong>Placement</strong>${g.zone||'Front'}</div><div><strong>Product</strong>${PRODUCTS[key]?.label||key}</div><div><strong>Status</strong>${g.locked?'Locked':'Editable'}</div></div>
-      <div class="fabric-label">Technique</div><select class="layer-technique" onchange="setGraphicTechnique(${index},this.value)">${['Screen Print','Puff Print','Embroidery','Pearls','Stud','Rhinestones','Hand Stitch'].map(t=>`<option value="${t}" ${(g.technique||'Screen Print')===t?'selected':''}>${t}</option>`).join('')}</select>
-      <div class="detail-layer-panel"><h3>Convert Selected Detail</h3><p>Select one character or element. Overlay keeps the original underneath; Cut + Separate removes it from this artwork and creates a new production layer.</p><select id="detail-layer-technique"><option>Patch</option><option>Embroidery</option><option>Applique</option><option>Puff Print</option><option>Screen Print</option><option>Pearls</option><option>Stud</option><option>Rhinestones</option><option>Hand Stitch</option></select><div class="detail-layer-actions"><button class="graphic-tool" onclick="createArtworkDetailLayer(false)">Overlay Detail</button><button class="graphic-tool" onclick="createArtworkDetailLayer(true)">Cut + Separate</button></div></div>
+      <div class="artwork-editor-meta"><div><strong>Artwork</strong>Artwork ${n}</div><div><strong>Placement</strong>${g.zone||'Front'}</div><div><strong>Product</strong>${PRODUCTS[key]?.label||key}</div><div><strong>Status</strong>${g.locked?'Locked':'Editable'}</div><div><strong>Format</strong>${artworkFormatLabel(g)}</div><div><strong>Pixel Dimensions</strong>${g.pixelWidth&&g.pixelHeight?`${g.pixelWidth} × ${g.pixelHeight} px`:'Analyzing...'}</div></div>
+      <div class="fabric-label">Technique</div><select class="layer-technique" onchange="setGraphicTechnique(${index},this.value)">${ARTWORK_TECHNIQUES.map(t=>`<option value="${t}" ${(ARTWORK_TECHNIQUES.includes(g.technique)?g.technique:'Screen Print')===t?'selected':''}>${t}</option>`).join('')}</select>
+      <div class="detail-layer-panel"><h3>Convert Selected Detail</h3><p>Select one character or element. Overlay keeps the original underneath; Cut + Separate removes it from this artwork and creates a new production layer.</p><select id="detail-layer-technique">${ARTWORK_TECHNIQUES.map(t=>`<option>${t}</option>`).join('')}</select><div class="detail-layer-actions"><button class="graphic-tool" onclick="createArtworkDetailLayer(false)">Overlay Detail</button><button class="graphic-tool" onclick="createArtworkDetailLayer(true)">Cut + Separate</button></div></div>
       <div class="artwork-palette"><div class="fabric-label">Detected Colors — <span id="artwork-color-count">Analyzing...</span></div><div id="artwork-palette-grid" class="artwork-palette-grid"></div><div class="upload-note">Click a swatch or edit its HEX value to replace that color throughout the artwork.</div></div>
       <div class="artwork-fields">${[['width','Actual Width',m.width,'in'],['height','Actual Height',m.height,'in'],['rotation','Rotate',g.rotation||0,'deg'],['scale','Scale',g.scale||100,'%'],['left','Placement Left',m.left,'in'],['top','Placement Top',m.top,'in']].map(([k,l,v,u])=>`<div class="artwork-field"><label>${l}</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${Number(v).toFixed(k==='rotation'||k==='scale'?0:2)}" onchange="updateGraphicMetric('${k}',this.value)"><span>${u}</span></div></div>`).join('')}</div>
       <div class="artwork-editor-note"><div class="fabric-label">Artwork Notes</div><textarea placeholder="Add technique, color, placement, production, or revision notes..." oninput="updateArtworkNote(this.value)">${String(g.note||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea></div>
@@ -1561,7 +1619,7 @@ function renderTechPackModal(){
       <div class="techpack-info">
         ${infoRows.map(([label,value])=>`<div class="techpack-info-row"><b>${label}</b><span>${value}</span></div>`).join('')}
       </div>
-      <div class="techpack-artwork-pages">${artwork.map((g,i)=>{const number=g._index+1,m=getArtworkMetrics(g);const preview=g.crop?`<svg viewBox="${g.crop.x-g.crop.w*.15} ${g.crop.y-g.crop.h*.15} ${g.crop.w*1.3} ${g.crop.h*1.3}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}"/></svg>`:`<img src="${g.src}" alt="Artwork ${number}">`;const colors=(g.palette||[]).map(hex=>`<span class="techpack-color-chip"><i style="background:${hex}"></i>${hex}</span>`).join('')||'Not analyzed';return `<section class="techpack-artwork-page"><h2 class="techpack-artwork-title">Artwork ${number}</h2><div class="techpack-artwork-layout"><div class="techpack-artwork-image">${preview}</div><div class="techpack-artwork-data"><div class="techpack-artwork-data-row"><b>Placement</b><span>${g.zone||'Front'}</span></div><div class="techpack-artwork-data-row"><b>Size</b><span>${m.width.toFixed(2)} x ${m.height.toFixed(2)} in</span></div><div class="techpack-artwork-data-row"><b>Position</b><span>Left ${m.left.toFixed(2)} / Top ${m.top.toFixed(2)} in</span></div><div class="techpack-artwork-data-row"><b>Technique</b><span>${g.technique||'Screen Print'}</span></div><div class="techpack-artwork-data-row"><b>Colors</b><span class="techpack-color-list">${colors}</span></div><div class="techpack-artwork-data-row"><b>Rotation</b><span>${g.rotation||0} deg</span></div><div class="techpack-artwork-data-row"><b>Scale</b><span>${g.scale||100}%</span></div><div class="techpack-artwork-data-row"><b>Notes</b><span>${g.note||'None'}</span></div></div></div></section>`;}).join('')}</div>
+      <div class="techpack-artwork-pages">${artwork.map((g,i)=>{const number=g._index+1,m=getArtworkMetrics(g);const preview=g.crop?`<svg viewBox="${g.crop.x-g.crop.w*.15} ${g.crop.y-g.crop.h*.15} ${g.crop.w*1.3} ${g.crop.h*1.3}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}"/></svg>`:`<img src="${g.src}" alt="Artwork ${number}">`;const colors=(g.palette||[]).map(hex=>`<span class="techpack-color-chip"><i style="background:${hex}"></i>${hex}</span>`).join('')||'Not analyzed';return `<section class="techpack-artwork-page"><h2 class="techpack-artwork-title">Artwork ${number}</h2><div class="techpack-artwork-layout"><div class="techpack-artwork-image">${preview}</div><div class="techpack-artwork-data"><div class="techpack-artwork-data-row"><b>Placement</b><span>${g.zone||'Front'}</span></div><div class="techpack-artwork-data-row"><b>File</b><span>${artworkFileMeta(g)}</span></div><div class="techpack-artwork-data-row"><b>Size</b><span>${m.width.toFixed(2)} x ${m.height.toFixed(2)} in</span></div><div class="techpack-artwork-data-row"><b>Position</b><span>Left ${m.left.toFixed(2)} / Top ${m.top.toFixed(2)} in</span></div><div class="techpack-artwork-data-row"><b>Technique</b><span>${g.technique||'Screen Print'}</span></div><div class="techpack-artwork-data-row"><b>Colors</b><span class="techpack-color-list">${colors}</span></div><div class="techpack-artwork-data-row"><b>Rotation</b><span>${g.rotation||0} deg</span></div><div class="techpack-artwork-data-row"><b>Scale</b><span>${g.scale||100}%</span></div><div class="techpack-artwork-data-row"><b>Notes</b><span>${g.note||'None'}</span></div></div></div></section>`;}).join('')}</div>
       <div class="techpack-decoration-pages">${decorationGroups.map((group,i)=>`<section class="techpack-artwork-page"><h2 class="techpack-artwork-title">Decoration ${i+1} — ${brushDisplayName(group.type)}</h2><div class="techpack-artwork-layout"><div class="techpack-artwork-image">${garmentSVG(product.svg,product.color,500,{...sel,garmentView:group.zone==='Back'?'Back':'Front',activeZone:group.zone,graphics:[],marks:group.marks,selectedGraphic:null,brushMode:null})}${(state.decorationReferences[key]||[]).filter(r=>r.type===group.type&&(r.zone||'Front')===group.zone).map(r=>`<div style="margin-top:12px"><b>REFERENCE IMAGE</b><img src="${r.src}" alt="Decoration reference" style="display:block;max-width:100%;max-height:240px;object-fit:contain;margin:8px auto 0"></div>`).join('')}</div><div class="techpack-artwork-data"><div class="techpack-artwork-data-row"><b>Technique</b><span>${brushDisplayName(group.type)}</span></div><div class="techpack-artwork-data-row"><b>Placement</b><span>${group.zone}</span></div><div class="techpack-artwork-data-row"><b>Size</b><span>${[...new Set(group.marks.map(m=>m.size||4))].join(', ')} mm</span></div><div class="techpack-artwork-data-row"><b>Color</b><span class="techpack-color-list">${[...new Set(group.marks.map(m=>m.color||'#EAFcff'))].map(hex=>`<span class="techpack-color-chip"><i style="background:${hex}"></i>${hex.toUpperCase()}</span>`).join('')}</span></div><div class="techpack-artwork-data-row"><b>Quantity</b><span>${group.marks.length} marks</span></div><div class="techpack-artwork-data-row"><b>Application</b><span>Hand-applied placement mapped from design board</span></div><div class="techpack-artwork-data-row"><b>Production Note</b><span>Follow the plotted placement shown on this page.</span></div></div></div></section>`).join('')}</div>
       ${(studio.images.length||studio.notes)?`<section class="techpack-artwork-page"><h2 class="techpack-artwork-title">Reference & Design Studio</h2><div class="techpack-artwork-layout"><div class="techpack-artwork-image" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">${studio.images.map((img,i)=>`<div><img src="${img.src}" alt="Reference ${i+1}" style="width:100%;height:220px;object-fit:contain;background:#eee"><p><b>Reference ${i+1}</b><br>${img.note||'No image note'}</p></div>`).join('')||'<p>No reference images</p>'}</div><div class="techpack-artwork-data"><div class="techpack-artwork-data-row"><b>Requested Services</b><span>${studio.services.join(', ')||'Not set'}</span></div><div class="techpack-artwork-data-row"><b>Apply To</b><span>${studio.target||'Entire Design'}</span></div><div class="techpack-artwork-data-row"><b>Deadline</b><span>${studio.deadline||'Not set'}</span></div><div class="techpack-artwork-data-row"><b>Customer Email</b><span>${studio.email||'Not set'}</span></div><div class="techpack-artwork-data-row"><b>Design Instructions</b><span>${studio.notes||'None'}</span></div></div></div></section>`:''}
       <section class="techpack-spec-sheet">
@@ -2134,7 +2192,7 @@ function applyCanvasTransform(){
 }
 function zoomCanvas(factor){
   const view=state.previewView[state.productKey];
-  view.zoom=Math.max(.5,Math.min(4,view.zoom*factor));
+  view.zoom=Math.max(.5,Math.min(6,view.zoom*factor));
   applyCanvasTransform();
 }
 function canvasWheel(event){
@@ -2153,8 +2211,8 @@ function canvasPanStart(event){
   event.currentTarget.classList.add('panning');
   event.currentTarget.setPointerCapture(event.pointerId);
 }
-function garmentPoint(event){
-  const svg = event.currentTarget;
+function garmentPoint(event,svgOverride){
+  const svg = svgOverride || event.currentTarget;
   const point = svg.createSVGPoint();
   point.x=event.clientX; point.y=event.clientY;
   return point.matrixTransform(svg.getScreenCTM().inverse());
@@ -2165,7 +2223,7 @@ function brushDisplayName(type){
 function getArtworkDisplayNumber(key,index){
   return (state.uploads[key]||[]).slice(0,index+1).filter(g=>!g.hidden).length;
 }
-function sizedLiveMarkSVG(type,x,y,size=4,color){const scale=size/4;return `<g transform="translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y})">${liveMarkSVG(type,x,y,color)}</g>`;}
+function sizedLiveMarkSVG(type,x,y,size=4,color,rotation=0){const scale=size/4;return `<g transform="rotate(${rotation||0} ${x} ${y}) translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y})">${liveMarkSVG(type,x,y,color)}</g>`;}
 function liveMarkSVG(type,x,y,color){
   color=color||({rhinestone:'#eafcff',pearls:'#fff4d6',stud:'#3f4448','hand-stitch':'#e05a2a',distress:'#eee7d9'}[type]);
   if(type==='rhinestone') return `<image href="assets/decoration-rhinestone.png" x="${x-1.7}" y="${y-1.7}" width="3.4" height="3.4" preserveAspectRatio="xMidYMid meet"/>`;
@@ -2190,17 +2248,50 @@ function decorationPathFor(type,zone){
 function pointInsideDecoration(type,zone,x,y){
   try{const c=pointInsideDecoration.canvas||(pointInsideDecoration.canvas=document.createElement('canvas'));return c.getContext('2d').isPointInPath(new Path2D(decorationPathFor(type,zone)),x,y);}catch(_){return x>=5&&x<=195&&y>=5&&y<=195;}
 }
-function addBrushMark(event){
-  if(!state.brushMode) return;
-  const p=garmentPoint(event);
-  if(!pointInsideDecoration(state.productKey,state.activeZone,p.x,p.y)) return;
-  const list=state.marks[state.productKey];
-  const last=list[list.length-1];
-  if(last && Math.hypot(last.x-p.x,last.y-p.y)<5) return;
-  list.push({type:state.brushMode,x:p.x,y:p.y,zone:state.activeZone,size:state.decorationSize||4,color:state.decorationColor});
-  const group=event.currentTarget.querySelector('.current-zone-marks');
-  if(group){
-    group.insertAdjacentHTML('beforeend',sizedLiveMarkSVG(state.brushMode,p.x,p.y,state.decorationSize||4,state.decorationColor));
+let decorationStroke=null,activeDecorationSvg=null;
+function appendDecorationMark(svg,p,angle=0){
+  if(!pointInsideDecoration(state.productKey,state.activeZone,p.x,p.y))return false;
+  const size=state.decorationSize||4,type=state.brushMode;
+  // Stones and pearls should remain upright. Studs and stitches follow the stroke
+  // direction with a very small deterministic variation so brushed paths feel
+  // hand-placed rather than computer-stamped.
+  const count=state.marks[state.productKey].length;
+  const rotation=(type==='stud'||type==='hand-stitch')?Math.round(angle+(count%3-1)*3):0;
+  const mark={type,x:p.x,y:p.y,zone:state.activeZone,size,color:state.decorationColor,rotation};
+  state.marks[state.productKey].push(mark);
+  const group=svg.querySelector('.current-zone-marks');
+  if(group)group.insertAdjacentHTML('beforeend',sizedLiveMarkSVG(type,p.x,p.y,size,state.decorationColor,rotation));
+  return true;
+}
+function addBrushMark(event,svgOverride){
+  if(!state.brushMode)return;
+  const svg=svgOverride||event.currentTarget;
+  if(!svg?.createSVGPoint)return;
+  const p=garmentPoint(event,svg),size=state.decorationSize||4;
+  if(!decorationStroke){
+    decorationStroke={lastPoint:{...p},remainder:0,hasPlaced:false};
+    decorationStroke.hasPlaced=appendDecorationMark(svg,p,0);
+    return;
+  }
+  const from=decorationStroke.lastPoint||p;
+  const dx=p.x-from.x,dy=p.y-from.y,distance=Math.hypot(dx,dy);
+  if(distance<.01)return;
+  const angle=Math.atan2(dy,dx)*180/Math.PI;
+  // Sample by travelled distance rather than by browser event count. This makes
+  // a slow drag, fast drag, mouse drag, and finger drag produce the same line.
+  const spacing=Math.max(1.4,size*.85);
+  let next=spacing-(decorationStroke.remainder||0);
+  while(next<=distance+.001){
+    const ratio=next/distance,q={x:from.x+dx*ratio,y:from.y+dy*ratio};
+    if(appendDecorationMark(svg,q,angle))decorationStroke.hasPlaced=true;
+    next+=spacing;
+  }
+  decorationStroke.remainder=((decorationStroke.remainder||0)+distance)%spacing;
+  decorationStroke.lastPoint={...p};
+  // If the stroke started outside the garment, begin immediately at the first
+  // valid point instead of waiting for another full spacing interval.
+  if(!decorationStroke.hasPlaced&&appendDecorationMark(svg,p,angle)){
+    decorationStroke.hasPlaced=true;decorationStroke.remainder=0;
   }
 }
 function drawStart(event){
@@ -2212,9 +2303,19 @@ function drawStart(event){
     event.currentTarget.insertAdjacentHTML('beforeend',`<rect id="area-selection-box" x="${p.x}" y="${p.y}" width="0" height="0" fill="rgba(47,118,255,.16)" stroke="#2f76ff" stroke-width="1.5" stroke-dasharray="4 3" pointer-events="none"/>`);
     return;
   }
-  if(spacePressed || !state.brushMode || event.target.classList.contains('uploaded-graphic')) return;
+  if(spacePressed || !state.brushMode) return;
+  if(event.pointerType==='mouse' && event.button!==0)return;
+  event.preventDefault();
+  event.stopPropagation();
   pushHistory();
-  isDrawing=true; event.currentTarget.setPointerCapture(event.pointerId); addBrushMark(event);
+  isDrawing=true;decorationStroke=null;activeDecorationSvg=event.currentTarget;
+  // Capture on the transparent hit layer rather than an SVG image. Chrome and
+  // mobile Safari then keep sending every movement even when the stroke crosses
+  // an uploaded graphic or a garment seam.
+  const captureTarget=event.target||event.currentTarget;
+  try{captureTarget.setPointerCapture(event.pointerId);}
+  catch(_){try{event.currentTarget.setPointerCapture(event.pointerId);}catch(__){}}
+  addBrushMark(event,event.currentTarget);
 }
 function drawMove(event){
   if(areaSelection){
@@ -2222,7 +2323,16 @@ function drawMove(event){
     if(box){box.setAttribute('x',Math.min(areaSelection.x,p.x));box.setAttribute('y',Math.min(areaSelection.y,p.y));box.setAttribute('width',Math.abs(p.x-areaSelection.x));box.setAttribute('height',Math.abs(p.y-areaSelection.y));}
     return;
   }
-  if(isDrawing && (event.buttons || event.pointerType==='touch')) addBrushMark(event);
+  // `buttons` can briefly report 0 on touch screens and on some Chrome pointer
+  // capture paths. `isDrawing` is the reliable source of truth until pointerup.
+  if(isDrawing){
+    event.preventDefault();
+    const svg=event.currentTarget;
+    // Coalesced pointer samples preserve the real hand path when Chrome batches
+    // several mouse/touch points into one pointermove event.
+    const samples=typeof event.getCoalescedEvents==='function' ? event.getCoalescedEvents() : [event];
+    (samples.length?samples:[event]).forEach(sample=>addBrushMark(sample,svg));
+  }
 }
 function drawEnd(event){
   if(areaSelection){
@@ -2241,8 +2351,32 @@ function drawEnd(event){
     }
     state.areaSelectMode=false;areaSelection=null;render();return;
   }
-  if(isDrawing){isDrawing=false;render();}
+  if(isDrawing){
+    if(event.type==='pointerup')addBrushMark(event,event.currentTarget||activeDecorationSvg);
+    isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+  }
 }
+
+// Pointer capture is reliable in current browsers, but some mobile Chrome/WebView
+// builds release it when the finger crosses an SVG image. These window listeners
+// are a fallback only when the move/up event is no longer inside the active board.
+// They keep one continuous decoration stroke instead of turning a drag into clicks.
+window.addEventListener('pointermove',event=>{
+  if(!isDrawing||!activeDecorationSvg||activeDecorationSvg.contains(event.target))return;
+  event.preventDefault();
+  const samples=typeof event.getCoalescedEvents==='function'?event.getCoalescedEvents():[event];
+  (samples.length?samples:[event]).forEach(sample=>addBrushMark(sample,activeDecorationSvg));
+},{passive:false});
+window.addEventListener('pointerup',event=>{
+  if(!isDrawing||!activeDecorationSvg||activeDecorationSvg.contains(event.target))return;
+  event.preventDefault();
+  addBrushMark(event,activeDecorationSvg);
+  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+},{passive:false});
+window.addEventListener('pointercancel',()=>{
+  if(!isDrawing)return;
+  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;render();
+},{passive:false});
 function stopBrush(){ state.brushMode=null; render(); }
 function setDecorationSize(size){state.decorationSize=Number(size)||4;render();}
 function setDecorationColor(value){
@@ -2287,12 +2421,17 @@ function handleImageUpload(event){
   files.forEach(file => {
     const reader = new FileReader();
     reader.onload = () => {
-      const count = state.uploads[key].length;
-      const zoneDefaults={'Front':[76,72],'Back':[76,72],'Right Sleeve':[76,72],'Left Sleeve':[76,72],'Hood':[82,24]};
-      const pos=zoneDefaults[state.activeZone]||[76,72];
-      insertArtworkInPlacementOrder({id:`art-${Date.now()}-${count}`,src:reader.result,x:pos[0]+(count%3)*3,y:pos[1]+(count%3)*3,w:48,h:58,baseW:48,baseH:58,scale:100,rotation:0,technique:'Screen Print',locked:false,zone:state.activeZone});
-      completed++;
-      if(completed === files.length) render();
+      const img=new Image();
+      img.onload=()=>{
+        const count = state.uploads[key].length;
+        const zoneDefaults={'Front':[76,72],'Back':[76,72],'Right Sleeve':[76,72],'Left Sleeve':[76,72],'Hood':[82,24]};
+        const pos=zoneDefaults[state.activeZone]||[76,72];
+        insertArtworkInPlacementOrder({id:`art-${Date.now()}-${count}`,src:reader.result,x:pos[0]+(count%3)*3,y:pos[1]+(count%3)*3,w:48,h:58,baseW:48,baseH:58,scale:100,rotation:0,technique:'Screen Print',locked:false,zone:state.activeZone,fileFormat:(file.type.split('/')[1]||file.name.split('.').pop()||'image').replace('jpeg','jpg').replace('svg+xml','svg').toUpperCase(),pixelWidth:img.naturalWidth||0,pixelHeight:img.naturalHeight||0,originalFileName:file.name});
+        completed++;
+        if(completed === files.length) render();
+      };
+      img.onerror=()=>{completed++;if(completed===files.length)render();};
+      img.src=reader.result;
     };
     reader.readAsDataURL(file);
   });
@@ -2300,6 +2439,7 @@ function handleImageUpload(event){
 function setGraphicTechnique(index,technique){
   const g=state.uploads[state.productKey][index];
   if(!g) return;
+  if(state.artworkEditorOpen&&state.artworkEditorIndex===index)preserveArtworkEditorDraft();
   pushHistory();
   g.technique=technique;
   state.selectedGraphic[state.productKey]=index;
@@ -2315,14 +2455,19 @@ function handleTechniqueLayerUpload(event){
   parent.id=parent.id||`art-${Date.now()}-base`;
   const reader=new FileReader();
   reader.onload=()=>{
-    const layer={
-      id:`layer-${Date.now()}`,parentId:parent.id,isTechniqueLayer:true,lockedToParent:true,
-      src:reader.result,x:parent.x,y:parent.y,w:parent.w,h:parent.h,
-      baseW:parent.baseW||parent.w,baseH:parent.baseH||parent.h,scale:parent.scale||100,
-      rotation:parent.rotation||0,technique:'Embroidery',locked:false,zone:parent.zone||state.activeZone
+    const img=new Image();
+    img.onload=()=>{
+      const layer={
+        id:`layer-${Date.now()}`,parentId:parent.id,isTechniqueLayer:true,lockedToParent:true,
+        src:reader.result,x:parent.x,y:parent.y,w:parent.w,h:parent.h,
+        baseW:parent.baseW||parent.w,baseH:parent.baseH||parent.h,scale:parent.scale||100,
+        rotation:parent.rotation||0,technique:'Embroidery',locked:false,zone:parent.zone||state.activeZone,
+        fileFormat:(file.type.split('/')[1]||file.name.split('.').pop()||'image').replace('jpeg','jpg').replace('svg+xml','svg').toUpperCase(),pixelWidth:img.naturalWidth||0,pixelHeight:img.naturalHeight||0,originalFileName:file.name
+      };
+      insertArtworkInPlacementOrder(layer);
+      render();
     };
-    insertArtworkInPlacementOrder(layer);
-    render();
+    img.src=reader.result;
   };
   reader.readAsDataURL(file);
 }
@@ -2460,6 +2605,12 @@ window.addEventListener('keydown', event => {
     const index=state.selectedGraphic[state.productKey];
     if(index!==null){event.preventDefault();deleteGraphic(index);}
   }
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key) && state.view==='item' && !typing && !state.artworkEditorOpen){
+    const step=event.shiftKey?5:1;
+    const dx=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0;
+    const dy=event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0;
+    if(nudgeSelectedGraphic(dx,dy))event.preventDefault();
+  }
 });
 window.addEventListener('keyup', event => {
   if(event.code==='Space'){
@@ -2509,6 +2660,7 @@ function initArtworkPixelEditor(){
     const max=1600,ratio=Math.min(1,max/Math.max(img.naturalWidth||800,img.naturalHeight||800));
     canvas.width=Math.max(1,Math.round((img.naturalWidth||800)*ratio));
     canvas.height=Math.max(1,Math.round((img.naturalHeight||800)*ratio));
+    if(!g.pixelWidth||!g.pixelHeight){g.pixelWidth=img.naturalWidth||canvas.width;g.pixelHeight=img.naturalHeight||canvas.height;}
     const ctx=canvas.getContext('2d',{willReadFrequently:true});
     ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
     const original=new Image(); original.src=g.originalSrc||g.src;
@@ -2587,7 +2739,7 @@ function applyArtworkEditorZoom(){
   const enlarged=(e.zoom||1)>1.02;wrap.style.justifyContent=enlarged?'flex-start':'center';wrap.style.alignItems=enlarged?'flex-start':'center';
   requestAnimationFrame(()=>{updateArtworkSelectionBox();updateArtworkLassoLine();});
 }
-function zoomArtworkEditor(factor){const e=artworkPixelEditor;if(!e)return;e.zoom=Math.max(.35,Math.min(5,(e.zoom||1)*factor));applyArtworkEditorZoom();}
+function zoomArtworkEditor(factor){const e=artworkPixelEditor;if(!e)return;e.zoom=Math.max(.35,Math.min(10,(e.zoom||1)*factor));applyArtworkEditorZoom();}
 function resetArtworkEditorZoom(){const e=artworkPixelEditor;if(!e)return;e.zoom=1;e.fitWidth=null;applyArtworkEditorZoom();const wrap=document.getElementById('artwork-editor-canvas-wrap');if(wrap){wrap.scrollLeft=0;wrap.scrollTop=0;}}
 function selectErasedArtworkPixels(){
   const e=artworkPixelEditor;if(!e||!e.original?.complete){alert('Original artwork is still loading. Try again.');return;}
@@ -2636,14 +2788,28 @@ function detectArtworkColors(){
   for(let y=0;y<e.canvas.height;y+=step)for(let x=0;x<e.canvas.width;x+=step){const i=(y*e.canvas.width+x)*4;if(data[i+3]<80)continue;opaque++;const key=`${data[i]>>4},${data[i+1]>>4},${data[i+2]>>4}`;const v=buckets.get(key)||[0,0,0,0];v[0]+=data[i];v[1]+=data[i+1];v[2]+=data[i+2];v[3]++;buckets.set(key,v);}
   const min=Math.max(3,opaque*.0025),palette=[...buckets.values()].filter(v=>v[3]>=min).sort((a,b)=>b[3]-a[3]).slice(0,12).map(v=>rgbToHex(v[0]/v[3],v[1]/v[3],v[2]/v[3]));
   e.palette=palette;const graphic=state.uploads[state.productKey]?.[state.artworkEditorIndex];if(graphic)graphic.palette=[...palette];count.textContent=`${palette.length} color${palette.length===1?'':'s'}`;
-  grid.innerHTML=palette.map((hex,i)=>`<div class="artwork-color-row"><input type="color" value="${hex}" aria-label="Artwork color ${i+1}" onchange="replaceArtworkColor('${hex}',this.value)"><input class="artwork-color-hex" value="${hex}" aria-label="HEX color ${i+1}" onchange="replaceArtworkColor('${hex}',this.value)"></div>`).join('')||'<div class="upload-note">No opaque colors detected.</div>';
+  grid.innerHTML=palette.map((hex,i)=>`<div class="artwork-color-row"><input type="color" value="${hex}" aria-label="Artwork color ${i+1}" onchange="replaceArtworkColor('${hex}',this.value)"><input class="artwork-color-hex" value="${hex}" aria-label="HEX color ${i+1}" onchange="replaceArtworkColor('${hex}',this.value)"><button type="button" class="artwork-color-remove" title="Remove ${hex} from artwork" aria-label="Remove color ${hex}" onclick="removeArtworkColor('${hex}')">×</button></div>`).join('')||'<div class="upload-note">No opaque colors detected.</div>';
 }
 function analyzeArtworkSource(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const max=900,ratio=Math.min(1,max/Math.max(img.naturalWidth||1,img.naturalHeight||1)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);const data=ctx.getImageData(0,0,canvas.width,canvas.height).data,buckets=new Map();let opaque=0;for(let i=0;i<data.length;i+=4){if(data[i+3]<80)continue;opaque++;const key=`${data[i]>>4},${data[i+1]>>4},${data[i+2]>>4}`,v=buckets.get(key)||[0,0,0,0];v[0]+=data[i];v[1]+=data[i+1];v[2]+=data[i+2];v[3]++;buckets.set(key,v);}const min=Math.max(3,opaque*.0025),palette=[...buckets.values()].filter(v=>v[3]>=min).sort((a,b)=>b[3]-a[3]).slice(0,12).map(v=>rgbToHex(v[0]/v[3],v[1]/v[3],v[2]/v[3]));resolve(palette);};img.onerror=reject;img.src=src;});}
 function replaceArtworkColor(oldHex,newHex){
   const e=artworkPixelEditor,old=hexToRgb(oldHex),next=hexToRgb(newHex);if(!e||!old||!next){detectArtworkColors();return;}
-  const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height),d=image.data,tolerance=62;
-  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;const distance=Math.hypot(d[i]-old[0],d[i+1]-old[1],d[i+2]-old[2]);if(distance<=tolerance){d[i]=next[0];d[i+1]=next[1];d[i+2]=next[2];}}
-  e.ctx.putImageData(image,0,0);pushArtworkPixelHistory();detectArtworkColors();
+  const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height),d=image.data;
+  const bucket=[old[0]>>4,old[1]>>4,old[2]>>4];
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;if((d[i]>>4)===bucket[0]&&(d[i+1]>>4)===bucket[1]&&(d[i+2]>>4)===bucket[2]){d[i]=next[0];d[i+1]=next[1];d[i+2]=next[2];}}
+  e.ctx.putImageData(image,0,0);pushArtworkPixelHistory();detectArtworkColors();syncArtworkEditorToDesign();
+}
+function removeArtworkColor(hex){
+  const e=artworkPixelEditor,target=hexToRgb(hex);if(!e||!target)return;
+  const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height),d=image.data;
+  const bucket=[target[0]>>4,target[1]>>4,target[2]>>4];
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;if((d[i]>>4)===bucket[0]&&(d[i+1]>>4)===bucket[1]&&(d[i+2]>>4)===bucket[2])d[i+3]=0;}
+  e.ctx.putImageData(image,0,0);pushArtworkPixelHistory();detectArtworkColors();syncArtworkEditorToDesign();
+}
+function syncArtworkEditorToDesign(){
+  const e=artworkPixelEditor,index=state.artworkEditorIndex,g=state.uploads[state.productKey]?.[index];if(!e||!g)return;
+  const src=e.canvas.toDataURL('image/png');g.src=src;g.editorDraft=src;g.fileFormat='PNG';g.pixelWidth=e.canvas.width;g.pixelHeight=e.canvas.height;g.palette=[...(e.palette||[])];
+  document.querySelectorAll(`.uploaded-graphic[data-index="${index}"]`).forEach(node=>node.setAttribute('href',src));
+  document.querySelectorAll(`.artwork-thumb img[alt="Uploaded artwork ${index+1}"]`).forEach(node=>node.src=src);
 }
 function updateArtworkSelectionBox(){
   const e=artworkPixelEditor,box=document.getElementById('artwork-selection-box');if(!e||!box||!e.selection)return;
@@ -2674,7 +2840,7 @@ function createArtworkDetailLayer(cutFromBase){
   parent.id=parent.id||`art-${Date.now()}-base`;
   const technique=document.getElementById('detail-layer-technique')?.value||'Patch',src=detail.toDataURL('image/png');
   pushHistory();
-  const detailIndex=insertArtworkInPlacementOrder({id:`detail-${Date.now()}`,parentId:parent.id,isTechniqueLayer:true,lockedToParent:true,detailLayer:true,src,originalSrc:src,x:px,y:py,w:pw,h:ph,baseW:pw,baseH:ph,scale:100,rotation:parent.rotation||0,technique,locked:false,zone:parent.zone||state.activeZone,note:`Selected detail from Artwork ${index+1}; ${cutFromBase?'cut from base':'overlay on base'}.`});
+  const detailIndex=insertArtworkInPlacementOrder({id:`detail-${Date.now()}`,parentId:parent.id,isTechniqueLayer:true,lockedToParent:true,detailLayer:true,src,originalSrc:src,x:px,y:py,w:pw,h:ph,baseW:pw,baseH:ph,scale:100,rotation:parent.rotation||0,technique,locked:false,zone:parent.zone||state.activeZone,fileFormat:'PNG',pixelWidth:w,pixelHeight:h,note:`Selected detail from Artwork ${index+1}; ${cutFromBase?'cut from base':'overlay on base'}.`});
   if(cutFromBase){if(e.selectionMask){const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height);for(let i=0;i<e.selectionMask.length;i++)if(e.selectionMask[i])image.data[i*4+3]=0;e.ctx.putImageData(image,0,0);}else e.ctx.clearRect(x,y,w,h);pushArtworkPixelHistory();detectArtworkColors();}
   clearArtworkSelection();
   parent.editorDraft=e.canvas.toDataURL('image/png');
@@ -2689,7 +2855,7 @@ function redoArtworkPixels(){const e=artworkPixelEditor;if(!e||!e.redo.length)re
 function resetArtworkPixels(){const e=artworkPixelEditor,g=state.uploads[state.productKey]?.[state.artworkEditorIndex];if(!e||!g)return;loadArtworkPixelSnapshot(g.originalSrc||g.src,()=>{pushArtworkPixelHistory();detectArtworkColors();});clearArtworkSelection();}
 function applyArtworkPixelEdits(){
   const e=artworkPixelEditor,g=state.uploads[state.productKey]?.[state.artworkEditorIndex];if(!e||!g)return;
-  pushHistory();g.src=e.canvas.toDataURL('image/png');g.palette=[...(e.palette||[])];g.editorDraft=null;g.crop=null;g.sourceX=null;g.sourceY=null;g.sourceW=null;g.sourceH=null;
+  pushHistory();g.src=e.canvas.toDataURL('image/png');g.palette=[...(e.palette||[])];g.fileFormat='PNG';g.pixelWidth=e.canvas.width;g.pixelHeight=e.canvas.height;g.editorDraft=null;g.crop=null;g.sourceX=null;g.sourceY=null;g.sourceW=null;g.sourceH=null;
   artworkPixelEditor=null;state.artworkEditorOpen=false;state.artworkEditorIndex=null;render();
 }
 function downloadEditedArtwork(){
@@ -2743,6 +2909,37 @@ function getArtworkMetrics(graphic){
     top:(graphic.y-c.originY)*c.physicalH/c.unitsH
   };
 }
+function translateGraphicBy(index,dx,dy,recordHistory=true){
+  const key=state.productKey,g=state.uploads[key]?.[index];
+  if(!g||g.locked)return false;
+  if(recordHistory)pushHistory();
+  const move=(item)=>{
+    item.x=(item.x||0)+dx;item.y=(item.y||0)+dy;
+    if(item.sourceX!==undefined){item.sourceX+=dx;item.sourceY+=dy;}
+    if(item.crop){item.crop={...item.crop,x:item.crop.x+dx,y:item.crop.y+dy};}
+  };
+  move(g);
+  if(!g.isTechniqueLayer&&g.id)state.uploads[key].forEach(child=>{if(child.parentId===g.id&&child.lockedToParent)move(child);});
+  return true;
+}
+function alignGraphicAt(index,axis,mode){
+  const key=state.productKey,g=state.uploads[key]?.[index];
+  if(!g||g.locked)return;
+  const c=getArtworkCalibration(g);
+  const target=axis==='x'
+    ?(mode==='start'?c.originX:mode==='center'?c.originX+(c.unitsW-g.w)/2:c.originX+c.unitsW-g.w)
+    :(mode==='start'?c.originY:mode==='center'?c.originY+(c.unitsH-g.h)/2:c.originY+c.unitsH-g.h);
+  const dx=axis==='x'?target-g.x:0,dy=axis==='y'?target-g.y:0;
+  state.selectedGraphic[key]=index;
+  if(translateGraphicBy(index,dx,dy,true))render();
+}
+function nudgeSelectedGraphic(dx,dy){
+  const key=state.productKey,index=state.selectedGraphic[key];
+  if(index===null||!state.uploads[key]?.[index])return false;
+  if(!translateGraphicBy(index,dx,dy,true))return false;
+  render();
+  return true;
+}
 function updateGraphicMetric(metric,value){
   const key=state.productKey, index=state.selectedGraphic[key];
   const g=state.uploads[key][index];
@@ -2770,8 +2967,10 @@ function resizeGraphic(scale){
   if(index === null || !state.uploads[key][index]) return;
   const g = state.uploads[key][index];
   const centerX = g.x + g.w/2, centerY = g.y + g.h/2;
-  g.w = Math.max(12,Math.min(90,g.w*scale));
-  g.h = Math.max(12,Math.min(100,g.h*scale));
+  // Allow oversized / all-over artwork. Anything outside the garment remains
+  // clipped by the garment mask, just like a real print placement preview.
+  g.w = Math.max(6,Math.min(190,g.w*scale));
+  g.h = Math.max(6,Math.min(200,g.h*scale));
   g.baseW=g.baseW||g.w; g.baseH=g.baseH||g.h;
   g.scale=Math.round(((g.w/g.baseW+g.h/g.baseH)/2)*100);
   g.x = centerX-g.w/2; g.y = centerY-g.h/2;
