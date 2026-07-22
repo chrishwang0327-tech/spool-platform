@@ -297,8 +297,6 @@
     padding-top:20px;
     padding-right:30px;
     border-right:4px solid var(--ink);
-    position:sticky;
-    top:20px;
   }
   .config-side{min-width:0;padding-left:30px;}
   .item-title{
@@ -935,7 +933,7 @@ function garmentSVG(type, color, size, customization={}){
   const washFactor = washing === 'Stone Wash' ? 1.10 : washing === 'Acid Wash' ? .82 : washing === 'Enzyme Wash' ? .96 : 1;
   const artwork = graphics.map((g,i) => `
     ${g.crop?`<clipPath id="artCrop${g._index}"><rect x="${g.crop.x}" y="${g.crop.y}" width="${g.crop.w}" height="${g.crop.h}"/></clipPath>`:''}
-    <g clip-path="url(#garmentArtworkClip)"><image class="uploaded-graphic zone-${(g.zone||'Front').replace(/\s/g,'').toLowerCase()} ${g.locked?'locked':''}" data-index="${g._index}" href="${g.src}" x="${g.sourceX??g.x}" y="${g.sourceY??g.y}" width="${g.sourceW??g.w}" height="${g.sourceH??g.h}" ${g.crop?`clip-path="url(#artCrop${g._index})"`:''} transform="rotate(${g.rotation||0} ${(g.sourceX??g.x)+(g.sourceW??g.w)/2} ${(g.sourceY??g.y)+(g.sourceH??g.h)/2})" preserveAspectRatio="xMidYMid meet" onpointerdown="startGraphicDrag(event,${g._index})"/></g>
+    <g class="artwork-layer-unclipped"><image class="uploaded-graphic zone-${(g.zone||'Front').replace(/\s/g,'').toLowerCase()} ${g.locked?'locked':''}" data-index="${g._index}" href="${g.src}" x="${g.sourceX??g.x}" y="${g.sourceY??g.y}" width="${g.sourceW??g.w}" height="${g.sourceH??g.h}" ${g.crop?`clip-path="url(#artCrop${g._index})"`:''} transform="rotate(${g.rotation||0} ${(g.sourceX??g.x)+(g.sourceW??g.w)/2} ${(g.sourceY??g.y)+(g.sourceH??g.h)/2})" preserveAspectRatio="xMidYMid meet" onpointerdown="startGraphicDrag(event,${g._index})"/></g>
     ${selectedGraphic===g._index ? `<rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" fill="none" stroke="${g.technique==='Embroidery'?'#2f76ff':g.technique==='Applique'?'#8e44ad':g.technique==='Rhinestones'?'#777':'#e0562f'}" stroke-width=".65" stroke-dasharray="3 3" pointer-events="none"/>
       ${!g.locked?`
         <line x1="${g.x+g.w/2}" y1="${g.y}" x2="${g.x+g.w/2}" y2="${g.y-8}" stroke="#e0562f" stroke-width=".6" pointer-events="none"/>
@@ -1888,6 +1886,9 @@ function ensureBackgroundMusic(){
 function undoDesign(){
   const key=state.productKey;
   if(!key||!state.history[key].length)return;
+  // Undo only the design change. Keep the currently selected decoration brush
+  // active so Cmd/Ctrl+Z can be used repeatedly while drawing rhinestones.
+  const activeBrushMode=state.brushMode;
   const previous=JSON.parse(state.history[key].pop());
   state.selections[key]=previous.selections||{};
   state.uploads[key]=previous.uploads||[];
@@ -1901,7 +1902,7 @@ function undoDesign(){
   state.fitSpecs[key]=previous.fitSpecs||{};
   state.referenceStudio[key]=previous.referenceStudio||state.referenceStudio[key];
   state.selectedGraphic[key]=null;
-  state.brushMode=null;state.areaSelectMode=false;
+  state.brushMode=activeBrushMode;state.areaSelectMode=false;
   render();
 }
 
@@ -2361,7 +2362,7 @@ function decorationPathFor(type,zone){
     ? 'M25 145C50 137 67 111 82 76Q91 55 100 52Q109 55 118 76C133 111 150 137 175 145L170 182H30Z'
     : 'M34 48Q65 46 82 31Q91 22 100 20Q109 22 118 31Q135 46 166 48L156 181H44Z';
   if(zone==='Hood') return 'M74 42Q72 9 100 7Q128 9 126 42Q116 54 100 54Q84 54 74 42Z';
-  if(zone==='Rib') return type==='hoodie'?'M47 171H153V184H47Z':'M55 170H145V184H55Z';
+  if(zone==='Rib') return type==='hoodie'?'M47 171H153V184H47Z':'M55 170H145V184H55ZM76 34Q100 52 124 34L121 42Q100 58 79 42Z';
   if(type==='sweatpants') return 'M62 20H138L143 71L126 182H99L100 91L99 182H72L57 71Z';
   if(type==='hoodie') return 'M70 43Q100 58 130 43L145 62L145 181H55L55 62Z';
   if(type==='sweatshirt') return 'M70 33Q100 52 130 33L146 52L145 180H55L54 52Z';
@@ -2370,7 +2371,37 @@ function decorationPathFor(type,zone){
 function pointInsideDecoration(type,zone,x,y){
   try{const c=pointInsideDecoration.canvas||(pointInsideDecoration.canvas=document.createElement('canvas'));return c.getContext('2d').isPointInPath(new Path2D(decorationPathFor(type,zone)),x,y);}catch(_){return x>=5&&x<=195&&y>=5&&y<=195;}
 }
-let decorationStroke=null,activeDecorationSvg=null,lastPointerBrushMoveAt=0,lastPointerBrushEventStamp=-1;
+const zoneBoundsCache={};
+function getZoneBounds(type,zone){
+  const key=`${type}|${zone}`;
+  if(zoneBoundsCache[key])return zoneBoundsCache[key];
+  let box;
+  try{
+    if(!getZoneBounds.svg){
+      const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('width','0');svg.setAttribute('height','0');
+      svg.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
+      document.body.appendChild(svg);
+      getZoneBounds.svg=svg;
+    }
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',decorationPathFor(type,zone));
+    getZoneBounds.svg.appendChild(path);
+    box=path.getBBox();
+    getZoneBounds.svg.removeChild(path);
+  }catch(_){ box={x:5,y:5,width:190,height:190}; }
+  const bounds={x0:box.x,y0:box.y,x1:box.x+box.width,y1:box.y+box.height};
+  zoneBoundsCache[key]=bounds;
+  return bounds;
+}
+let decorationStroke=null,activeDecorationSvg=null,lastPointerBrushMoveAt=0,lastPointerBrushEventStamp=-1,brushStrokeWatchdog=null;
+function clearBrushWatchdog(){
+  if(brushStrokeWatchdog){clearTimeout(brushStrokeWatchdog);brushStrokeWatchdog=null;}
+}
+function endBrushStroke(){
+  clearBrushWatchdog();
+  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;
+}
 function appendDecorationMark(svg,p,angle=0){
   if(!pointInsideDecoration(state.productKey,state.activeZone,p.x,p.y))return false;
   const size=state.decorationSize||4,type=state.brushMode;
@@ -2434,6 +2465,7 @@ function drawStart(event){
   event.preventDefault();
   event.stopPropagation();
   pushHistory();
+  clearBrushWatchdog();
   isDrawing=true;decorationStroke=null;activeDecorationSvg=event.currentTarget;
   lastPointerBrushMoveAt=Date.now();lastPointerBrushEventStamp=event.timeStamp;
   // Capture on the transparent hit layer rather than an SVG image. Chrome and
@@ -2467,7 +2499,16 @@ function drawMove(event){
 function drawEnd(event){
   // Chrome can emit pointercancel during an ordinary mouse drag over inline
   // SVG. Keep that stroke alive; mouseup/pointerup will finish it normally.
-  if(event?.type==='pointercancel' && event.pointerType==='mouse')return;
+  // But if no follow-up pointerup ever arrives (the stroke was truly
+  // abandoned), self-heal after a short delay so the app doesn't get stuck
+  // thinking a stroke is still active.
+  if(event?.type==='pointercancel' && event.pointerType==='mouse'){
+    if(isDrawing){
+      clearBrushWatchdog();
+      brushStrokeWatchdog=setTimeout(()=>{ if(isDrawing){ endBrushStroke(); render(); } },400);
+    }
+    return;
+  }
   if(areaSelection){
     const p=garmentPoint(event),x=Math.min(areaSelection.x,p.x),y=Math.min(areaSelection.y,p.y),w=Math.abs(p.x-areaSelection.x),h=Math.abs(p.y-areaSelection.y);
     const key=state.productKey,index=state.selectedGraphic[key];
@@ -2486,7 +2527,7 @@ function drawEnd(event){
   }
   if(isDrawing){
     if(event.type==='pointerup')addBrushMark(event,event.currentTarget||activeDecorationSvg);
-    isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
+    endBrushStroke();render();
   }
 }
 
@@ -2496,6 +2537,10 @@ function drawEnd(event){
 // They keep one continuous decoration stroke instead of turning a drag into clicks.
 window.addEventListener('pointermove',event=>{
   if(!isDrawing||!activeDecorationSvg||event.__spoolBrushHandled||event.timeStamp===lastPointerBrushEventStamp)return;
+  // Mirror the mousemove fallback's buttons guard: if the mouse button isn't
+  // actually held down, a stuck isDrawing state (e.g. after an abandoned
+  // pointercancel) must not keep spuriously placing marks.
+  if(event.pointerType==='mouse' && !(event.buttons&1))return;
   lastPointerBrushMoveAt=Date.now();
   lastPointerBrushEventStamp=event.timeStamp;
   event.preventDefault();
@@ -2506,7 +2551,7 @@ window.addEventListener('pointerup',event=>{
   if(!isDrawing||!activeDecorationSvg)return;
   event.preventDefault();
   addBrushMark(event,activeDecorationSvg);
-  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
+  endBrushStroke();render();
 },{passive:false});
 // Some embedded browsers emit mouse movement without a matching pointermove.
 // Keep a delayed fallback, but never process mousemove immediately after a
@@ -2523,12 +2568,12 @@ window.addEventListener('mouseup',event=>{
   if(!isDrawing||!activeDecorationSvg)return;
   event.preventDefault();
   addBrushMark(event,activeDecorationSvg);
-  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
+  endBrushStroke();render();
 },{passive:false});
 window.addEventListener('pointercancel',event=>{
   if(event.pointerType==='mouse')return;
   if(!isDrawing)return;
-  isDrawing=false;decorationStroke=null;activeDecorationSvg=null;lastPointerBrushEventStamp=-1;render();
+  endBrushStroke();render();
 },{passive:false});
 function stopBrush(){ state.brushMode=null; render(); }
 function setDecorationSize(size){state.decorationSize=Number(size)||4;render();}
@@ -2758,11 +2803,14 @@ window.addEventListener('pointermove', event => {
     const dx=(event.clientX-r.startX)*200/rect.width;
     const dy=(event.clientY-r.startY)*200/rect.height;
     const g=state.uploads[r.key][r.index];
+    // Clamp against the active print zone's bounds so enlarging a graphic
+    // can no longer push it past the zone edge, where it would render clipped.
+    const bounds=getZoneBounds(r.key,g.zone||state.activeZone);
     let x=r.x,y=r.y,w=r.w,h=r.h;
-    if(r.corner.includes('e')) w=Math.max(8,r.w+dx);
-    if(r.corner.includes('s')) h=Math.max(8,r.h+dy);
-    if(r.corner.includes('w')){ x=Math.min(r.x+r.w-8,r.x+dx); w=r.w-(x-r.x); }
-    if(r.corner.includes('n')){ y=Math.min(r.y+r.h-8,r.y+dy); h=r.h-(y-r.y); }
+    if(r.corner.includes('e')) w=Math.max(8,Math.min(r.w+dx,bounds.x1-r.x));
+    if(r.corner.includes('s')) h=Math.max(8,Math.min(r.h+dy,bounds.y1-r.y));
+    if(r.corner.includes('w')){ x=Math.max(bounds.x0,Math.min(r.x+r.w-8,r.x+dx)); w=r.w-(x-r.x); }
+    if(r.corner.includes('n')){ y=Math.max(bounds.y0,Math.min(r.y+r.h-8,r.y+dy)); h=r.h-(y-r.y); }
     Object.assign(g,{x,y,w,h});
     r.linked.forEach(item=>{
       const child=state.uploads[r.key][item.index],sx=w/r.w,sy=h/r.h;
