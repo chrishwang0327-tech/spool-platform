@@ -26,7 +26,9 @@
     min-height:100vh;
   }
   body.home-mode{background:#f7f7f2;}
-  body.home-mode #app{max-width:1440px;}
+  body.home-mode #app{position:relative;max-width:1440px;min-height:100vh;padding:18px 28px 18px;}
+  body.home-mode .logo{position:absolute;left:50%;top:34px;z-index:20;width:auto;margin:0;transform:translateX(-50%);}
+  body.home-mode .logo img{width:min(180px,42vw);}
   body:not(.home-mode){
     --accent:#403d37;
     background-color:#f7f7f2;
@@ -251,7 +253,7 @@
   .male-model-group .hotspot-hoodie{left:29%;top:12%;width:27%;height:46%;}
   .male-model-group .hotspot-sweatshirt{left:56%;top:20%;width:21%;height:39%;}
   .male-model-group .hotspot-pants{left:29%;top:57%;width:48%;height:39%;}
-  .combined-model-home{display:block;width:min(1180px,100%);margin:0 auto;}
+  .combined-model-home{display:block;width:min(1280px,100%,calc(160.3vh - 58px));margin:0 auto;}
   .combined-model-group{position:relative;width:100%;aspect-ratio:3951/2464;background:#f8f8f4;overflow:hidden;}
   .combined-model-group .model-home-image{width:100%;height:100%;object-fit:contain;object-position:center;}
   .combined-model-group .men-tee{left:3%;top:20%;width:14%;height:39%;}
@@ -287,7 +289,7 @@
   /* ITEM PAGE */
   .item-wrap{
     display:grid;
-    grid-template-columns:minmax(0,1.82fr) minmax(360px,.88fr);
+    grid-template-columns:minmax(0,1.58fr) minmax(360px,.92fr);
     gap:0;
     align-items:flex-start;
   }
@@ -295,10 +297,10 @@
     display:flex;
     justify-content:center;
     padding-top:20px;
-    padding-right:30px;
-    border-right:4px solid var(--ink);
+    padding-right:12px;
+    border-right:2px solid var(--ink);
   }
-  .config-side{min-width:0;padding-left:30px;}
+  .config-side{min-width:0;padding-left:12px;}
   .item-title{
     font-size:15px;
     font-weight:800;
@@ -368,7 +370,8 @@
   .upload-btn:hover{background:var(--accent);border-color:var(--accent);}
   .upload-btn input{display:none;}
   .upload-note{font-size:10px;opacity:.65;margin-top:10px;}
-  .artwork-inspector{display:grid;grid-template-columns:190px minmax(0,1fr);gap:14px;margin:18px 0 24px;padding:14px;background:rgba(255,255,255,.55);overflow:visible;}
+  .artwork-inspector{display:block;margin:12px 0 18px;padding:10px;background:rgba(255,255,255,.55);overflow:visible;}
+  .artwork-card-list{display:grid;gap:10px;}
   .artwork-thumb{background:#fff;border:2px solid var(--ink);padding:8px;text-align:center;cursor:pointer;}
   .artwork-thumb img{display:block;width:100%;height:120px;object-fit:contain;}
   .artwork-thumb svg{display:block!important;width:100%!important;height:120px!important;overflow:hidden!important;background:#fff;}
@@ -451,7 +454,7 @@
   .fit-modal{width:min(820px,100%);}
   .techpack-modal{width:min(1180px,96vw);max-height:92vh;overflow:auto;}
   .techpack-title{text-align:center;font-size:38px;font-weight:500;letter-spacing:2px;margin:0 0 20px;}
-  .techpack-views{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
+  .techpack-views{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
   .techpack-view-board{background:#fff;border:0;width:100%;height:310px;min-height:310px;display:flex;align-items:center;justify-content:center;padding:12px;box-shadow:2px 3px 0 rgba(30,30,30,.08);}
   .techpack-view-board svg{width:100%;max-width:100%;height:286px;max-height:286px;pointer-events:none;}
   .techpack-view-board.sleeves-board{gap:8px;align-items:center;}
@@ -472,7 +475,30 @@
   .artwork-thumb.is-hidden img,.artwork-thumb.is-hidden>svg{opacity:.28;filter:grayscale(1);}
   .artwork-thumb[draggable="true"]{cursor:grab;}
   .artwork-thumb.dragging{opacity:.45;}
-  .artwork-card-head{display:block;width:100%;min-height:64px;color:#1a1a1a;}
+  .artwork-card-head{display:block;position:relative;width:100%;min-height:42px;padding:3px 26px 3px 0;color:#1a1a1a;cursor:pointer;}
+  .artwork-card-head:hover .artwork-thumb-title{color:var(--accent);}
+  .artwork-card-chevron{position:absolute;right:2px;top:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font:900 17px/1 'Poppins',sans-serif;transition:transform .18s ease;}
+  .artwork-thumb.expanded .artwork-card-chevron{transform:rotate(180deg);}
+  .artwork-card-body{display:none;padding-top:5px;}
+  .artwork-thumb.expanded .artwork-card-body{display:block;}
+  .artwork-card-body-grid{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:10px;align-items:start;padding-top:2px;}
+  .artwork-card-main{min-width:0;}
+  .artwork-card-main>img,.artwork-card-main>svg{height:125px!important;}
+  .artwork-card-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:8px;background:rgba(244,241,232,.72);text-align:left;}
+  .artwork-card-metrics .upload-note{grid-column:1/-1;margin:0 0 1px;font-size:8px;line-height:1.35;}
+  .artwork-card-metrics .artwork-field label{font-size:7px;margin-bottom:2px;line-height:1.25;}
+  .artwork-card-metrics .artwork-input-wrap input{padding:6px 1px;font-size:9px;}
+  .artwork-card-metrics .artwork-input-wrap span{padding:6px 3px;font-size:7px;}
+  .artwork-card-main .layer-technique{margin-top:5px;padding:5px;font-size:9px;}
+  .artwork-card-main .artwork-card-actions{gap:4px;margin-top:6px;}
+  .artwork-card-main .artwork-card-actions button{padding:6px 3px;font-size:8px;}
+  .artwork-card-main .artwork-align-tools{margin-top:7px;padding-top:7px;}
+  .artwork-card-main .artwork-align-label{margin-bottom:4px;font-size:7px;}
+  .artwork-card-main .artwork-align-row button{height:24px;}
+  .artwork-card-main .artwork-align-row svg{width:16px!important;height:16px!important;}
+  .artwork-card-main .artwork-file-meta{margin-top:5px;font-size:7px;}
+  .artwork-thumb.collapsed{padding-bottom:5px;}
+  .artwork-thumb.collapsed .artwork-card-head-actions{display:none;}
   .artwork-thumb-title{display:block;width:100%;color:#1a1a1a;font-weight:900;white-space:nowrap;font-size:12px;line-height:1.4;text-align:center;overflow:visible;}
   .artwork-placement-label{display:block;margin:2px auto 0;color:#777;font-size:8px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;text-align:center;}
   .artwork-card-head-actions{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:7px;}
@@ -480,6 +506,7 @@
   .artwork-card-head-actions .artwork-edit-button{margin:0;height:27px;}
   .artwork-card-head-actions .artwork-hide-button{margin:0;flex:0 0 30px;}
   .artwork-card-head-actions .artwork-hide-button svg{display:block!important;width:22px!important;height:22px!important;max-width:22px!important;max-height:22px!important;overflow:visible!important;background:transparent!important;}
+  @media(max-width:760px){.artwork-card-body-grid{grid-template-columns:1fr}.artwork-card-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .decoration-settings{margin-top:14px;background:rgba(255,255,255,.58);padding:0 12px;}
   .decoration-settings summary{cursor:pointer;padding:12px 0;font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;list-style:none;display:flex;align-items:center;justify-content:space-between;}
   .decoration-settings summary::-webkit-details-marker{display:none;}
@@ -502,6 +529,7 @@
   .artwork-editor-modal{width:min(980px,96vw);max-height:92vh;overflow:auto;}
   .artwork-editor-backdrop{z-index:120;}
   .artwork-editor-layout{display:grid;grid-template-columns:minmax(300px,1.25fr) minmax(280px,.75fr);gap:24px;align-items:start;}
+  .artwork-editor-left{position:sticky;top:10px;align-self:start;z-index:2;}
   .artwork-editor-preview{background:#fff;min-height:540px;display:flex;align-items:center;justify-content:center;padding:28px;}
   .artwork-editor-preview img,.artwork-editor-preview svg{display:block;max-width:100%;max-height:500px;object-fit:contain;}
   .artwork-editor-canvas-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:540px;overflow:auto;background-image:linear-gradient(45deg,#6e6e6e 25%,transparent 25%),linear-gradient(-45deg,#6e6e6e 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#6e6e6e 75%),linear-gradient(-45deg,transparent 75%,#6e6e6e 75%);background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0;background-color:#858585;}
@@ -510,10 +538,11 @@
   .artwork-editor-canvas-wrap.panning,.artwork-editor-canvas-wrap.panning #artwork-editor-canvas{cursor:grabbing!important;user-select:none;}
   .artwork-editor-stage{position:relative;flex:0 0 auto;line-height:0;transform-origin:top left;}
   #artwork-editor-canvas{display:block;max-width:100%;max-height:520px;touch-action:none;cursor:crosshair;box-shadow:0 0 0 1px rgba(0,0,0,.12);}
-  #artwork-lasso-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  #artwork-color-selection-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;image-rendering:auto;}
+  #artwork-lasso-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:3;}
   #artwork-lasso-overlay polyline{fill:rgba(57,255,20,.10);stroke:#39ff14;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #39ff14);}
   .artwork-selection-box{border-color:#39ff14!important;background:rgba(57,255,20,.10)!important;box-shadow:0 0 0 1px #fff,0 0 8px #39ff14;}
-  .artwork-selection-box{position:absolute;border:2px dashed #e0562f;background:rgba(224,86,47,.08);pointer-events:none;display:none;}
+  .artwork-selection-box{position:absolute;border:2px dashed #e0562f;background:rgba(224,86,47,.08);pointer-events:none;display:none;z-index:4;}
   .pixel-editor-toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px;}
   .pixel-tool{border:0;background:#f4f1e8;padding:9px 11px;font:700 10px 'Poppins',sans-serif;text-transform:uppercase;cursor:pointer;box-shadow:2px 3px 0 rgba(30,30,30,.14);}
   .pixel-tool.active{background:#222;color:#fff;}
@@ -544,10 +573,34 @@
   .canvas-file-name span{margin-right:9px;color:#777;font-size:9px;letter-spacing:.7px;}
   .artwork-palette{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(30,30,30,.35);}
   .artwork-palette-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;}
+  .artwork-color-row{display:grid;grid-template-columns:40px minmax(76px,1fr) 46px 32px;align-items:center;gap:6px;padding:7px;background:rgba(255,255,255,.82);box-shadow:1px 2px 0 rgba(30,30,30,.08);}
+  .artwork-color-row.selected{background:#fff3d6;box-shadow:inset 0 0 0 2px #e0562f,1px 2px 0 rgba(30,30,30,.08);}
+  .artwork-color-select{position:relative;width:38px;height:30px;border:1px solid #777;cursor:pointer;background:var(--swatch);}
+  .artwork-color-select:after{content:'✓';position:absolute;right:-5px;top:-8px;width:18px;height:18px;border-radius:50%;background:#e0562f;color:#fff;font:900 11px/18px 'Poppins',sans-serif;text-align:center;opacity:0;transform:scale(.7);}
+  .artwork-color-row.selected .artwork-color-select:after{opacity:1;transform:scale(1);}
+  .artwork-color-hex{min-width:0;width:100%;height:31px;border:0;background:#fff;padding:4px 7px;box-sizing:border-box;font:800 10px monospace;text-transform:uppercase;}
+  .artwork-color-target,.artwork-color-remove{height:31px;border:0;cursor:pointer;font:800 7px 'Poppins',sans-serif;text-transform:uppercase;}
+  .artwork-color-target{background:#f1eee5;color:#222;}
+  .artwork-color-remove{background:#222;color:#fff;font-size:14px;}
+  .artwork-combine-panel{margin:10px 0 2px;padding:11px;background:rgba(255,255,255,.72);box-shadow:1px 2px 0 rgba(30,30,30,.08);}
+  .artwork-combine-status{margin-bottom:8px;color:#555;font:800 9px 'Poppins',sans-serif;letter-spacing:.5px;text-transform:uppercase;}
+  .artwork-combine-controls{display:grid;grid-template-columns:38px minmax(88px,1fr) auto;gap:7px;align-items:center;}
+  .artwork-combine-controls input[type=color]{width:38px;height:34px;border:0;background:transparent;padding:0;cursor:pointer;}
+  .artwork-combine-controls input[type=text]{width:100%;height:34px;border:0;background:#fff;padding:6px 8px;box-sizing:border-box;font:800 10px monospace;text-transform:uppercase;}
+  .artwork-combine-button{height:34px;border:0;background:#222;color:#fff;padding:0 11px;font:800 9px 'Poppins',sans-serif;text-transform:uppercase;cursor:pointer;}
+  .artwork-combine-button:disabled{opacity:.35;cursor:not-allowed;}
+  @media(max-width:640px){.artwork-palette-grid{grid-template-columns:1fr}.artwork-color-row{grid-template-columns:42px minmax(90px,1fr) 48px 34px}}
   .artwork-color-row{position:relative;display:grid;grid-template-columns:28px 1fr 24px;gap:7px;align-items:center;background:#fff;padding:6px;}
   .artwork-color-row input[type="color"]{width:28px;height:28px;border:0;padding:0;background:transparent;cursor:pointer;}
   .artwork-color-hex{width:100%;border:0;background:#f4f1e8;padding:6px;font:700 9px monospace;text-transform:uppercase;}
   .artwork-color-remove{width:24px;height:24px;border:0;background:#222;color:#fff;font:900 13px 'Poppins',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  /* Keep each color family compact: swatch + HEX above, remove + target below. */
+  .artwork-color-row{grid-template-columns:40px minmax(0,1fr);grid-template-areas:'swatch hex' 'remove target';grid-template-rows:auto 22px;gap:6px 8px;padding:8px;}
+  .artwork-color-select{grid-area:swatch;width:40px;height:32px;}
+  .artwork-color-hex{grid-area:hex;height:32px;}
+  .artwork-color-remove{grid-area:remove;width:22px;height:22px;justify-self:start;font-size:10px;line-height:1;}
+  .artwork-color-target{grid-area:target;width:100%;height:22px;}
+  @media(max-width:640px){.artwork-color-row{grid-template-columns:42px minmax(0,1fr);grid-template-areas:'swatch hex' 'remove target';}}
   .techpack-artwork-page{break-before:page;page-break-before:always;padding-top:12px;min-height:680px;}
   .techpack-artwork-title{text-align:center;font-size:28px;letter-spacing:2px;text-transform:uppercase;margin:0 0 24px;}
   .techpack-artwork-layout{display:grid;grid-template-columns:1.2fr .8fr;gap:34px;align-items:start;}
@@ -555,6 +608,30 @@
   .techpack-artwork-image img,.techpack-artwork-image svg{max-width:100%;max-height:480px;object-fit:contain;}
   .techpack-artwork-data{background:rgba(255,255,255,.58);padding:20px;}
   .techpack-artwork-data-row{display:grid;grid-template-columns:125px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid rgba(30,30,30,.25);font-size:13px;}
+  .techpack-grouped-artwork-page{padding:22px;box-sizing:border-box;min-height:680px;}
+  .techpack-grouped-layout{display:grid;grid-template-columns:minmax(260px,.9fr) minmax(0,1.7fr);gap:24px;align-items:start;}
+  .techpack-linked-pattern-column{min-width:0;}
+  .techpack-linked-pattern-column h2,.techpack-grouped-artwork-card h3{margin:0 0 10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;}
+  .techpack-linked-pattern-column h2{font-size:18px;}
+  .techpack-linked-pattern-board{height:590px;background:#fff;display:flex;align-items:center;justify-content:center;padding:18px;overflow:hidden;box-sizing:border-box;}
+  .techpack-linked-pattern-board>svg{display:block;width:100%;height:100%;max-width:100%;max-height:100%;}
+  .techpack-linked-sleeves{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;align-items:center;}
+  .techpack-linked-sleeves svg{display:block;width:100%;height:auto;max-height:520px;}
+  .techpack-grouped-artwork-grid{display:grid;grid-template-columns:repeat(var(--artwork-columns,2),minmax(0,1fr));gap:var(--artwork-gap,12px);align-items:start;min-width:0;}
+  .techpack-grouped-artwork-card{min-width:0;break-inside:avoid;font-size:var(--artwork-card-font,10px);}
+  .techpack-grouped-artwork-card h3{font-size:clamp(14px,2vw,24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .techpack-grouped-artwork-image{height:var(--artwork-preview-height,190px);background:#fff;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden;box-sizing:border-box;}
+  .techpack-grouped-artwork-image img,.techpack-grouped-artwork-image svg{display:block;width:100%;height:100%;object-fit:contain;max-width:100%;max-height:100%;}
+  .techpack-grouped-artwork-row{display:grid;grid-template-columns:72px minmax(0,1fr);gap:7px;padding:6px 8px;background:rgba(255,255,255,.72);border-bottom:1px solid rgba(30,30,30,.16);font-size:inherit;line-height:1.3;overflow-wrap:anywhere;}
+  .techpack-grouped-artwork-row b{letter-spacing:.3px;}
+  .techpack-grouped-artwork-row .techpack-color-list{gap:4px;}
+  .techpack-grouped-artwork-row .techpack-color-chip{font-size:.75em;}
+  .techpack-grouped-artwork-row .techpack-color-chip i{width:12px;height:12px;}
+  @media(max-width:800px){
+    .techpack-grouped-layout{grid-template-columns:1fr;}
+    .techpack-linked-pattern-board{height:360px;}
+    .techpack-grouped-artwork-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
   .techpack-spec-sheet{margin-top:34px;padding-top:26px;border-top:1px solid rgba(30,30,30,.18);}
   .techpack-spec-title{text-align:center;font-size:24px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin:0 0 24px;}
   .techpack-spec-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:30px;align-items:start;}
@@ -757,6 +834,7 @@
     .techpack-spec-layout{grid-template-columns:1fr;}
     .artwork-inspector{grid-template-columns:1fr;}
     .artwork-editor-layout,.techpack-artwork-layout{grid-template-columns:1fr;}
+    .artwork-editor-left{position:relative;top:auto;}
     .saved-designs{grid-template-columns:1fr;}
     .reference-upload-grid,.reference-services,.reference-studio-fields{grid-template-columns:1fr;}
   }
@@ -768,6 +846,11 @@
     .techpack-modal{position:absolute!important;left:0;top:0;width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;border:0!important;box-shadow:none!important;background:#fff!important;}
     .techpack-modal .close-modal,.techpack-modal .graphic-tools{display:none!important;}
     .techpack-artwork-page,.techpack-spec-sheet{break-before:page;page-break-before:always;border-top:0;margin-top:0;padding-top:0;}
+    .techpack-grouped-artwork-page{height:180mm!important;min-height:0!important;padding:4mm!important;overflow:hidden!important;box-sizing:border-box!important;}
+    .techpack-grouped-layout{grid-template-columns:minmax(55mm,.9fr) minmax(0,1.7fr)!important;gap:5mm!important;height:100%!important;}
+    .techpack-linked-pattern-board{height:160mm!important;padding:4mm!important;}
+    .techpack-grouped-artwork-card h3{font-size:14pt!important;margin-bottom:2mm!important;}
+    .techpack-grouped-artwork-row{padding:1.4mm 2mm!important;}
   }
 
 .package-reference-list{display:grid;gap:18px;margin-top:14px}
@@ -782,6 +865,13 @@
 .techpack-package-reference-card img{display:block;width:100%;height:210px;object-fit:contain;background:#eee;margin:8px 0}
 .techpack-package-reference-card p{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:760px){.techpack-package-reference-grid{grid-template-columns:1fr}}
+
+.save-design-wrap{position:relative;display:inline-flex}
+.save-design-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:2000;min-width:190px;background:#fffdf6;box-shadow:0 6px 18px #0002;padding:6px;display:grid;gap:4px}
+.save-design-menu button{border:0;background:#fffdf6;padding:11px 14px;font-weight:800;text-align:left;cursor:pointer}
+.save-design-menu button:hover{background:#222;color:#fff}
+.artwork-group-select{width:30px;height:30px;border:0;background:#eee;color:#222;font-weight:900;cursor:pointer}
+.artwork-group-select.is-selected{background:#1f7a4d;color:#fff}
 </style>
 </head>
 <body>
@@ -796,11 +886,10 @@ const OPTION_VALUES = {
   Fabric: ['Single Jersey','French Terry','Fleece','CVC','TC','Poly'],
   Color: ['Off White','Powder Blue','Cream','Forest Green','Black','White','Red'],
   Print: ['None','Screen Print','Embroidery','Puff Print'],
-  Technique: ['Pearls','Stud','Rhinestones','Hand Stitch'],
+  Technique: ['Pearls','Stud','Rhinestones','Hand Stitch','Distress'],
   Trim: ['Drawcord','Eyelets','Zipper','Snaps','Buttons','Cord Locks'],
   Branding: ['Main Label','Size Label','Care Label','Hangtag','Packaging','Sticker'],
   Washing: ['Standard Wash','Stone Wash','Acid Wash','Enzyme Wash'],
-  Distressed: ['None','Light Distress','Heavy Distress','Vintage Fade'],
   Rib: ['Standard Rib','1x1 Ribbed Collar','2x2 Ribbed Collar','No Rib'],
   Waistband: ['Elastic','Drawstring','Elastic + Drawstring','Ribbed Waistband'],
 };
@@ -809,17 +898,17 @@ const ARTWORK_TECHNIQUES = ['Screen Print','Puff Print','Embroidery','DTG Print'
 
 const PRODUCTS = {
   tee: { label:'Tee', color:'var(--tee-color)', svg:'tee',
-    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash','Reference & Design Studio'] },
   hoodie: { label:'Hoodie', color:'var(--hoodie-color)', svg:'hoodie',
-    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash','Reference & Design Studio'] },
   sweatshirt: { label:'Sweatshirt', color:'var(--sweatshirt-color)', svg:'sweatshirt',
-    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash','Reference & Design Studio'] },
   sweatpants: { label:'Sweatpants', color:'var(--sweatpants-color)', svg:'sweatpants',
-    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash','Reference & Design Studio'] },
   fullzip: { label:'Full-Zip Hoodie', color:'var(--hoodie-color)', svg:'hoodie',
-    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash','Reference & Design Studio'] },
   denim: { label:'Denim Pants', color:'var(--sweatpants-color)', svg:'sweatpants',
-    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash & Finish','Reference & Design Studio'] },
+    configs:['Fit (Spec) & Construction','Fabric & Color','Artwork & Technique','Trim','Branding Package','Wash','Reference & Design Studio'] },
 };
 
 const FAQS = [
@@ -841,6 +930,9 @@ let state = {
   },
   uploads: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
   selectedGraphic: { tee:null, hoodie:null, sweatshirt:null, sweatpants:null, fullzip:null, denim:null },
+  selectedArtworkGroups: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
+  saveMenuOpen: false,
+  expandedArtwork: { tee:null, hoodie:null, sweatshirt:null, sweatpants:null, fullzip:null, denim:null },
   deletedGraphics: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
   history: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
   marks: { tee:[], hoodie:[], sweatshirt:[], sweatpants:[], fullzip:[], denim:[] },
@@ -911,6 +1003,19 @@ Object.keys(PRODUCTS).forEach(key=>{try{const draft=JSON.parse(localStorage.getI
 
 /* ---------------- SVG ILLUSTRATIONS ---------------- */
 
+// The editor stores source bounds only while an artwork is cropped.  Older
+// saves may still contain stale sourceX/sourceY/sourceW/sourceH values, so
+// always use the live x/y/w/h box unless a crop is actually active.
+function artworkRenderBox(g){
+  const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+  const useSource=!!(g&&g.crop);
+  const x=useSource?numberOr(g.sourceX,numberOr(g.x,0)):numberOr(g.x,0);
+  const y=useSource?numberOr(g.sourceY,numberOr(g.y,0)):numberOr(g.y,0);
+  const w=useSource?numberOr(g.sourceW,numberOr(g.w,.01)):numberOr(g.w,.01);
+  const h=useSource?numberOr(g.sourceH,numberOr(g.h,.01)):numberOr(g.h,.01);
+  return {x,y,w:Math.max(.01,w),h:Math.max(.01,h)};
+}
+
 function garmentSVG(type, color, size, customization={}){
   const fit = customization.Fit || 'Regular';
   const washing = customization.Washing || 'Standard Wash';
@@ -918,22 +1023,28 @@ function garmentSVG(type, color, size, customization={}){
   const bodyColor=(customization.garmentView==='Back'?customization.BodyBackColor:customization.BodyFrontColor) || customization.BodyColor || customization.Color || defaultColor;
   const leftSleeveColor=customization.LeftSleeveColor || customization.SleeveColor || customization.Color || defaultColor;
   const rightSleeveColor=customization.RightSleeveColor || customization.SleeveColor || customization.Color || defaultColor;
+  // Sleeve pattern-piece previews follow the front body color so the pattern
+  // and the selected front panel always read as one coordinated garment.
+  const frontBodyColor=customization.BodyFrontColor || customization.BodyColor || customization.Color || defaultColor;
   const hoodColor=customization.HoodColor || customization.Color || defaultColor;
   const pocketColor=customization.PocketColor || bodyColor;
   const bodyRibColor=customization.BodyRibColor || customization.RibColor || bodyColor;
   const sleeveRibColor=customization.SleeveRibColor || customization.RibColor || leftSleeveColor;
   const activeZone = customization.activeZone || 'Front';
   const garmentView = customization.garmentView || 'Front';
-  const graphics = (customization.graphics || []).map((g,index)=>({...g,_index:index})).filter(g => !g.hidden && (g.zone || 'Front') === activeZone);
+  const allGraphics = (customization.graphics || []).map((g,index)=>({...g,_index:index})).filter(g => !g.hidden);
+  const graphics = allGraphics.filter(g => (g.zone || 'Front') === activeZone);
   const selectedGraphic = customization.selectedGraphic;
   const allMarks = customization.marks || [];
   const marks = allMarks.filter(m => (m.zone || 'Front') === activeZone);
   const brushMode = customization.brushMode || null;
   const fitScale = {Regular:1, Oversized:1.14, Slim:.86, Relaxed:1.06}[fit] || 1;
   const washFactor = washing === 'Stone Wash' ? 1.10 : washing === 'Acid Wash' ? .82 : washing === 'Enzyme Wash' ? .96 : 1;
-  const artwork = graphics.map((g,i) => `
+  const artwork = graphics.map((g,i) => {
+    const box=artworkRenderBox(g);
+    return `
     ${g.crop?`<clipPath id="artCrop${g._index}"><rect x="${g.crop.x}" y="${g.crop.y}" width="${g.crop.w}" height="${g.crop.h}"/></clipPath>`:''}
-    <g class="artwork-layer-unclipped"><image class="uploaded-graphic zone-${(g.zone||'Front').replace(/\s/g,'').toLowerCase()} ${g.locked?'locked':''}" data-index="${g._index}" href="${g.src}" x="${g.sourceX??g.x}" y="${g.sourceY??g.y}" width="${g.sourceW??g.w}" height="${g.sourceH??g.h}" ${g.crop?`clip-path="url(#artCrop${g._index})"`:''} transform="rotate(${g.rotation||0} ${(g.sourceX??g.x)+(g.sourceW??g.w)/2} ${(g.sourceY??g.y)+(g.sourceH??g.h)/2})" preserveAspectRatio="xMidYMid meet" onpointerdown="startGraphicDrag(event,${g._index})"/></g>
+    <g class="artwork-layer-unclipped"><image class="uploaded-graphic zone-${(g.zone||'Front').replace(/\s/g,'').toLowerCase()} ${g.locked?'locked':''}" data-index="${g._index}" href="${g.src}" x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" ${g.crop?`clip-path="url(#artCrop${g._index})"`:''} transform="rotate(${g.rotation||0} ${box.x+box.w/2} ${box.y+box.h/2})" preserveAspectRatio="xMidYMid meet" onpointerdown="startGraphicDrag(event,${g._index})" style="touch-action:none;cursor:${g.locked?'default':'move'}"/></g>
     ${selectedGraphic===g._index ? `<rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" fill="none" stroke="${g.technique==='Embroidery'?'#2f76ff':g.technique==='Applique'?'#8e44ad':g.technique==='Rhinestones'?'#777':'#e0562f'}" stroke-width=".65" stroke-dasharray="3 3" pointer-events="none"/>
       ${!g.locked?`
         <line x1="${g.x+g.w/2}" y1="${g.y}" x2="${g.x+g.w/2}" y2="${g.y-8}" stroke="#e0562f" stroke-width=".6" pointer-events="none"/>
@@ -943,7 +1054,75 @@ function garmentSVG(type, color, size, customization={}){
         <circle class="graphic-resize-handle" cx="${g.x}" cy="${g.y+g.h}" r="2.8" fill="#fff" stroke="#e0562f" stroke-width="1.2" onpointerdown="startGraphicResize(event,${g._index},'sw')" style="cursor:nesw-resize"/>
         <circle class="graphic-resize-handle" cx="${g.x+g.w}" cy="${g.y+g.h}" r="2.8" fill="#fff" stroke="#e0562f" stroke-width="1.2" onpointerdown="startGraphicResize(event,${g._index},'se')" style="cursor:nwse-resize"/>
       `:''}` : ''}
-  `).join('');
+  `}).join('');
+  // Sleeve artwork is authored on the full production-pattern view. When the
+  // customer returns to Front or Back, project that same artwork onto the
+  // corresponding garment sleeve instead of hiding it with the sleeve panel.
+  // Keep these projected copies non-interactive; editing still happens in the
+  // dedicated Left/Right Sleeve view where coordinates stay unambiguous.
+  const renderProjectedArtwork=(list,prefix)=>list.map(g=>{
+    const cropId=`${prefix}-crop-${g._index}`;
+    const box=artworkRenderBox(g);
+    return `${g.crop?`<clipPath id="${cropId}"><rect x="${g.crop.x}" y="${g.crop.y}" width="${g.crop.w}" height="${g.crop.h}"/></clipPath>`:''}
+      <image class="projected-artwork" href="${g.src}" x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" ${g.crop?`clip-path="url(#${cropId})"`:''} transform="rotate(${g.rotation||0} ${box.x+box.w/2} ${box.y+box.h/2})" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>`;
+  }).join('');
+  // Project the production sleeve pattern onto the photographed garment sleeve.
+  // The mapping is anchored by the pattern grainline: cap centre -> shoulder and
+  // cuff centre -> cuff. One uniform scale is used, so artwork proportions,
+  // rotation, placement along the sleeve and offset across the sleeve all stay
+  // identical to the dedicated sleeve-pattern view.
+  const renderProjectedSleeveArtwork=(list,zone)=>{
+    const authoredLeft=zone==='Left Sleeve';
+    const screenLeft=garmentView==='Back'?!authoredLeft:authoredLeft;
+    // Use the real cap-centre -> cuff-centre grainline from each supplied
+    // production pattern.  The target points are the matching shoulder and
+    // cuff centres on the garment photograph.  Keeping these as a single
+    // similarity transform prevents sleeve artwork from stretching or
+    // drifting when switching between the pattern and garment views.
+    const projectionByType={
+      tee:{
+        pattern:{capX:100,capY:52,cuffY:182},
+        left:{shoulderX:62,shoulderY:45,cuffX:31,cuffY:79},
+        right:{shoulderX:138,shoulderY:45,cuffX:169,cuffY:79}
+      },
+      hoodie:{
+        pattern:{capX:100,capY:5,cuffY:195},
+        left:{shoulderX:62,shoulderY:58,cuffX:27,cuffY:176},
+        right:{shoulderX:138,shoulderY:58,cuffX:173,cuffY:176}
+      },
+      sweatshirt:{
+        pattern:{capX:100,capY:5,cuffY:195},
+        left:{shoulderX:64,shoulderY:52,cuffX:28,cuffY:176},
+        right:{shoulderX:136,shoulderY:52,cuffX:172,cuffY:176}
+      }
+    };
+    const projection=projectionByType[type]||projectionByType.hoodie;
+    const pattern=projection.pattern;
+    const target=screenLeft?projection.left:projection.right;
+    const dx=target.cuffX-target.shoulderX;
+    const dy=target.cuffY-target.shoulderY;
+    const patternLength=Math.max(1,pattern.cuffY-pattern.capY);
+    const sleeveLength=Math.hypot(dx,dy);
+    const mapScale=sleeveLength/patternLength;
+    // SVG's pattern grainline points down at 90°. Rotate only by the delta
+    // between that grainline and the photographed shoulder-to-cuff direction.
+    const mapRotation=Math.atan2(dy,dx)*180/Math.PI-90;
+    return list.map(g=>{
+      const {x:sx,y:sy,w:sw,h:sh}=artworkRenderBox(g);
+      const rotationCX=sx+sw/2,rotationCY=sy+sh/2;
+      const cropId=`projected-${screenLeft?'left':'right'}-crop-${g._index}`;
+      return `${g.crop?`<clipPath id="${cropId}"><rect x="${g.crop.x}" y="${g.crop.y}" width="${g.crop.w}" height="${g.crop.h}"/></clipPath>`:''}
+        <g transform="translate(${target.shoulderX} ${target.shoulderY}) rotate(${mapRotation.toFixed(3)}) scale(${mapScale.toFixed(5)}) translate(${-pattern.capX} ${-pattern.capY})">
+          <image class="projected-artwork" href="${g.src}" x="${sx}" y="${sy}" width="${sw}" height="${sh}" ${g.crop?`clip-path="url(#${cropId})"`:''} transform="rotate(${g.rotation||0} ${rotationCX} ${rotationCY})" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>
+        </g>`;
+    }).join('');
+  };
+  const compositeArtwork=(activeZone==='Front'||activeZone==='Back') ? `
+    <g class="projected-sleeve-artwork" pointer-events="none">
+      ${renderProjectedSleeveArtwork(allGraphics.filter(g=>(g.zone||'Front')===(garmentView==='Back'?'Right Sleeve':'Left Sleeve')),garmentView==='Back'?'Right Sleeve':'Left Sleeve')}
+      ${renderProjectedSleeveArtwork(allGraphics.filter(g=>(g.zone||'Front')===(garmentView==='Back'?'Left Sleeve':'Right Sleeve')),garmentView==='Back'?'Left Sleeve':'Right Sleeve')}
+      ${type==='hoodie'?`<g clip-path="url(#hoodClip)">${renderProjectedArtwork(allGraphics.filter(g=>(g.zone||'Front')==='Hood'),'hood')}</g>`:''}
+    </g>` : '';
   const photoFiles = {tee:garmentView==='Back'?'tee-back.png':'tee.png',hoodie:garmentView==='Back'?'hoodie-back.png':'hoodie.png',sweatshirt:garmentView==='Back'?'sweatshirt-back.png':'sweatshirt.png',sweatpants:'sweatpants.png'};
   const colorMap = {
     'Off White':[.93,.91,.86],
@@ -958,20 +1137,20 @@ function garmentSVG(type, color, size, customization={}){
   };
   const sleeveView=activeZone==='Left Sleeve' || activeZone==='Right Sleeve';
   const ribView=activeZone==='Rib';
-  const sleeveViewColor=activeZone==='Left Sleeve' ? leftSleeveColor : rightSleeveColor;
+  const sleeveViewColor=frontBodyColor;
   const sleeveRGB=colorMap[sleeveViewColor] || [.75,.75,.75];
   const sleeveFill=`rgb(${Math.round(sleeveRGB[0]*255)},${Math.round(sleeveRGB[1]*255)},${Math.round(sleeveRGB[2]*255)})`;
   const bodyRibRGB=colorMap[bodyRibColor] || [.75,.75,.75];
   const bodyRibFill=`rgb(${Math.round(bodyRibRGB[0]*255)},${Math.round(bodyRibRGB[1]*255)},${Math.round(bodyRibRGB[2]*255)})`;
   const sleevePatternPath=type==='tee'
     ? 'M25 145 C50 137 67 111 82 76 Q91 55 100 52 Q109 55 118 76 C133 111 150 137 175 145 L170 182 H30 Z'
-    : 'M34 48 Q65 46 82 31 Q91 22 100 20 Q109 22 118 31 Q135 46 166 48 L156 181 H44 Z';
+    : 'M18 55 C50 55 67 5 100 5 C133 5 150 55 182 55 L148 195 H51 Z';
   const sleevePattern=sleeveView ? (type==='tee' ? `
     <g class="sleeve-pattern">
       <image href="assets/tee-pattern-sleeve-1.png" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet"/>
     </g>` : (type==='hoodie' || type==='sweatshirt') ? `
     <g class="sleeve-pattern">
-      <image href="assets/hoodie-pattern-sleeve-1.png" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet"/>
+      <image href="assets/sleeve-pattern-slv.png" x="8" y="5" width="184" height="190" preserveAspectRatio="xMidYMid meet" filter="url(#activeSleevePatternColor)"/>
     </g>` : `
     <g class="sleeve-pattern">
       <path d="${sleevePatternPath}"
@@ -1093,6 +1272,7 @@ function garmentSVG(type, color, size, customization={}){
         ${type!=='sweatpants'?`<image href="assets/${photoFiles[type]}" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet" filter="url(#bodyRibColor)" clip-path="url(#bodyRibClip)"/>
         <image href="assets/${photoFiles[type]}" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet" filter="url(#sleeveRibColor)" clip-path="url(#sleeveRibClip)"/>`:''}
       </g>`}
+      ${compositeArtwork}
       ${artwork}
       <g class="live-marks">${compositeMarks}</g>
       </g>
@@ -1109,6 +1289,9 @@ function patternPreviewSVG(type,zone,customization={}){
   let colorName=zone==='Back' ? customization.BodyBackColor : customization.BodyFrontColor;
   if(zone==='Left Sleeve') colorName=customization.LeftSleeveColor;
   if(zone==='Right Sleeve') colorName=customization.RightSleeveColor;
+  // The supplied long-sleeve production pattern is intentionally color-linked
+  // to the front body panel rather than to an independent sleeve swatch.
+  if((type==='hoodie'||type==='sweatshirt') && zone.includes('Sleeve')) colorName=customization.BodyFrontColor || customization.BodyColor || customization.Color;
   if(zone==='Hood') colorName=customization.HoodColor;
   if(zone==='Rib') colorName=customization.BodyRibColor || customization.RibColor;
   const fill=colors[colorName||fallback] || '#ccc';
@@ -1120,7 +1303,7 @@ function patternPreviewSVG(type,zone,customization={}){
   }else if(zone.includes('Sleeve')){
     shape=type==='tee'
       ? '<path d="M25 145C50 137 67 111 82 76Q91 55 100 52Q109 55 118 76C133 111 150 137 175 145L170 182H30Z"/>'
-      : '<path d="M34 48Q65 46 82 31Q91 22 100 20Q109 22 118 31Q135 46 166 48L156 181H44Z"/>';
+      : '<path d="M18 55C50 55 67 5 100 5C133 5 150 55 182 55L148 195H51Z"/>';
   }else if(zone==='Hood'){
     shape='<path d="M42 158V105Q42 35 100 20Q158 35 158 105V158Q130 137 100 138Q70 137 42 158Z"/>';
   }else if(type==='sweatpants'){
@@ -1146,21 +1329,28 @@ function patternPreviewSVG(type,zone,customization={}){
     hoodie:{
       Front:'hoodie-pattern-front-1.png',
       Back:'hoodie-pattern-back-1.png',
-      'Left Sleeve':'hoodie-pattern-sleeve-1.png',
-      'Right Sleeve':'hoodie-pattern-sleeve-1.png',
+      'Left Sleeve':'sleeve-pattern-slv.png',
+      'Right Sleeve':'sleeve-pattern-slv.png',
       Hood:'hoodie-pattern-hood-1.png',
       Pocket:'hoodie-pattern-pocket-1.png'
     },
     sweatshirt:{
-      'Left Sleeve':'hoodie-pattern-sleeve-1.png',
-      'Right Sleeve':'hoodie-pattern-sleeve-1.png'
+      'Left Sleeve':'sleeve-pattern-slv.png',
+      'Right Sleeve':'sleeve-pattern-slv.png'
     }
   };
   const actualFile=actualPatternFiles[type]?.[zone];
+  const usesColorMatchedSleeve=actualFile==='sleeve-pattern-slv.png';
   if(actualFile) return `<svg viewBox="0 0 200 205" aria-label="${zone} production pattern">
-    <defs><clipPath id="patternArtworkClip">${shape}</clipPath></defs>
+    <defs>
+      <clipPath id="patternArtworkClip">${shape}</clipPath>
+      <filter id="frontMatchedPatternColor" color-interpolation-filters="sRGB">
+        <feFlood flood-color="${fill}" result="frontColor"/>
+        <feComposite in="frontColor" in2="SourceAlpha" operator="in"/>
+      </filter>
+    </defs>
     <rect width="200" height="205" fill="#fff"/>
-    <image href="assets/${actualFile}" x="3" y="3" width="194" height="194" preserveAspectRatio="xMidYMid meet"/>
+    <image href="assets/${actualFile}" x="${usesColorMatchedSleeve?8:3}" y="${usesColorMatchedSleeve?5:3}" width="${usesColorMatchedSleeve?184:194}" height="${usesColorMatchedSleeve?190:194}" preserveAspectRatio="xMidYMid meet" ${usesColorMatchedSleeve?'filter="url(#frontMatchedPatternColor)"':''}/>
     <g clip-path="url(#patternArtworkClip)">${graphics}${marks}</g>
   </svg>`;
   return `<svg viewBox="0 0 200 205" aria-label="${zone} production pattern">
@@ -1222,7 +1412,7 @@ function openSpoolDB(){return new Promise((resolve,reject)=>{const request=index
 async function spoolDBPut(key,value){const db=await openSpoolDB();return new Promise((resolve,reject)=>{const tx=db.transaction('designs','readwrite');tx.objectStore('designs').put(value,key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);});}
 async function spoolDBGet(key){const db=await openSpoolDB();return new Promise((resolve,reject)=>{const tx=db.transaction('designs','readonly'),request=tx.objectStore('designs').get(key);request.onsuccess=()=>{db.close();resolve(request.result);};request.onerror=()=>reject(request.error);});}
 async function spoolDBDelete(key){const db=await openSpoolDB();return new Promise((resolve,reject)=>{const tx=db.transaction('designs','readwrite');tx.objectStore('designs').delete(key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);});}
-function cleanDesignForStorage(value){return JSON.parse(JSON.stringify(value,(key,item)=>key==='editorDraft'||key==='originalSrc'?undefined:item));}
+function cleanDesignForStorage(value){return JSON.parse(JSON.stringify(value,(key,item)=>key==='editorDraft'?undefined:item));}
 function escapeText(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function getAccountUser(){
   try{return JSON.parse(localStorage.getItem('spoolAccountUser')||'null');}catch(error){return null;}
@@ -1279,7 +1469,7 @@ function renderAccountModal(){
 function renderHome(){
   return `<main class="model-home combined-model-home" id="model-home">
     <div class="model-group combined-model-group">
-      <img class="model-home-image" src="assets/model-home-combined.png" alt="Men and women wearing customizable Spool garments" decoding="async" fetchpriority="high">
+      <img class="model-home-image" src="assets/model-home-combined.jpg" alt="Men and women wearing customizable Spool garments" decoding="async" fetchpriority="high">
       <button class="model-hotspot men-tee" data-label="Customize Tee" aria-label="Customize men's Tee" onclick="focusModelAndStart(event,'tee')"></button>
       <button class="model-hotspot men-hoodie" data-label="Customize Hoodie" aria-label="Customize men's Hoodie" onclick="focusModelAndStart(event,'hoodie')"></button>
       <button class="model-hotspot men-sweatshirt" data-label="Customize Sweatshirt" aria-label="Customize men's Sweatshirt" onclick="focusModelAndStart(event,'sweatshirt')"></button>
@@ -1394,33 +1584,34 @@ function renderItem(){
       const decorationReferenceHtml=state.brushMode?`<div style="margin-top:14px"><div class="fabric-label">Decoration Reference</div><label class="layer-upload-btn">+ Upload Reference Image<input type="file" accept="image/png,image/jpeg,image/webp" onchange="handleDecorationReferenceUpload(event)"></label><div class="decoration-reference-preview">${decorationRefs.map(r=>`<div class="decoration-reference-item"><img src="${r.src}" alt="Decoration reference"><button onclick="removeDecorationReference('${r.id}')" title="Remove reference">×</button><textarea class="reference-card-note" placeholder="Decoration reference notes..." oninput="updateDecorationReferenceNote('${r.id}',this.value)">${escapeText(r.note||'')}</textarea></div>`).join('')}</div><div class="upload-note">Reference images and notes will be included on the matching decoration page in the tech pack.</div></div>`:'';
       const zoneGraphics=state.uploads[state.productKey].map((g,index)=>({...g,index})).filter(g=>(g.zone||'Front')===state.activeZone);
       const selectedIndex=state.selectedGraphic[state.productKey];
-      const selected=selectedIndex!==null?state.uploads[state.productKey][selectedIndex]:null;
-      const metric=selected?getArtworkMetrics(selected):null;
       const inspector=zoneGraphics.length?`<div class="artwork-inspector">
-        <div>${zoneGraphics.map((g,i)=>`<div class="artwork-thumb ${g.index===selectedIndex?'active':''} ${g.hidden?'is-hidden':''}" draggable="true" ondragstart="startArtworkReorder(event,${g.index})" ondragend="endArtworkReorder(event)" ondragover="event.preventDefault()" ondrop="dropArtworkReorder(event,${g.index})" onclick="selectGraphic(${g.index})"><div class="artwork-card-head"><span class="artwork-thumb-title">Artwork ${g.index+1}</span><span class="artwork-placement-label">${g.zone||'Front'}</span><div class="artwork-card-head-actions"><button class="layer-remove" title="Delete artwork" onclick="event.stopPropagation();deleteGraphic(${g.index})">×</button><button type="button" class="artwork-edit-button" onclick="event.preventDefault();event.stopPropagation();openArtworkEditor(${g.index});return false">Edit</button><button type="button" class="artwork-hide-button ${g.hidden?'hidden':''}" title="${g.hidden?'Show':'Hide'} artwork" aria-label="${g.hidden?'Show':'Hide'} artwork" onclick="event.preventDefault();event.stopPropagation();toggleArtworkVisibility(${g.index});return false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/>${g.hidden?'<path d="M3.5 3.5 20.5 20.5" stroke-width="2.6"/>':''}</svg></button></div></div>${g.crop?`<svg viewBox="${g.crop.x-g.crop.w*.12} ${g.crop.y-g.crop.h*.12} ${g.crop.w*1.24} ${g.crop.h*1.24}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}" preserveAspectRatio="xMidYMid meet"/></svg>`:`<img src="${g.src}" alt="Uploaded artwork ${g.index+1}">`}
-          <div class="artwork-file-meta">${artworkFileMeta(g)}</div>
-          <select class="layer-technique" onclick="event.stopPropagation()" onchange="setGraphicTechnique(${g.index},this.value)">
-            ${ARTWORK_TECHNIQUES.map(t=>`<option value="${t}" ${(ARTWORK_TECHNIQUES.includes(g.technique)?g.technique:'Screen Print')===t?'selected':''}>${t}</option>`).join('')}
-          </select>
-          <div class="artwork-card-actions"><button onclick="event.stopPropagation();toggleGraphicLockAt(${g.index})">${g.locked?'Unlock':'Lock'}</button><button onclick="event.stopPropagation();duplicateGraphicAt(${g.index})">Duplicate</button></div>
-          ${artworkAlignmentControls(g.index)}
-        </div>`).join('')}</div>
-        ${selected&&((selected.zone||'Front')===state.activeZone)?`<div class="artwork-fields">
-          <div class="upload-note" style="grid-column:1/-1">Actual measurements based on ${state.fitSize||'M'} size fit specs.</div>
-          <div class="artwork-field"><label>Actual Width</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${metric.width.toFixed(2)}" onchange="updateGraphicMetric('width',this.value)"><span>in</span></div></div>
-          <div class="artwork-field"><label>Actual Height</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${metric.height.toFixed(2)}" onchange="updateGraphicMetric('height',this.value)"><span>in</span></div></div>
-          <div class="artwork-field"><label>Rotate</label><div class="artwork-input-wrap"><input type="number" step="1" value="${selected.rotation||0}" onchange="updateGraphicMetric('rotation',this.value)"><span>deg</span></div></div>
-          <div class="artwork-field"><label>Scale</label><div class="artwork-input-wrap"><input type="number" step="1" value="${selected.scale||100}" onchange="updateGraphicMetric('scale',this.value)"><span>%</span></div></div>
-          <div class="artwork-field"><label>Placement Left</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${metric.left.toFixed(2)}" onchange="updateGraphicMetric('left',this.value)"><span>in</span></div></div>
-          <div class="artwork-field"><label>Placement Top</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${metric.top.toFixed(2)}" onchange="updateGraphicMetric('top',this.value)"><span>in</span></div></div>
-          <div class="technique-layer-tools">
-            <div class="fabric-label">Additional Artwork</div>
-            <label class="layer-upload-btn">+ Add Artwork Layer<input type="file" accept="image/png,image/webp,image/svg+xml" onchange="handleTechniqueLayerUpload(event)"></label>
-            <button class="graphic-tool" onclick="startAreaTechniqueSelection()">Select Area on Artwork</button>
-            ${state.deletedGraphics[state.productKey].length?'<button class="graphic-tool" onclick="undoDeleteGraphic()">Undo Delete</button>':''}
-            <div class="upload-note">Upload a transparent PNG, or select an area of Artwork 1 to create Artwork 2 with its own technique.</div>
-          </div>
-        </div>`:'<div class="upload-note">Select an image to edit size and placement.</div>'}
+        <div class="artwork-card-list">${zoneGraphics.map((g,i)=>{
+          const cardId=g.id||('legacy-'+g.index),expanded=state.expandedArtwork?.[state.productKey]===cardId,gMetric=getArtworkMetrics(g);
+          return `<div class="artwork-thumb ${g.index===selectedIndex?'active':''} ${g.hidden?'is-hidden':''} ${expanded?'expanded':'collapsed'}" draggable="true" ondragstart="startArtworkReorder(event,${g.index})" ondragend="endArtworkReorder(event)" ondragover="event.preventDefault()" ondrop="dropArtworkReorder(event,${g.index})">
+            <div class="artwork-card-head" role="button" tabindex="0" aria-expanded="${expanded}" onclick="toggleArtworkCard(event,${g.index})" onkeydown="if(event.key==='Enter'||event.key===' '){toggleArtworkCard(event,${g.index})}">
+              <span class="artwork-thumb-title">Artwork ${g.index+1}</span><span class="artwork-placement-label">${g.zone||'Front'}</span><span class="artwork-card-chevron" aria-hidden="true">⌄</span>
+              <div class="artwork-card-head-actions"><button type="button" class="artwork-group-select ${selectedArtworkIds().includes(artworkSelectionId(g.index))?'is-selected':''}" onclick="toggleArtworkGroupSelection(event,${g.index})" title="Select artwork to move together">${selectedArtworkIds().includes(artworkSelectionId(g.index))?'✓':'+'}</button><button class="layer-remove" title="Delete artwork" onclick="event.stopPropagation();deleteGraphic(${g.index})">×</button><button type="button" class="artwork-edit-button" onclick="event.preventDefault();event.stopPropagation();openArtworkEditor(${g.index});return false">Edit</button><button type="button" class="artwork-hide-button ${g.hidden?'hidden':''}" title="${g.hidden?'Show':'Hide'} artwork" aria-label="${g.hidden?'Show':'Hide'} artwork" onclick="event.preventDefault();event.stopPropagation();toggleArtworkVisibility(${g.index});return false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/>${g.hidden?'<path d="M3.5 3.5 20.5 20.5" stroke-width="2.6"/>':''}</svg></button></div>
+            </div>
+            <div class="artwork-card-body"><div class="artwork-card-body-grid">
+              <div class="artwork-card-main">
+                ${g.crop?`<svg viewBox="${g.crop.x-g.crop.w*.12} ${g.crop.y-g.crop.h*.12} ${g.crop.w*1.24} ${g.crop.h*1.24}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}" preserveAspectRatio="xMidYMid meet"/></svg>`:`<img src="${g.src}" alt="Uploaded artwork ${g.index+1}">`}
+                <div class="artwork-file-meta">${artworkFileMeta(g)}</div>
+                <select class="layer-technique" onclick="event.stopPropagation()" onchange="setGraphicTechnique(${g.index},this.value)">${ARTWORK_TECHNIQUES.map(t=>`<option value="${t}" ${(ARTWORK_TECHNIQUES.includes(g.technique)?g.technique:'Screen Print')===t?'selected':''}>${t}</option>`).join('')}</select>
+                <div class="artwork-card-actions"><button onclick="event.stopPropagation();toggleGraphicLockAt(${g.index})">${g.locked?'Unlock':'Lock'}</button><button onclick="event.stopPropagation();duplicateGraphicAt(${g.index})">Duplicate</button></div>
+                ${artworkAlignmentControls(g.index)}
+              </div>
+              <div class="artwork-card-metrics">
+                <div class="upload-note">Actual measurements based on ${state.fitSize||'M'} size fit specs.</div>
+                <div class="artwork-field"><label>Actual Width</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${gMetric.width.toFixed(2)}" onchange="updateGraphicMetricAt(${g.index},'width',this.value)"><span>in</span></div></div>
+                <div class="artwork-field"><label>Actual Height</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${gMetric.height.toFixed(2)}" onchange="updateGraphicMetricAt(${g.index},'height',this.value)"><span>in</span></div></div>
+                <div class="artwork-field"><label>Rotate</label><div class="artwork-input-wrap"><input type="number" step="1" value="${g.rotation||0}" onchange="updateGraphicMetricAt(${g.index},'rotation',this.value)"><span>deg</span></div></div>
+                <div class="artwork-field"><label>Scale</label><div class="artwork-input-wrap"><input type="number" step="1" value="${g.scale||100}" onchange="updateGraphicMetricAt(${g.index},'scale',this.value)"><span>%</span></div></div>
+                <div class="artwork-field"><label>Placement Left</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${gMetric.left.toFixed(2)}" onchange="updateGraphicMetricAt(${g.index},'left',this.value)"><span>in</span></div></div>
+                <div class="artwork-field"><label>Placement Top</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${gMetric.top.toFixed(2)}" onchange="updateGraphicMetricAt(${g.index},'top',this.value)"><span>in</span></div></div>
+              </div>
+            </div></div>
+          </div>`;
+        }).join('')}</div>
       </div>`:'';
       panel=`<div class="inline-options-head"><label class="upload-btn">&#8593; Upload Image<input type="file" multiple accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="handleImageUpload(event)"></label></div>
         <div class="placement-tabs">${['Front','Back','Right Sleeve','Left Sleeve',...((state.productKey==='hoodie'||state.productKey==='fullzip')?['Hood']:[])].map(z=>`<button class="placement-tab ${state.activeZone===z?'active':''}" onclick="setActiveZone('${z}')">${z}</button>`).join('')}</div>
@@ -1440,14 +1631,14 @@ function renderItem(){
         <div class="reference-studio-fields"><label>Apply Request To<select onchange="updateStudioField('target',this.value)">${targetOptions.map(t=>`<option ${studio.target===t?'selected':''}>${t}</option>`).join('')}</select></label><label>Requested Deadline<input type="date" value="${studio.deadline||''}" onchange="updateStudioField('deadline',this.value)"></label><label>Customer Email<input type="email" placeholder="you@example.com" value="${studio.email||getAccountUser()?.email||''}" oninput="updateStudioField('email',this.value)"></label><label>Style / Product<input value="${PRODUCTS[state.productKey].label}" readonly></label></div>
         <div class="graphic-tools" style="margin-top:18px"><button class="graphic-tool" onclick="saveStudioReference()">Save Reference</button><button class="submit-btn" onclick="submitDesignRequest()">Submit Design Request</button></div>`;
     } else {
-      panel=`<div class="fabric-section"><div class="fabric-label">Finish</div>${optionGrid('Distressed',OPTION_VALUES.Distressed)}</div>
-        ${configReferencePanel('wash','Wash / Finish Reference')}`;
+      panel=`<div class="fabric-section"><div class="fabric-label">Wash</div>${optionGrid('Washing',OPTION_VALUES.Washing)}</div>
+        ${configReferencePanel('wash','Wash Reference')}`;
     }
     const optionPanel=isOpen?`<div class="inline-options">${c==='Artwork & Technique'?'':`<div class="sub-heading">${c}</div>`}${panel}
       <div class="close-config-row"><button class="close-config-btn" onclick="goSubOption('${c}')"><span style="font-size:18px;line-height:1">×</span> Close</button></div>
     </div>`:'';
     const packageCount=kind=>Object.keys(state.packageReferences[state.productKey]?.[kind]||{}).filter(item=>(state.packageReferences[state.productKey][kind][item]||[]).length||(state.packageReferenceNotes[state.productKey]?.[kind]?.[item]||'').trim()).length;
-    const summary=c==='Fit (Spec) & Construction'?sel.Fit:c==='Fabric & Color'?sel.BodyFabric:c==='Trim'?(packageCount('trim')?`${packageCount('trim')} trim item(s)`:null):c==='Branding Package'?(packageCount('branding')?`${packageCount('branding')} branding item(s)`:null):c==='Wash & Finish'?sel.Distressed:c==='Reference & Design Studio'&&state.referenceStudio[state.productKey].images.length?`${state.referenceStudio[state.productKey].images.length} reference(s)`:null;
+    const summary=c==='Fit (Spec) & Construction'?sel.Fit:c==='Fabric & Color'?sel.BodyFabric:c==='Trim'?(packageCount('trim')?`${packageCount('trim')} trim item(s)`:null):c==='Branding Package'?(packageCount('branding')?`${packageCount('branding')} branding item(s)`:null):c==='Wash'?sel.Washing:c==='Reference & Design Studio'&&state.referenceStudio[state.productKey].images.length?`${state.referenceStudio[state.productKey].images.length} reference(s)`:null;
     const artworkCount=c==='Artwork & Technique'&&state.uploads[state.productKey].length;
     const valHtml=summary?`<span class="value">${summary}</span>`:`<span class="value ${artworkCount?'':'unset'}">${artworkCount?state.uploads[state.productKey].length+' artwork item(s)':'Not set'}</span>`;
     return `<div class="config-btn ${isOpen?'active':''}" onclick="goSubOption('${c}')">
@@ -1468,10 +1659,13 @@ function renderItem(){
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/><path d="M4 4h16v16H4z"/></svg>
           New Design
         </button>
-        <button class="icon-action" onclick="saveDesign()" title="Save design">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>
-          Save Design
-        </button>
+        <div class="save-design-wrap">
+          <button class="icon-action" onclick="toggleSaveDesignMenu(event)" title="Save design">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>
+            Save Design
+          </button>
+          ${state.saveMenuOpen?`<div class="save-design-menu" onclick="event.stopPropagation()"><button type="button" onclick="saveDesignAsIs()">SAVE AS IS</button><button type="button" onclick="saveDesignNewName()">SAVE NEW NAME</button></div>`:''}
+        </div>
         <button class="icon-action" onclick="openSampleRequest()" title="Request a sample">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l8-4 8 4-8 4zM4 7v10l8 4 8-4V7M12 11v10"/></svg>
           Request Sample
@@ -1545,7 +1739,7 @@ function renderArtworkEditorModal(){
   const m=getArtworkMetrics(g),n=state.uploads[key].filter((a,i)=>i<=index&&(a.zone||'Front')===(g.zone||'Front')).length;
   return `<div class="modal-backdrop artwork-editor-backdrop" onclick="closeArtworkEditor(event)"><div class="sample-modal artwork-editor-modal" onclick="event.stopPropagation()">
     <div class="modal-head"><h2>Artwork ${n} - Edit</h2><button class="close-modal" onclick="closeArtworkEditor()">x</button></div>
-    <div class="artwork-editor-layout"><div>
+    <div class="artwork-editor-layout"><div class="artwork-editor-left">
       <div class="pixel-editor-toolbar">
         <button class="pixel-tool active" data-pixel-tool="erase" onclick="setArtworkPixelTool('erase')">Eraser</button>
         <button class="pixel-tool" data-pixel-tool="draw" onclick="setArtworkPixelTool('draw')">Draw</button>
@@ -1555,20 +1749,19 @@ function renderArtworkEditorModal(){
         <button class="pixel-tool" onclick="selectErasedArtworkPixels()">Select Erased</button>
         <button class="pixel-tool" onclick="deleteArtworkSelection()">Delete Selection</button>
         <button class="pixel-tool" onclick="cropArtworkSelection()">Crop</button>
-        <button class="pixel-tool" onclick="redoArtworkPixels()" title="Redo">↷</button>
+        <button class="pixel-tool" onclick="undoArtworkPixels()" title="Undo last artwork change" aria-label="Undo last artwork change">↶</button>
         <button class="pixel-tool" onclick="resetArtworkPixels()">Original</button>
       </div>
       <div class="pixel-editor-settings"><label>Brush Size<input id="artwork-brush-size" type="range" min="4" max="120" value="28" oninput="setArtworkBrushSize(this.value)"></label><label>Drawing Color<input id="artwork-draw-color" type="color" value="#111111" oninput="setArtworkDrawColor(this.value)"></label><label>Magic Wand Tolerance <span id="artwork-tolerance-value">28</span><input id="artwork-auto-tolerance" type="range" min="0" max="120" value="28" oninput="setArtworkAutoTolerance(this.value);document.getElementById('artwork-tolerance-value').textContent=this.value"></label></div>
       <div class="pixel-editor-toolbar" aria-label="Magic Wand selection mode"><button class="pixel-tool active" data-selection-mode="replace" onclick="setArtworkSelectionMode('replace')">New Selection</button><button class="pixel-tool" data-selection-mode="add" onclick="setArtworkSelectionMode('add')">+ Add Selection</button><button class="pixel-tool" data-selection-mode="subtract" onclick="setArtworkSelectionMode('subtract')">− Remove Selection</button></div>
-      <div class="canvas-controls"><button class="canvas-control" onclick="zoomArtworkEditor(.94)" title="Zoom out">−</button><button class="canvas-control" onclick="zoomArtworkEditor(1.06)" title="Zoom in">+</button><button class="canvas-control" onclick="resetArtworkEditorZoom()" title="Fit artwork">1:1</button></div>
-      <div class="artwork-editor-preview"><div class="artwork-editor-canvas-wrap" id="artwork-editor-canvas-wrap"><div class="artwork-editor-stage" id="artwork-editor-stage"><canvas id="artwork-editor-canvas"></canvas><svg id="artwork-lasso-overlay"><polyline id="artwork-lasso-line" points=""></polyline></svg><div id="artwork-selection-box" class="artwork-selection-box"></div></div></div></div>
+      <div class="artwork-editor-preview"><div class="artwork-editor-canvas-wrap" id="artwork-editor-canvas-wrap"><div class="artwork-editor-stage" id="artwork-editor-stage"><canvas id="artwork-editor-canvas"></canvas><canvas id="artwork-color-selection-overlay" aria-hidden="true"></canvas><svg id="artwork-lasso-overlay"><polyline id="artwork-lasso-line" points=""></polyline></svg><div id="artwork-selection-box" class="artwork-selection-box"></div></div></div></div>
       <div class="upload-note">Magic Wand selects a connected color. Choose + Add Selection to keep selecting more areas on desktop or mobile. On desktop, hold Shift while clicking to add quickly.</div>
       <div class="artwork-editor-actions"><button class="graphic-tool" onclick="updateGraphicMetric('rotation',${(g.rotation||0)-15})">Rotate Left</button><button class="graphic-tool" onclick="updateGraphicMetric('rotation',${(g.rotation||0)+15})">Rotate Right</button><button class="graphic-tool" onclick="resizeGraphic(.9)">Smaller</button><button class="graphic-tool" onclick="resizeGraphic(1.1)">Larger</button><button class="graphic-tool" onclick="duplicateGraphic()">Duplicate</button><button class="graphic-tool" onclick="deleteGraphic(${index});closeArtworkEditor()">Delete</button><button class="graphic-tool" onclick="downloadEditedArtwork()">Save Edited PNG</button></div>
     </div><div class="artwork-editor-controls">
       <div class="artwork-editor-meta"><div><strong>Artwork</strong>Artwork ${n}</div><div><strong>Placement</strong>${g.zone||'Front'}</div><div><strong>Product</strong>${PRODUCTS[key]?.label||key}</div><div><strong>Status</strong>${g.locked?'Locked':'Editable'}</div><div><strong>Format</strong>${artworkFormatLabel(g)}</div><div><strong>Pixel Dimensions</strong>${g.pixelWidth&&g.pixelHeight?`${g.pixelWidth} × ${g.pixelHeight} px`:'Analyzing...'}</div></div>
       <div class="fabric-label">Technique</div><select class="layer-technique" onchange="setGraphicTechnique(${index},this.value)">${ARTWORK_TECHNIQUES.map(t=>`<option value="${t}" ${(ARTWORK_TECHNIQUES.includes(g.technique)?g.technique:'Screen Print')===t?'selected':''}>${t}</option>`).join('')}</select>
       <div class="detail-layer-panel"><h3>Convert Selected Detail</h3><p>Select one character or element. Overlay keeps the original underneath; Cut + Separate removes it from this artwork and creates a new production layer.</p><select id="detail-layer-technique">${ARTWORK_TECHNIQUES.map(t=>`<option>${t}</option>`).join('')}</select><div class="detail-layer-actions"><button class="graphic-tool" onclick="createArtworkDetailLayer(false)">Overlay Detail</button><button class="graphic-tool" onclick="createArtworkDetailLayer(true)">Cut + Separate</button></div></div>
-      <div class="artwork-palette"><div class="fabric-label">Detected Colors — <span id="artwork-color-count">Analyzing...</span></div><div id="artwork-palette-grid" class="artwork-palette-grid"></div><div class="upload-note">Click a swatch or edit its HEX value to replace that color throughout the artwork.</div></div>
+      <div class="artwork-palette"><div class="fabric-label">Detected Colors — <span id="artwork-color-count">Analyzing...</span></div><div class="artwork-combine-panel"><div id="artwork-combine-status" class="artwork-combine-status">Select 2 or more colors to combine</div><div class="artwork-combine-controls"><input id="artwork-combine-color" type="color" value="#111111" aria-label="Combined color" oninput="setArtworkCombineTarget(this.value)"><input id="artwork-combine-hex" type="text" value="#111111" maxlength="7" aria-label="Combined HEX color" onchange="setArtworkCombineTarget(this.value)"><button id="artwork-combine-button" class="artwork-combine-button" type="button" onclick="combineSelectedArtworkColors()" disabled>Combine</button></div></div><div id="artwork-palette-grid" class="artwork-palette-grid"></div><div class="upload-note">All detected color families are shown. Similar shades such as multiple yellows remain grouped together. Changes stay inside this editor until you click Apply Changes.</div></div>
       <div class="artwork-fields">${[['width','Actual Width',m.width,'in'],['height','Actual Height',m.height,'in'],['rotation','Rotate',g.rotation||0,'deg'],['scale','Scale',g.scale||100,'%'],['left','Placement Left',m.left,'in'],['top','Placement Top',m.top,'in']].map(([k,l,v,u])=>`<div class="artwork-field"><label>${l}</label><div class="artwork-input-wrap"><input type="number" step=".01" value="${Number(v).toFixed(k==='rotation'||k==='scale'?0:2)}" onchange="updateGraphicMetric('${k}',this.value)"><span>${u}</span></div></div>`).join('')}</div>
       <div class="artwork-editor-note"><div class="fabric-label">Artwork Notes</div><textarea placeholder="Add technique, color, placement, production, or revision notes..." oninput="updateArtworkNote(this.value)">${String(g.note||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea></div>
       <div class="artwork-editor-actions"><button class="submit-btn artwork-editor-done" onclick="applyArtworkPixelEdits()">Apply Changes</button></div>
@@ -1667,9 +1860,53 @@ function renderTechPackModal(){
     ['TECHNIQUE DETAILS',techniques.join(', ')||'Not set'],
     ['TRIM / HARDWARE',packageSummary('trim')],
     ['BRANDING PACKAGE',packageSummary('branding')],
-    ['WASH / FINISH',sel.Distressed||'Not set'],
+    ['WASH',sel.Washing||'Not set'],
     ['NOTES',notes]
   ];
+  const normalizedArtworkZone=zone=>String(zone||'Front').replace(/\s+/g,'').toLowerCase();
+  const artworkPageGroups=[
+    {id:'front',title:'FRONT',zones:['Front'],patternZone:'Front'},
+    {id:'back',title:'BACK',zones:['Back'],patternZone:'Back'},
+    {id:'sleeves',title:'SLEEVES',zones:['Left Sleeve','Right Sleeve'],patternZone:'Sleeves'},
+    ...((key==='hoodie'||key==='fullzip')?[{id:'hood',title:'HOOD',zones:['Hood'],patternZone:'Hood'}]:[])
+  ];
+  const artworkPreviewMarkup=(g,number)=>g.crop
+    ? `<svg viewBox="${g.crop.x-g.crop.w*.15} ${g.crop.y-g.crop.h*.15} ${g.crop.w*1.3} ${g.crop.h*1.3}" aria-label="Artwork ${number}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}"/></svg>`
+    : `<img src="${g.src}" alt="Artwork ${number}">`;
+  const groupedArtworkPages=artworkPageGroups.map(group=>{
+    const groupArtwork=artwork.filter(g=>group.zones.some(zone=>normalizedArtworkZone(zone)===normalizedArtworkZone(g.zone)));
+    if(!groupArtwork.length)return '';
+    const linkedPattern=group.id==='sleeves'
+      ? `<div class="techpack-linked-sleeves">${patternPreviewSVG(key,'Left Sleeve',shared)}${patternPreviewSVG(key,'Right Sleeve',shared)}</div>`
+      : patternPreviewSVG(key,group.patternZone,shared);
+    const count=groupArtwork.length;
+    const columns=count===1?1:count<=4?2:count<=6?3:4;
+    const previewHeight=count===1?350:count===2?270:count<=4?170:count<=6?115:78;
+    const cardFont=count<=4?10:count<=6?9:8;
+    const cardGap=count<=4?14:count<=6?9:6;
+    const cards=groupArtwork.map(g=>{
+      const number=g._index+1,m=getArtworkMetrics(g);
+      const colors=consolidatePaletteHexes(g.palette||[],15).map(hex=>`<span class="techpack-color-chip"><i style="background:${hex}"></i>${hex}</span>`).join('')||'Not analyzed';
+      return `<article class="techpack-grouped-artwork-card">
+        <h3>ARTWORK ${number}</h3>
+        <div class="techpack-grouped-artwork-image">${artworkPreviewMarkup(g,number)}</div>
+        <div class="techpack-grouped-artwork-row"><b>SIZE</b><span>${m.width.toFixed(2)} × ${m.height.toFixed(2)} in</span></div>
+        <div class="techpack-grouped-artwork-row"><b>PLACEMENT</b><span>${escapeText(g.zone||group.title)} · Left ${m.left.toFixed(2)} / Top ${m.top.toFixed(2)} in</span></div>
+        <div class="techpack-grouped-artwork-row"><b>TECHNIQUE</b><span>${escapeText(g.technique||'Screen Print')}</span></div>
+        <div class="techpack-grouped-artwork-row"><b>COLORS</b><span class="techpack-color-list">${colors}</span></div>
+        <div class="techpack-grouped-artwork-row"><b>NOTES</b><span>${escapeText(g.note||'None')}</span></div>
+      </article>`;
+    }).join('');
+    return `<section class="techpack-artwork-page techpack-grouped-artwork-page">
+      <div class="techpack-grouped-layout">
+        <aside class="techpack-linked-pattern-column">
+          <h2>${group.title} — LINKED PATTERN</h2>
+          <div class="techpack-linked-pattern-board">${linkedPattern}</div>
+        </aside>
+        <div class="techpack-grouped-artwork-grid" style="--artwork-columns:${columns};--artwork-preview-height:${previewHeight}px;--artwork-card-font:${cardFont}px;--artwork-gap:${cardGap}px">${cards}</div>
+      </div>
+    </section>`;
+  }).join('');
   return `<div class="modal-backdrop" onclick="closeTechPack(event)">
     <div class="sample-modal techpack-modal" onclick="event.stopPropagation()">
       <button class="close-modal" style="float:right" onclick="closeTechPack()">×</button>
@@ -1677,19 +1914,11 @@ function renderTechPackModal(){
       <div class="techpack-views">
         <div><div class="techpack-view-board">${garmentSVG(product.svg,product.color,300,{...shared,garmentView:'Front',activeZone:'Front'})}</div><div class="techpack-view-label">FRONT</div></div>
         <div><div class="techpack-view-board">${garmentSVG(product.svg,product.color,300,{...shared,garmentView:'Back',activeZone:'Back'})}</div><div class="techpack-view-label">BACK</div></div>
-        <div><div class="techpack-view-board sleeves-board">
-          ${patternPreviewSVG(key,'Left Sleeve',shared)}
-          ${patternPreviewSVG(key,'Right Sleeve',shared)}
-        </div><div class="techpack-view-label">SLEEVES</div></div>
-        ${(key==='hoodie'||key==='fullzip')?`<div><div class="techpack-view-board sleeves-board">
-          ${patternPreviewSVG(key,'Hood',shared)}
-          ${patternPreviewSVG(key,'Pocket',shared)}
-        </div><div class="techpack-view-label">HOOD / POCKET</div></div>`:''}
       </div>
       <div class="techpack-info">
         ${infoRows.map(([label,value])=>`<div class="techpack-info-row"><b>${label}</b><span>${value}</span></div>`).join('')}
       </div>
-      <div class="techpack-artwork-pages">${artwork.map((g,i)=>{const number=g._index+1,m=getArtworkMetrics(g);const preview=g.crop?`<svg viewBox="${g.crop.x-g.crop.w*.15} ${g.crop.y-g.crop.h*.15} ${g.crop.w*1.3} ${g.crop.h*1.3}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}"/></svg>`:`<img src="${g.src}" alt="Artwork ${number}">`;const colors=(g.palette||[]).map(hex=>`<span class="techpack-color-chip"><i style="background:${hex}"></i>${hex}</span>`).join('')||'Not analyzed';return `<section class="techpack-artwork-page"><h2 class="techpack-artwork-title">Artwork ${number}</h2><div class="techpack-artwork-layout"><div class="techpack-artwork-image">${preview}</div><div class="techpack-artwork-data"><div class="techpack-artwork-data-row"><b>Placement</b><span>${g.zone||'Front'}</span></div><div class="techpack-artwork-data-row"><b>File</b><span>${artworkFileMeta(g)}</span></div><div class="techpack-artwork-data-row"><b>Size</b><span>${m.width.toFixed(2)} x ${m.height.toFixed(2)} in</span></div><div class="techpack-artwork-data-row"><b>Position</b><span>Left ${m.left.toFixed(2)} / Top ${m.top.toFixed(2)} in</span></div><div class="techpack-artwork-data-row"><b>Technique</b><span>${g.technique||'Screen Print'}</span></div><div class="techpack-artwork-data-row"><b>Colors</b><span class="techpack-color-list">${colors}</span></div><div class="techpack-artwork-data-row"><b>Rotation</b><span>${g.rotation||0} deg</span></div><div class="techpack-artwork-data-row"><b>Scale</b><span>${g.scale||100}%</span></div><div class="techpack-artwork-data-row"><b>Notes</b><span>${g.note||'None'}</span></div></div></div></section>`;}).join('')}</div>
+      <div class="techpack-artwork-pages">${groupedArtworkPages}</div>
       <div class="techpack-decoration-pages">${decorationGroups.map((group,i)=>`<section class="techpack-artwork-page"><h2 class="techpack-artwork-title">Decoration ${i+1} — ${brushDisplayName(group.type)}</h2><div class="techpack-artwork-layout"><div class="techpack-artwork-image">${garmentSVG(product.svg,product.color,500,{...sel,garmentView:group.zone==='Back'?'Back':'Front',activeZone:group.zone,graphics:[],marks:group.marks,selectedGraphic:null,brushMode:null})}${(group.references||[]).map(r=>`<div style="margin-top:12px"><b>REFERENCE IMAGE</b><img src="${r.src}" alt="Decoration reference" style="display:block;max-width:100%;max-height:240px;object-fit:contain;margin:8px auto 0"><p>${escapeText(r.note||state.decorationReferenceNotes[key]?.[`${group.type}|${group.zone}`]||'No reference note')}</p></div>`).join('')}</div><div class="techpack-artwork-data"><div class="techpack-artwork-data-row"><b>Technique</b><span>${brushDisplayName(group.type)}</span></div><div class="techpack-artwork-data-row"><b>Placement</b><span>${group.zone}</span></div><div class="techpack-artwork-data-row"><b>Size</b><span>${group.marks.length?[...new Set(group.marks.map(m=>m.size||4))].join(', ')+' mm':'Reference only'}</span></div><div class="techpack-artwork-data-row"><b>Color</b><span class="techpack-color-list">${group.marks.length?[...new Set(group.marks.map(m=>m.color||'#EAFcff'))].map(hex=>`<span class="techpack-color-chip"><i style="background:${hex}"></i>${hex.toUpperCase()}</span>`).join(''):'Not set'}</span></div><div class="techpack-artwork-data-row"><b>Quantity</b><span>${group.marks.length} marks</span></div><div class="techpack-artwork-data-row"><b>Application</b><span>Hand-applied placement mapped from design board</span></div><div class="techpack-artwork-data-row"><b>Production Note</b><span>Follow the plotted placement shown on this page.</span></div></div></div></section>`).join('')}</div>
       <section class="techpack-spec-sheet">
         <h2 class="techpack-spec-title">${fitName} Fit Specs</h2>
@@ -1721,8 +1950,8 @@ function renderTechPackModal(){
         <h2 class="techpack-reference-title">Construction</h2>
         <h3 class="techpack-artwork-title" style="font-size:15px;text-align:left">Fit / Construction References</h3>
         <div class="techpack-reference-grid">${referenceCards(configRefs.fit||[],'fit','Fit / Construction Reference')}</div>
-        <h3 class="techpack-artwork-title" style="font-size:15px;text-align:left;margin-top:30px">Wash / Finish References</h3>
-        <div class="techpack-reference-grid">${referenceCards(configRefs.wash||[],'wash','Wash / Finish Reference')}</div>
+        <h3 class="techpack-artwork-title" style="font-size:15px;text-align:left;margin-top:30px">Wash References</h3>
+        <div class="techpack-reference-grid">${referenceCards(configRefs.wash||[],'wash','Wash Reference')}</div>
       </section>
       <section class="techpack-reference-page">
         <h2 class="techpack-reference-title">Trim Package</h2>
@@ -1902,6 +2131,7 @@ function undoDesign(){
   state.fitSpecs[key]=previous.fitSpecs||{};
   state.referenceStudio[key]=previous.referenceStudio||state.referenceStudio[key];
   state.selectedGraphic[key]=null;
+  state.expandedArtwork[key]=null;
   state.brushMode=activeBrushMode;state.areaSelectMode=false;
   render();
 }
@@ -1985,6 +2215,7 @@ function resetProductDesign(key){
   state.selections[key]={};
   state.uploads[key]=[];
   state.selectedGraphic[key]=null;
+  state.expandedArtwork[key]=null;
   state.deletedGraphics[key]=[];
   state.history[key]=[];
   state.marks[key]=[];
@@ -2014,7 +2245,29 @@ function newDesign(){
   render();
 }
 
-async function saveDesign(addToLibrary=true){
+function selectedArtworkIds(key=state.productKey){
+  if(!state.selectedArtworkGroups)state.selectedArtworkGroups={};
+  return state.selectedArtworkGroups[key]||(state.selectedArtworkGroups[key]=[]);
+}
+function artworkSelectionId(index,key=state.productKey){
+  const g=state.uploads[key]?.[index];
+  return g?.id||`idx-${index}`;
+}
+function toggleArtworkGroupSelection(event,index){
+  event?.preventDefault();event?.stopPropagation();
+  const key=state.productKey,ids=selectedArtworkIds(key),id=artworkSelectionId(index,key),pos=ids.indexOf(id);
+  if(pos>=0)ids.splice(pos,1); else ids.push(id);
+  render();
+}
+function toggleSaveDesignMenu(event){
+  event?.preventDefault();event?.stopPropagation();
+  state.saveMenuOpen=!state.saveMenuOpen;
+  render();
+}
+function saveDesignAsIs(){state.saveMenuOpen=false;return saveDesign(true,'same');}
+function saveDesignNewName(){state.saveMenuOpen=false;return saveDesign(true,'new');}
+
+async function saveDesign(addToLibrary=true, mode='auto'){
   const key=state.productKey;
   try{
     const savedAt=new Date().toISOString();
@@ -2023,6 +2276,7 @@ async function saveDesign(addToLibrary=true){
     let designId=state.designFileIds[key]||null;
     if(addToLibrary&&!designId&&designName){const legacyMatch=library.find(item=>item.productKey===key&&item.name===designName);if(legacyMatch)designId=legacyMatch.id;}
     let existingIndex=designId?library.findIndex(item=>item.id===designId):-1;
+    if(addToLibrary&&mode==='new'){designId=null;existingIndex=-1;}
     if(addToLibrary){
       if(existingIndex>=0){
         designName=library[existingIndex].name||designName||`${PRODUCTS[key].label} Design`;
@@ -2032,6 +2286,12 @@ async function saveDesign(addToLibrary=true){
         designName=`${PRODUCTS[key].label} Design ${nextNumber}`;
         designId=`design-${Date.now()}`;
         existingIndex=-1;
+      }
+      if(mode!=='same'||existingIndex<0){
+        const typedName=window.prompt('Enter a name for this design file:',designName);
+        if(typedName===null)return;
+        designName=typedName.trim();
+        if(!designName){alert('Please enter a design file name.');return;}
       }
       state.designFileIds[key]=designId;
     }else{
@@ -2081,6 +2341,7 @@ async function loadSavedDesign(id){
   state.designFileNames[key]=data.designName||design.name||null;
   state.designFileIds[key]=data.designId||design.id||null;
   state.selectedGraphic[key]=null;
+  state.expandedArtwork[key]=null;
   state.activeZone='Front';state.fabricZone='Front';state.garmentView='Front';state.configurable=null;
   state.accountOpen=false;state.view='item';
   render();
@@ -2108,7 +2369,7 @@ function submitSampleRequest(){
 }
 async function openTechPack(){
   const artwork=state.uploads[state.productKey]||[];
-  await Promise.all(artwork.filter(g=>!g.palette?.length).map(async g=>{try{g.palette=await analyzeArtworkSource(g.src);}catch(error){g.palette=[];}}));
+  await Promise.all(artwork.map(async g=>{try{g.palette=await analyzeArtworkSource(g.src);}catch(error){g.palette=consolidatePaletteHexes(g.palette||[],32);}}));
   state.techPackOpen=true;render();
 }
 function closeTechPack(event){
@@ -2295,12 +2556,11 @@ function selectOption(configurable, value){
   if(configurable==='Fit' || configurable==='Waistband') state.configurable='Fit (Spec) & Construction';
   else if(configurable.endsWith('Color') || configurable.endsWith('Rib') || configurable.endsWith('Fabric')) state.configurable='Fabric & Color';
   else if(isArtwork) state.configurable='Artwork & Technique';
-  else state.configurable='Wash & Finish';
+  else state.configurable='Wash';
   if(configurable.startsWith('Technique')){
-    const brushTypes={'Rhinestones':'rhinestone','Pearls':'pearls','Stud':'stud','Hand Stitch':'hand-stitch'};
+    const brushTypes={'Rhinestones':'rhinestone','Pearls':'pearls','Stud':'stud','Hand Stitch':'hand-stitch','Distress':'distress'};
     state.brushMode=selectedValue ? (brushTypes[selectedValue] || null) : null;
   }
-  if(configurable === 'Distressed') state.brushMode = selectedValue && selectedValue !== 'None' ? 'distress' : null;
   render();
 }
 
@@ -2335,10 +2595,27 @@ function canvasPanStart(event){
   event.currentTarget.setPointerCapture(event.pointerId);
 }
 function garmentPoint(event,svgOverride){
-  const svg = svgOverride || event.currentTarget;
-  const point = svg.createSVGPoint();
-  point.x=event.clientX; point.y=event.clientY;
-  return point.matrixTransform(svg.getScreenCTM().inverse());
+  const candidate=svgOverride||event.currentTarget;
+  const svg=(candidate&&String(candidate.tagName||'').toLowerCase()==='svg')?candidate:(candidate&&candidate.ownerSVGElement);
+  const source=(event.touches&&event.touches[0])||(event.changedTouches&&event.changedTouches[0])||event;
+  if(!svg)return{x:0,y:0};
+  const matrix=svg.getScreenCTM&&svg.getScreenCTM();
+  if(matrix){
+    const point=svg.createSVGPoint();
+    point.x=source.clientX;point.y=source.clientY;
+    const local=point.matrixTransform(matrix.inverse());
+    return{x:local.x,y:local.y};
+  }
+  const rect=svg.getBoundingClientRect(),vb=svg.viewBox&&svg.viewBox.baseVal;
+  return{x:(vb?.x||0)+(source.clientX-rect.left)*((vb?.width||1000)/(rect.width||1)),
+    y:(vb?.y||0)+(source.clientY-rect.top)*((vb?.height||1000)/(rect.height||1))};
+}
+function artworkLocalPoint(event,coordinateSpace){
+  const svg=coordinateSpace.ownerSVGElement;
+  const point=svg.createSVGPoint();
+  point.x=event.clientX;point.y=event.clientY;
+  const matrix=coordinateSpace.getScreenCTM();
+  return matrix?point.matrixTransform(matrix.inverse()):garmentPoint(event,svg);
 }
 function brushDisplayName(type){
   return ({rhinestone:'Rhinestone',pearls:'Pearls',stud:'Stud','hand-stitch':'Hand Stitch',distress:'Distress'})[type] || 'Decoration';
@@ -2360,7 +2637,7 @@ function decorationPathFor(type,zone){
   if(type==='denim')type='sweatpants';
   if(zone==='Left Sleeve'||zone==='Right Sleeve') return type==='tee'
     ? 'M25 145C50 137 67 111 82 76Q91 55 100 52Q109 55 118 76C133 111 150 137 175 145L170 182H30Z'
-    : 'M34 48Q65 46 82 31Q91 22 100 20Q109 22 118 31Q135 46 166 48L156 181H44Z';
+    : 'M18 55C50 55 67 5 100 5C133 5 150 55 182 55L148 195H51Z';
   if(zone==='Hood') return 'M74 42Q72 9 100 7Q128 9 126 42Q116 54 100 54Q84 54 74 42Z';
   if(zone==='Rib') return type==='hoodie'?'M47 171H153V184H47Z':'M55 170H145V184H55ZM76 34Q100 52 124 34L121 42Q100 58 79 42Z';
   if(type==='sweatpants') return 'M62 20H138L143 71L126 182H99L100 91L99 182H72L57 71Z';
@@ -2688,9 +2965,13 @@ function handleImageUpload(event){
         const pos=zoneDefaults[state.activeZone]||[76,72];
         insertArtworkInPlacementOrder({id:`art-${Date.now()}-${count}`,src:reader.result,x:pos[0]+(count%3)*3,y:pos[1]+(count%3)*3,w:48,h:58,baseW:48,baseH:58,scale:100,rotation:0,technique:'Screen Print',locked:false,zone:state.activeZone,fileFormat:(file.type.split('/')[1]||file.name.split('.').pop()||'image').replace('jpeg','jpg').replace('svg+xml','svg').toUpperCase(),pixelWidth:img.naturalWidth||0,pixelHeight:img.naturalHeight||0,originalFileName:file.name});
         completed++;
-        if(completed === files.length) render();
+        if(completed === files.length){
+          state.expandedArtwork[key]=null;
+          state.selectedGraphic[key]=null;
+          render();
+        }
       };
-      img.onerror=()=>{completed++;if(completed===files.length)render();};
+      img.onerror=()=>{completed++;if(completed===files.length){state.expandedArtwork[key]=null;state.selectedGraphic[key]=null;render();}};
       img.src=reader.result;
     };
     reader.readAsDataURL(file);
@@ -2725,6 +3006,8 @@ function handleTechniqueLayerUpload(event){
         fileFormat:(file.type.split('/')[1]||file.name.split('.').pop()||'image').replace('jpeg','jpg').replace('svg+xml','svg').toUpperCase(),pixelWidth:img.naturalWidth||0,pixelHeight:img.naturalHeight||0,originalFileName:file.name
       };
       insertArtworkInPlacementOrder(layer);
+      state.expandedArtwork[key]=null;
+      state.selectedGraphic[key]=null;
       render();
     };
     img.src=reader.result;
@@ -2753,8 +3036,26 @@ function startGraphicDrag(event, index){
   state.selectedGraphic[key] = index;
   const graphic = state.uploads[key][index];
   const svg = event.currentTarget.ownerSVGElement;
+  // Freeze the screen-to-local transform when dragging starts. Recomputing it
+  // after every move made sleeve artwork jump because the artwork's own SVG
+  // transform changes while it is being dragged.
+  const coordinateSpace=event.currentTarget.parentNode;
+  const screenMatrix=coordinateSpace.getScreenCTM();
+  const inverse=screenMatrix ? screenMatrix.inverse() : null;
+  const startPoint=svg.createSVGPoint();
+  startPoint.x=event.clientX; startPoint.y=event.clientY;
+  const startLocal=inverse ? startPoint.matrixTransform(inverse) : startPoint;
   const linked=!graphic.isTechniqueLayer&&graphic.id?state.uploads[key].map((g,i)=>({...g,index:i})).filter(g=>g.parentId===graphic.id&&g.lockedToParent).map(g=>({index:g.index,x:g.x,y:g.y,sourceX:g.sourceX,sourceY:g.sourceY,crop:g.crop?{...g.crop}:null})): [];
-  graphicDrag = {key,index,svg,startX:event.clientX,startY:event.clientY,x:graphic.x,y:graphic.y,sourceX:graphic.sourceX,sourceY:graphic.sourceY,crop:graphic.crop?{...graphic.crop}:null,linked};
+  const selectedIds=selectedArtworkIds(key);
+  const draggedId=artworkSelectionId(index,key);
+  const linkedIndexSet=new Set(linked.map(item=>item.index));
+  const group=selectedIds.includes(draggedId)?selectedIds.map(id=>state.uploads[key].findIndex((g,i)=>artworkSelectionId(i,key)===id)).filter(i=>i>=0&&i!==index&&!linkedIndexSet.has(i)&&state.uploads[key][i].zone===graphic.zone&&!state.uploads[key][i].locked).map(i=>{const g=state.uploads[key][i];return{index:i,x:g.x,y:g.y,sourceX:g.sourceX,sourceY:g.sourceY,crop:g.crop?{...g.crop}:null};}):[];
+  graphicDrag = {
+    key,index,svg,coordinateSpace,
+    inverse,startLocalX:startLocal.x,startLocalY:startLocal.y,
+    x:graphic.x,y:graphic.y,sourceX:graphic.sourceX,sourceY:graphic.sourceY,
+    crop:graphic.crop?{...graphic.crop}:null,linked,group
+  };
   event.currentTarget.setPointerCapture(event.pointerId);
 }
 function startGraphicResize(event,index,corner){
@@ -2821,15 +3122,25 @@ window.addEventListener('pointermove', event => {
     g.baseW=g.baseW||r.w; g.baseH=g.baseH||r.h;
     g.scale=Math.round(((g.w/g.baseW+g.h/g.baseH)/2)*100);
     const image=document.querySelector(`.uploaded-graphic[data-index="${r.index}"]`);
-    if(image){image.setAttribute('x',g.sourceX??g.x);image.setAttribute('y',g.sourceY??g.y);image.setAttribute('width',g.sourceW??g.w);image.setAttribute('height',g.sourceH??g.h);}
+    if(image){
+      const ix=g.sourceX??g.x,iy=g.sourceY??g.y,iw=g.sourceW??g.w,ih=g.sourceH??g.h;
+      image.setAttribute('x',ix);image.setAttribute('y',iy);image.setAttribute('width',iw);image.setAttribute('height',ih);
+      image.setAttribute('transform',`rotate(${g.rotation||0} ${ix+iw/2} ${iy+ih/2})`);
+    }
     return;
   }
   if(!graphicDrag) return;
-  const rect = graphicDrag.svg.getBoundingClientRect();
   const graphic = state.uploads[graphicDrag.key][graphicDrag.index];
-  const minX=5-graphic.w*.35,maxX=195-graphic.w*.65,minY=5-graphic.h*.35,maxY=195-graphic.h*.65;
-  graphic.x = Math.max(minX,Math.min(maxX,graphicDrag.x + (event.clientX-graphicDrag.startX) * 200 / rect.width));
-  graphic.y = Math.max(minY,Math.min(maxY,graphicDrag.y + (event.clientY-graphicDrag.startY) * 200 / rect.height));
+  const pointer=graphicDrag.svg.createSVGPoint();
+  pointer.x=event.clientX; pointer.y=event.clientY;
+  const local=graphicDrag.inverse ? pointer.matrixTransform(graphicDrag.inverse) : pointer;
+  const localDx=local.x-graphicDrag.startLocalX;
+  const localDy=local.y-graphicDrag.startLocalY;
+  // Do not clamp a large graphic into the narrow sleeve bounds. That caused an
+  // immediate snap to an unrelated position. The garment clip path hides only
+  // the portion outside the garment while preserving free, predictable motion.
+  graphic.x = graphicDrag.x + localDx;
+  graphic.y = graphicDrag.y + localDy;
   const moveX=graphic.x-graphicDrag.x,moveY=graphic.y-graphicDrag.y;
   if(graphicDrag.sourceX!==undefined){graphic.sourceX=graphicDrag.sourceX+moveX;graphic.sourceY=graphicDrag.sourceY+moveY;}
   if(graphicDrag.crop){graphic.crop={...graphicDrag.crop,x:graphicDrag.crop.x+moveX,y:graphicDrag.crop.y+moveY};}
@@ -2839,10 +3150,36 @@ window.addEventListener('pointermove', event => {
     if(item.sourceX!==undefined){child.sourceX=item.sourceX+moveX;child.sourceY=item.sourceY+moveY;}
     if(item.crop){child.crop={...item.crop,x:item.crop.x+moveX,y:item.crop.y+moveY};}
     const childImage=document.querySelector(`.uploaded-graphic[data-index="${item.index}"]`);
-    if(childImage){childImage.setAttribute('x',child.x);childImage.setAttribute('y',child.y);}
+    if(childImage){
+      const childX=child.sourceX??child.x,childY=child.sourceY??child.y;
+      const childW=child.sourceW??child.w,childH=child.sourceH??child.h;
+      childImage.setAttribute('x',childX);childImage.setAttribute('y',childY);
+      childImage.setAttribute('transform',`rotate(${child.rotation||0} ${childX+childW/2} ${childY+childH/2})`);
+    }
+  });
+  (graphicDrag.group||[]).forEach(item=>{
+    const member=state.uploads[graphicDrag.key][item.index];
+    if(!member)return;
+    member.x=item.x+moveX;member.y=item.y+moveY;
+    if(item.sourceX!==undefined){member.sourceX=item.sourceX+moveX;member.sourceY=item.sourceY+moveY;}
+    if(item.crop){member.crop={...item.crop,x:item.crop.x+moveX,y:item.crop.y+moveY};}
+    const memberImage=document.querySelector(`.uploaded-graphic[data-index="${item.index}"]`);
+    if(memberImage){
+      const memberX=member.sourceX??member.x,memberY=member.sourceY??member.y;
+      const memberW=member.sourceW??member.w,memberH=member.sourceH??member.h;
+      memberImage.setAttribute('x',memberX);memberImage.setAttribute('y',memberY);
+      memberImage.setAttribute('transform',`rotate(${member.rotation||0} ${memberX+memberW/2} ${memberY+memberH/2})`);
+    }
   });
   const image = document.querySelector(`.uploaded-graphic[data-index="${graphicDrag.index}"]`);
-  if(image){ image.setAttribute('x',graphic.x); image.setAttribute('y',graphic.y); }
+  if(image){
+    const imageX=graphic.sourceX??graphic.x,imageY=graphic.sourceY??graphic.y;
+    const imageW=graphic.sourceW??graphic.w,imageH=graphic.sourceH??graphic.h;
+    image.setAttribute('x',imageX);image.setAttribute('y',imageY);
+    // Move the rotation centre together with the image. Leaving the old pivot
+    // in place made rotated sleeve artwork swing to a seemingly random spot.
+    image.setAttribute('transform',`rotate(${graphic.rotation||0} ${imageX+imageW/2} ${imageY+imageH/2})`);
+  }
 });
 window.addEventListener('pointerup', () => {
   if(canvasPan){ canvasPan.viewport.classList.remove('panning'); canvasPan=null; }
@@ -2860,7 +3197,8 @@ window.addEventListener('keydown', event => {
   }
   if((event.metaKey || event.ctrlKey) && event.key.toLowerCase()==='z' && state.view==='item'){
     event.preventDefault();
-    if(state.history[state.productKey].length) undoDesign();
+    if(state.artworkEditorOpen) undoArtworkPixels();
+    else if(state.history[state.productKey].length) undoDesign();
     else if(state.deletedGraphics[state.productKey].length) undoDeleteGraphic();
     else undoMark();
   }
@@ -2918,6 +3256,7 @@ function initArtworkPixelEditor(){
   const canvas=document.getElementById('artwork-editor-canvas');
   const g=state.uploads[state.productKey]?.[state.artworkEditorIndex];
   if(!canvas||!g) return;
+  const editorOriginalSource=g.originalSrc||g.src;
   const img=new Image();
   img.onload=()=>{
     const max=1600,ratio=Math.min(1,max/Math.max(img.naturalWidth||800,img.naturalHeight||800));
@@ -2926,10 +3265,10 @@ function initArtworkPixelEditor(){
     if(!g.pixelWidth||!g.pixelHeight){g.pixelWidth=img.naturalWidth||canvas.width;g.pixelHeight=img.naturalHeight||canvas.height;}
     const ctx=canvas.getContext('2d',{willReadFrequently:true});
     ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
-    const original=new Image(); original.src=g.originalSrc||g.src;
-    artworkPixelEditor={canvas,ctx,original,tool:'erase',size:28,color:'#111111',autoTolerance:28,selectionMode:'replace',drawing:false,last:null,selection:null,selectionMask:null,selectStart:null,lassoPoints:null,undo:[],redo:[]};
-    pushArtworkPixelHistory();
+    const original=new Image(); original.src=editorOriginalSource;
+    artworkPixelEditor={canvas,ctx,original,originalSource:editorOriginalSource,tool:'erase',size:28,color:'#111111',autoTolerance:28,selectionMode:'replace',drawing:false,last:null,selection:null,selectionMask:null,selectStart:null,lassoPoints:null,paletteSelection:new Set(),combineTarget:null,undo:[],redo:[]};
     detectArtworkColors();
+    pushArtworkPixelHistory();
     requestAnimationFrame(()=>resetArtworkEditorZoom());
     canvas.onpointerdown=artworkPixelPointerDown;
     canvas.onpointermove=artworkPixelPointerMove;
@@ -2938,7 +3277,7 @@ function initArtworkPixelEditor(){
     const wrap=document.getElementById('artwork-editor-canvas-wrap');
     if(wrap) wrap.onwheel=event=>{event.preventDefault();zoomArtworkEditor(event.deltaY<0?1.025:.975);};
   };
-  img.src=g.editorDraft||g.src;
+  img.src=g.src;
 }
 function artworkCanvasPoint(event){
   const e=artworkPixelEditor,c=e.canvas.getBoundingClientRect();
@@ -2962,6 +3301,9 @@ function artworkPixelPointerDown(event){
   const e=artworkPixelEditor;if(!e)return;event.preventDefault();e.canvas.setPointerCapture(event.pointerId);
   if(spacePressed){const wrap=document.getElementById('artwork-editor-canvas-wrap');if(wrap){e.pan={x:event.clientX,y:event.clientY,left:wrap.scrollLeft,top:wrap.scrollTop};wrap.classList.add('panning');}return;}
   const p=artworkCanvasPoint(event);
+  if(e.tool==='auto'||e.tool==='lasso'||e.tool==='select'){
+    e.paletteSelection?.clear();e.selectionFromPalette=false;renderArtworkPalette();
+  }
   if(e.tool==='auto'){autoSelectArtworkObject(p,event.shiftKey?'add':(event.altKey?'subtract':null));return;}
   if(e.tool==='lasso'){e.selection=null;e.selectionMask=null;e.selectionFromOriginal=false;e.lassoPoints=[p];updateArtworkLassoLine();return;}
   if(e.tool==='select'){e.selectionMask=null;e.selectionFromOriginal=false;e.selectStart=p;e.selection={x:p.x,y:p.y,w:0,h:0};updateArtworkSelectionBox();return;}
@@ -2978,7 +3320,7 @@ function artworkPixelPointerMove(event){
 function artworkPixelPointerUp(event){
   const e=artworkPixelEditor;if(!e)return;
   if(e.pan){e.pan=null;document.getElementById('artwork-editor-canvas-wrap')?.classList.remove('panning');return;}
-  if(e.drawing){e.drawing=false;e.last=null;pushArtworkPixelHistory();detectArtworkColors();}
+  if(e.drawing){e.drawing=false;e.last=null;detectArtworkColors();pushArtworkPixelHistory();}
   if(e.selectStart){e.selectStart=null;updateArtworkSelectionBox();}
   if(e.lassoPoints){finishArtworkLassoSelection();}
 }
@@ -3006,6 +3348,7 @@ function zoomArtworkEditor(factor){const e=artworkPixelEditor;if(!e)return;e.zoo
 function resetArtworkEditorZoom(){const e=artworkPixelEditor;if(!e)return;e.zoom=1;e.fitWidth=null;applyArtworkEditorZoom();const wrap=document.getElementById('artwork-editor-canvas-wrap');if(wrap){wrap.scrollLeft=0;wrap.scrollTop=0;}}
 function selectErasedArtworkPixels(){
   const e=artworkPixelEditor;if(!e||!e.original?.complete){alert('Original artwork is still loading. Try again.');return;}
+  e.paletteSelection?.clear();e.selectionFromPalette=false;renderArtworkPalette();
   const originalCanvas=document.createElement('canvas');originalCanvas.width=e.canvas.width;originalCanvas.height=e.canvas.height;const originalCtx=originalCanvas.getContext('2d',{willReadFrequently:true});originalCtx.drawImage(e.original,0,0,e.canvas.width,e.canvas.height);
   const before=originalCtx.getImageData(0,0,e.canvas.width,e.canvas.height).data,now=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height).data,mask=new Uint8Array(e.canvas.width*e.canvas.height);let minX=e.canvas.width,minY=e.canvas.height,maxX=-1,maxY=-1,count=0;
   for(let i=0;i<mask.length;i++){if(before[i*4+3]>40&&now[i*4+3]<20){mask[i]=1;const x=i%e.canvas.width,y=(i/e.canvas.width)|0;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;count++;}}
@@ -3028,6 +3371,7 @@ function finishArtworkLassoSelection(){
 }
 function autoSelectArtworkObject(point,temporaryMode){
   const e=artworkPixelEditor;if(!e)return;
+  e.selectionFromPalette=false;
   const W=e.canvas.width,H=e.canvas.height,data=e.ctx.getImageData(0,0,W,H).data,startX=Math.max(0,Math.min(W-1,Math.floor(point.x))),startY=Math.max(0,Math.min(H-1,Math.floor(point.y))),start=(startY*W+startX)*4;
   if(data[start+3]<20){alert('Click directly on a colored area you want to select.');return;}
   const seedColor=[data[start],data[start+1],data[start+2],data[start+3]],tolerance=Number(e.autoTolerance??28);
@@ -3044,51 +3388,228 @@ function autoSelectArtworkObject(point,temporaryMode){
 }
 function rgbToHex(r,g,b){return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('').toUpperCase();}
 function hexToRgb(hex){const h=String(hex).replace('#','').trim();if(!/^[0-9a-fA-F]{6}$/.test(h))return null;return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function rgbToHsl(r,g,b){
+  r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,l=(max+min)/2;let h=0,s=0;
+  if(d){s=d/(1-Math.abs(2*l-1));if(max===r)h=60*(((g-b)/d)%6);else if(max===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360;}
+  return [h,s,l];
+}
+function artworkColorFamilyKey(r,g,b){
+  const [h,s,l]=rgbToHsl(r,g,b);
+  if(s<.16){if(l>=.91)return'neutral-white';if(l>=.72)return'neutral-light';if(l>=.42)return'neutral-mid';if(l>=.16)return'neutral-dark';return'neutral-black';}
+  if(h<15||h>=345)return'red';
+  /* Keep dark warm browns separate from bright oranges so editing one never removes the other. */
+  if(h<45)return l<.46?'brown':'orange';
+  if(h<78)return'yellow';if(h<112)return'lime';if(h<165)return'green';if(h<200)return'cyan';if(h<255)return'blue';if(h<285)return'violet';if(h<325)return'purple';return'pink';
+}
+function buildArtworkColorFamilies(data,width,height,step=1,maxColors=8){
+  const buckets=new Map();let opaque=0;
+  for(let y=0;y<height;y+=step)for(let x=0;x<width;x+=step){const i=(y*width+x)*4;if(data[i+3]<80)continue;opaque++;const key=`${data[i]>>4},${data[i+1]>>4},${data[i+2]>>4}`,v=buckets.get(key)||[0,0,0,0];v[0]+=data[i];v[1]+=data[i+1];v[2]+=data[i+2];v[3]++;buckets.set(key,v);}
+  const families=new Map();
+  buckets.forEach((v,key)=>{const r=v[0]/v[3],g=v[1]/v[3],b=v[2]/v[3],family=artworkColorFamilyKey(r,g,b),f=families.get(family)||{family,r:0,g:0,b:0,count:0,keys:[]};f.r+=v[0];f.g+=v[1];f.b+=v[2];f.count+=v[3];f.keys.push(key);families.set(family,f);});
+  const minimum=Math.max(3,opaque*.0025);let groups=[...families.values()].filter(f=>f.count>=minimum).sort((a,b)=>b.count-a.count);
+  if(groups.length>maxColors){const keep=groups.slice(0,maxColors),extras=groups.slice(maxColors);extras.forEach(extra=>{const er=extra.r/extra.count,eg=extra.g/extra.count,eb=extra.b/extra.count;let closest=keep[0],distance=Infinity;keep.forEach(candidate=>{const cr=candidate.r/candidate.count,cg=candidate.g/candidate.count,cb=candidate.b/candidate.count,d=(er-cr)**2+(eg-cg)**2+(eb-cb)**2;if(d<distance){distance=d;closest=candidate;}});closest.r+=extra.r;closest.g+=extra.g;closest.b+=extra.b;closest.count+=extra.count;closest.keys.push(...extra.keys);});groups=keep.sort((a,b)=>b.count-a.count);}
+  const palette=[],bucketMap=new Map();groups.forEach(group=>{let hex=rgbToHex(group.r/group.count,group.g/group.count,group.b/group.count);if(bucketMap.has(hex)){const existing=bucketMap.get(hex);group.keys.forEach(key=>existing.add(key));return;}palette.push(hex);bucketMap.set(hex,new Set(group.keys));});
+  return {palette,bucketMap};
+}
+function exactArtworkPalette(data,maxColors=15){
+  const counts=new Map();
+  for(let i=0;i<data.length;i+=4){
+    if(data[i+3]<20)continue;
+    const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];
+    if(!counts.has(key)&&counts.size>=maxColors)return null;
+    counts.set(key,(counts.get(key)||0)+1);
+  }
+  return [...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([key])=>rgbToHex((key>>16)&255,(key>>8)&255,key&255));
+}
+function reduceArtworkColors(imageData,maxColors=15,applyToPixels=true){
+  const data=imageData.data,exact=exactArtworkPalette(data,maxColors);
+  if(exact)return exact;
+  const bins=new Map();
+  for(let i=0;i<data.length;i+=4){
+    if(data[i+3]<20)continue;
+    const key=((data[i]>>3)<<10)|((data[i+1]>>3)<<5)|(data[i+2]>>3),bin=bins.get(key)||{r:0,g:0,b:0,count:0};
+    bin.r+=data[i];bin.g+=data[i+1];bin.b+=data[i+2];bin.count++;bins.set(key,bin);
+  }
+  const points=[...bins.values()].map(v=>({r:v.r/v.count,g:v.g/v.count,b:v.b/v.count,count:v.count}));
+  if(!points.length)return[];
+  const centerCount=Math.min(maxColors,points.length),centers=[];
+  centers.push({...points.reduce((best,p)=>p.count>best.count?p:best,points[0])});
+  while(centers.length<centerCount){
+    let best=null,bestScore=-1;
+    for(const p of points){let nearest=Infinity;for(const c of centers){const d=(p.r-c.r)**2+(p.g-c.g)**2+(p.b-c.b)**2;if(d<nearest)nearest=d;}const score=nearest*Math.sqrt(p.count);if(score>bestScore){bestScore=score;best=p;}}
+    if(!best||bestScore<=0)break;centers.push({...best});
+  }
+  for(let pass=0;pass<7;pass++){
+    const sums=centers.map(()=>({r:0,g:0,b:0,count:0}));
+    for(const p of points){let at=0,nearest=Infinity;for(let j=0;j<centers.length;j++){const c=centers[j],d=(p.r-c.r)**2+(p.g-c.g)**2+(p.b-c.b)**2;if(d<nearest){nearest=d;at=j;}}const s=sums[at];s.r+=p.r*p.count;s.g+=p.g*p.count;s.b+=p.b*p.count;s.count+=p.count;}
+    sums.forEach((s,j)=>{if(s.count)centers[j]={r:s.r/s.count,g:s.g/s.count,b:s.b/s.count,count:s.count};});
+  }
+  centers.forEach(c=>{c.r=Math.round(c.r);c.g=Math.round(c.g);c.b=Math.round(c.b);c.used=0;});
+  if(applyToPixels){
+    for(let i=0;i<data.length;i+=4){if(data[i+3]<20)continue;let at=0,nearest=Infinity;for(let j=0;j<centers.length;j++){const c=centers[j],d=(data[i]-c.r)**2+(data[i+1]-c.g)**2+(data[i+2]-c.b)**2;if(d<nearest){nearest=d;at=j;}}const c=centers[at];data[i]=c.r;data[i+1]=c.g;data[i+2]=c.b;c.used++;}
+  }else{
+    for(const p of points){let at=0,nearest=Infinity;for(let j=0;j<centers.length;j++){const c=centers[j],d=(p.r-c.r)**2+(p.g-c.g)**2+(p.b-c.b)**2;if(d<nearest){nearest=d;at=j;}}centers[at].used+=p.count;}
+  }
+  const unique=new Map();centers.forEach(c=>{const hex=rgbToHex(c.r,c.g,c.b),v=unique.get(hex)||{hex,count:0};v.count+=c.used||c.count||0;unique.set(hex,v);});
+  return [...unique.values()].sort((a,b)=>b.count-a.count).map(v=>v.hex).slice(0,maxColors);
+}
+function artworkPaletteBucketKeys(hex){
+  const mapped=artworkPixelEditor?.paletteBuckets?.get(hex);if(mapped?.size)return new Set(mapped);
+  const rgb=hexToRgb(hex);return new Set(rgb?[`${rgb[0]>>4},${rgb[1]>>4},${rgb[2]>>4}`]:[]);
+}
+function artworkHexKey(hex){
+  const rgb=hexToRgb(hex);
+  return rgb?((rgb[0]<<16)|(rgb[1]<<8)|rgb[2]):null;
+}
+function nearestArtworkPaletteHex(r,g,b,palette){
+  let best=null,nearest=Infinity;
+  for(const hex of (palette||[])){
+    const rgb=hexToRgb(hex);if(!rgb)continue;
+    const distance=(r-rgb[0])**2+(g-rgb[1])**2+(b-rgb[2])**2;
+    if(distance<nearest){nearest=distance;best=hex;}
+  }
+  return best;
+}
+function getExactArtworkPalette(image,maxColors=15){
+  const counts=new Map(),data=image.data;
+  for(let i=0;i<data.length;i+=4){
+    if(data[i+3]<20)continue;
+    const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];
+    counts.set(key,(counts.get(key)||0)+1);
+    if(counts.size>maxColors)return null;
+  }
+  return [...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([key])=>rgbToHex((key>>16)&255,(key>>8)&255,key&255));
+}
+function consolidateArtworkColorFamilies(image,threshold=32){
+  const data=image.data,counts=new Map();
+  for(let i=0;i<data.length;i+=4){if(data[i+3]<20)continue;const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];counts.set(key,(counts.get(key)||0)+1);}
+  const colors=[...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([key,count])=>({key,count,r:(key>>16)&255,g:(key>>8)&255,b:key&255}));
+  const families=[],mapping=new Map(),limit=threshold*threshold;
+  for(const color of colors){
+    let best=null,nearest=Infinity;
+    for(const family of families){const distance=(color.r-family.r)**2+(color.g-family.g)**2+(color.b-family.b)**2;if(distance<nearest){nearest=distance;best=family;}}
+    if(!best||nearest>limit){best={r:color.r,g:color.g,b:color.b,count:0};families.push(best);}
+    best.count+=color.count;mapping.set(color.key,best);
+  }
+  for(let i=0;i<data.length;i+=4){if(data[i+3]<20)continue;const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2],family=mapping.get(key);if(family){data[i]=family.r;data[i+1]=family.g;data[i+2]=family.b;}}
+  return families.sort((a,b)=>b.count-a.count).map(family=>rgbToHex(family.r,family.g,family.b));
+}
+function consolidatePaletteHexes(palette,threshold=32){
+  const families=[],limit=threshold*threshold;
+  for(const value of (palette||[])){
+    const hex=String(value||'').toUpperCase(),rgb=hexToRgb(hex);if(!rgb)continue;
+    let best=null,nearest=Infinity;
+    for(const family of families){const distance=(rgb[0]-family.rgb[0])**2+(rgb[1]-family.rgb[1])**2+(rgb[2]-family.rgb[2])**2;if(distance<nearest){nearest=distance;best=family;}}
+    if(!best||nearest>limit)families.push({hex:rgbToHex(rgb[0],rgb[1],rgb[2]),rgb});
+  }
+  return families.map(family=>family.hex);
+}
 function detectArtworkColors(){
   const e=artworkPixelEditor,grid=document.getElementById('artwork-palette-grid'),count=document.getElementById('artwork-color-count');if(!e||!grid||!count)return;
-  let data;try{data=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height).data;}catch(error){count.textContent='Unavailable';return;}
-  const pixels=e.canvas.width*e.canvas.height,step=Math.max(1,Math.ceil(Math.sqrt(pixels/70000))),buckets=new Map();let opaque=0;
-  for(let y=0;y<e.canvas.height;y+=step)for(let x=0;x<e.canvas.width;x+=step){const i=(y*e.canvas.width+x)*4;if(data[i+3]<80)continue;opaque++;const key=`${data[i]>>4},${data[i+1]>>4},${data[i+2]>>4}`;const v=buckets.get(key)||[0,0,0,0];v[0]+=data[i];v[1]+=data[i+1];v[2]+=data[i+2];v[3]++;buckets.set(key,v);}
-  const min=Math.max(3,opaque*.0025),palette=[...buckets.values()].filter(v=>v[3]>=min).sort((a,b)=>b[3]-a[3]).slice(0,12).map(v=>rgbToHex(v[0]/v[3],v[1]/v[3],v[2]/v[3]));
-  e.palette=palette;const graphic=state.uploads[state.productKey]?.[state.artworkEditorIndex];if(graphic)graphic.palette=[...palette];count.textContent=`${palette.length} color${palette.length===1?'':'s'}`;
-  grid.innerHTML=palette.map((hex,i)=>`<div class="artwork-color-row"><input type="color" value="${hex}" aria-label="Artwork color ${i+1}" onchange="replaceArtworkColor('${hex}',this.value)"><input class="artwork-color-hex" value="${hex}" aria-label="HEX color ${i+1}" onchange="replaceArtworkColor('${hex}',this.value)"><button type="button" class="artwork-color-remove" title="Remove ${hex} from artwork" aria-label="Remove color ${hex}" onclick="removeArtworkColor('${hex}')">×</button></div>`).join('')||'<div class="upload-note">No opaque colors detected.</div>';
+  let image;try{image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height);}catch(error){count.textContent='Unavailable';return;}
+  let palette=getExactArtworkPalette(image,15);
+  if(!palette)reduceArtworkColors(image,15,true);
+  palette=consolidateArtworkColorFamilies(image,32);e.ctx.putImageData(image,0,0);
+  e.palette=palette;e.paletteBuckets=new Map(palette.map(hex=>[hex,new Set([hex])]));e.paletteSelection=e.paletteSelection||new Set();e.paletteSelection=new Set([...e.paletteSelection].filter(hex=>palette.includes(hex)));
+  count.textContent=`${palette.length} total`;
+  renderArtworkPalette();
+  if(e.selectionFromPalette)syncArtworkPaletteSelectionMask();
 }
-function analyzeArtworkSource(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const max=900,ratio=Math.min(1,max/Math.max(img.naturalWidth||1,img.naturalHeight||1)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);const data=ctx.getImageData(0,0,canvas.width,canvas.height).data,buckets=new Map();let opaque=0;for(let i=0;i<data.length;i+=4){if(data[i+3]<80)continue;opaque++;const key=`${data[i]>>4},${data[i+1]>>4},${data[i+2]>>4}`,v=buckets.get(key)||[0,0,0,0];v[0]+=data[i];v[1]+=data[i+1];v[2]+=data[i+2];v[3]++;buckets.set(key,v);}const min=Math.max(3,opaque*.0025),palette=[...buckets.values()].filter(v=>v[3]>=min).sort((a,b)=>b[3]-a[3]).slice(0,12).map(v=>rgbToHex(v[0]/v[3],v[1]/v[3],v[2]/v[3]));resolve(palette);};img.onerror=reject;img.src=src;});}
+function renderArtworkPalette(){
+  const e=artworkPixelEditor,grid=document.getElementById('artwork-palette-grid');if(!e||!grid)return;
+  const selected=e.paletteSelection||new Set(),palette=e.palette||[];
+  grid.innerHTML=palette.map((hex,i)=>`<div class="artwork-color-row ${selected.has(hex)?'selected':''}" data-palette-color="${hex}"><button type="button" class="artwork-color-select" style="--swatch:${hex}" title="${selected.has(hex)?'Deselect':'Select'} ${hex}" aria-pressed="${selected.has(hex)}" onclick="toggleArtworkPaletteColor(event,'${hex}')"></button><input class="artwork-color-hex" value="${hex}" aria-label="HEX color ${i+1}" onchange="replaceArtworkColor('${hex}',this.value)"><button type="button" class="artwork-color-remove" title="Remove ${hex} from artwork" aria-label="Remove color ${hex}" onclick="removeArtworkColor('${hex}')">×</button><button type="button" class="artwork-color-target" title="Use ${hex} as the combined color" onclick="setArtworkCombineTarget('${hex}')">Target</button></div>`).join('')||'<div class="upload-note">No opaque colors detected.</div>';
+  updateArtworkCombineControls();
+}
+function toggleArtworkPaletteColor(event,hex){
+  event?.preventDefault();event?.stopPropagation();
+  const e=artworkPixelEditor;if(!e)return;e.paletteSelection=e.paletteSelection||new Set();
+  if(e.paletteSelection.has(hex))e.paletteSelection.delete(hex);else e.paletteSelection.add(hex);
+  if(!e.combineTarget&&e.paletteSelection.size)e.combineTarget=[...e.paletteSelection][0];
+  e.selectionFromPalette=true;
+  syncArtworkPaletteSelectionMask();
+  renderArtworkPalette();
+}
+function syncArtworkPaletteSelectionMask(){
+  const e=artworkPixelEditor;if(!e)return;
+  const selected=new Set(e.paletteSelection||[]),palette=e.palette||[];
+  if(!selected.size){clearArtworkSelection();return;}
+  const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height),d=image.data,mask=new Uint8Array(e.canvas.width*e.canvas.height);
+  let minX=e.canvas.width,minY=e.canvas.height,maxX=-1,maxY=-1,count=0;
+  for(let p=0,i=0;p<mask.length;p++,i+=4){
+    if(d[i+3]<20)continue;
+    const family=nearestArtworkPaletteHex(d[i],d[i+1],d[i+2],palette);
+    if(!selected.has(family))continue;
+    mask[p]=1;count++;
+    const x=p%e.canvas.width,y=(p/e.canvas.width)|0;
+    if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;
+  }
+  if(!count){clearArtworkSelection();return;}
+  e.selectionMask=mask;e.selectionFromOriginal=false;e.selectionFromPalette=true;
+  e.selection={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+  updateArtworkSelectionBox();
+}
+function setArtworkCombineTarget(value){
+  const e=artworkPixelEditor,hex=String(value||'').trim().toUpperCase();if(!e||!hexToRgb(hex)){updateArtworkCombineControls();return;}
+  e.combineTarget=hex;updateArtworkCombineControls();
+}
+function updateArtworkCombineControls(){
+  const e=artworkPixelEditor;if(!e)return;const selected=e.paletteSelection?.size||0,target=e.combineTarget||[...(e.paletteSelection||[])][0]||'#111111';e.combineTarget=target;
+  const color=document.getElementById('artwork-combine-color'),hex=document.getElementById('artwork-combine-hex'),button=document.getElementById('artwork-combine-button'),status=document.getElementById('artwork-combine-status');
+  if(color)color.value=target;if(hex)hex.value=target;if(button)button.disabled=selected<2;if(status)status.textContent=selected?`${selected} color${selected===1?'':'s'} selected · Target ${target}`:'Select 2 or more colors to combine';
+}
+function combineSelectedArtworkColors(){
+  const e=artworkPixelEditor,selected=[...(e?.paletteSelection||[])],target=hexToRgb(e?.combineTarget);if(!e||selected.length<2||!target)return;
+  const selectedFamilies=new Set(selected),palette=[...(e.palette||[])];
+  const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height),d=image.data;
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;const family=nearestArtworkPaletteHex(d[i],d[i+1],d[i+2],palette);if(selectedFamilies.has(family)){d[i]=target[0];d[i+1]=target[1];d[i+2]=target[2];}}
+  e.ctx.putImageData(image,0,0);e.paletteSelection.clear();detectArtworkColors();pushArtworkPixelHistory();
+}
+function analyzeArtworkSource(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const max=900,ratio=Math.min(1,max/Math.max(img.naturalWidth||1,img.naturalHeight||1)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);const image=ctx.getImageData(0,0,canvas.width,canvas.height);let palette=getExactArtworkPalette(image,15);if(!palette)reduceArtworkColors(image,15,true);palette=consolidateArtworkColorFamilies(image,32);resolve(palette);};img.onerror=reject;img.src=src;});}
 function replaceArtworkColor(oldHex,newHex){
   const e=artworkPixelEditor,old=hexToRgb(oldHex),next=hexToRgb(newHex);if(!e||!old||!next){detectArtworkColors();return;}
   const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height),d=image.data;
-  const bucket=[old[0]>>4,old[1]>>4,old[2]>>4];
-  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;if((d[i]>>4)===bucket[0]&&(d[i+1]>>4)===bucket[1]&&(d[i+2]>>4)===bucket[2]){d[i]=next[0];d[i+1]=next[1];d[i+2]=next[2];}}
-  e.ctx.putImageData(image,0,0);pushArtworkPixelHistory();detectArtworkColors();syncArtworkEditorToDesign();
+  const palette=[...(e.palette||[])];
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;const family=nearestArtworkPaletteHex(d[i],d[i+1],d[i+2],palette);if(family===oldHex){d[i]=next[0];d[i+1]=next[1];d[i+2]=next[2];}}
+  e.ctx.putImageData(image,0,0);detectArtworkColors();pushArtworkPixelHistory();
 }
 function removeArtworkColor(hex){
   const e=artworkPixelEditor,target=hexToRgb(hex);if(!e||!target)return;
   const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height),d=image.data;
-  const bucket=[target[0]>>4,target[1]>>4,target[2]>>4];
-  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;if((d[i]>>4)===bucket[0]&&(d[i+1]>>4)===bucket[1]&&(d[i+2]>>4)===bucket[2])d[i+3]=0;}
-  e.ctx.putImageData(image,0,0);pushArtworkPixelHistory();detectArtworkColors();syncArtworkEditorToDesign();
+  const palette=[...(e.palette||[])];
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<20)continue;const family=nearestArtworkPaletteHex(d[i],d[i+1],d[i+2],palette);if(family===hex)d[i+3]=0;}
+  e.ctx.putImageData(image,0,0);e.paletteSelection?.delete(hex);e.combineTarget=e.combineTarget===hex?null:e.combineTarget;clearArtworkSelection();detectArtworkColors();pushArtworkPixelHistory();
 }
 function syncArtworkEditorToDesign(){
-  const e=artworkPixelEditor,index=state.artworkEditorIndex,g=state.uploads[state.productKey]?.[index];if(!e||!g)return;
-  const src=e.canvas.toDataURL('image/png');g.src=src;g.editorDraft=src;g.fileFormat='PNG';g.pixelWidth=e.canvas.width;g.pixelHeight=e.canvas.height;g.palette=[...(e.palette||[])];
-  document.querySelectorAll(`.uploaded-graphic[data-index="${index}"]`).forEach(node=>node.setAttribute('href',src));
-  document.querySelectorAll(`.artwork-thumb img[alt="Uploaded artwork ${index+1}"]`).forEach(node=>node.src=src);
+  const e=artworkPixelEditor;if(!e)return;
+  e.previewSrc=e.canvas.toDataURL('image/png');
+}
+function renderArtworkSelectionOverlay(){
+  const e=artworkPixelEditor,overlay=document.getElementById('artwork-color-selection-overlay');if(!e||!overlay)return;
+  if(overlay.width!==e.canvas.width)overlay.width=e.canvas.width;if(overlay.height!==e.canvas.height)overlay.height=e.canvas.height;
+  const ctx=overlay.getContext('2d'),W=overlay.width,H=overlay.height;ctx.clearRect(0,0,W,H);
+  if(!e.selectionMask)return;
+  const image=ctx.createImageData(W,H),d=image.data;
+  for(let p=0;p<e.selectionMask.length;p++)if(e.selectionMask[p]){const i=p*4;d[i]=57;d[i+1]=255;d[i+2]=20;d[i+3]=105;}
+  ctx.putImageData(image,0,0);
 }
 function updateArtworkSelectionBox(){
-  const e=artworkPixelEditor,box=document.getElementById('artwork-selection-box');if(!e||!box||!e.selection)return;
+  const e=artworkPixelEditor,box=document.getElementById('artwork-selection-box');if(!e||!box)return;
+  renderArtworkSelectionOverlay();
+  if(!e.selection){box.style.display='none';return;}
   const rect=e.canvas.getBoundingClientRect(),s=e.selection;
   box.style.display='block';box.style.left=(s.x*rect.width/e.canvas.width)+'px';box.style.top=(s.y*rect.height/e.canvas.height)+'px';box.style.width=(s.w*rect.width/e.canvas.width)+'px';box.style.height=(s.h*rect.height/e.canvas.height)+'px';
 }
-function clearArtworkSelection(){const e=artworkPixelEditor;if(e){e.selection=null;e.selectionMask=null;e.selectionFromOriginal=false;e.lassoPoints=null;}const box=document.getElementById('artwork-selection-box');if(box)box.style.display='none';const line=document.getElementById('artwork-lasso-line');if(line)line.setAttribute('points','');}
+function clearArtworkSelection(){const e=artworkPixelEditor;if(e){e.selection=null;e.selectionMask=null;e.selectionFromOriginal=false;e.selectionFromPalette=false;e.lassoPoints=null;}const box=document.getElementById('artwork-selection-box');if(box)box.style.display='none';const line=document.getElementById('artwork-lasso-line');if(line)line.setAttribute('points','');renderArtworkSelectionOverlay();}
 function deleteArtworkSelection(){
   const e=artworkPixelEditor,s=e?.selection;if(!e||!s||s.w<2||s.h<2)return;
   if(e.selectionMask){const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height);for(let i=0;i<e.selectionMask.length;i++)if(e.selectionMask[i])image.data[i*4+3]=0;e.ctx.putImageData(image,0,0);}else e.ctx.clearRect(s.x,s.y,s.w,s.h);
-  clearArtworkSelection();pushArtworkPixelHistory();detectArtworkColors();
+  e.paletteSelection?.clear();e.combineTarget=null;clearArtworkSelection();detectArtworkColors();pushArtworkPixelHistory();
 }
 function cropArtworkSelection(){
   const e=artworkPixelEditor,s=e?.selection;if(!e||!s||s.w<2||s.h<2)return;
   const temp=document.createElement('canvas');temp.width=Math.round(s.w);temp.height=Math.round(s.h);temp.getContext('2d').drawImage(e.canvas,s.x,s.y,s.w,s.h,0,0,temp.width,temp.height);
-  e.canvas.width=temp.width;e.canvas.height=temp.height;e.ctx=e.canvas.getContext('2d',{willReadFrequently:true});e.ctx.drawImage(temp,0,0);clearArtworkSelection();pushArtworkPixelHistory();detectArtworkColors();
+  e.canvas.width=temp.width;e.canvas.height=temp.height;e.ctx=e.canvas.getContext('2d',{willReadFrequently:true});e.ctx.drawImage(temp,0,0);clearArtworkSelection();detectArtworkColors();pushArtworkPixelHistory();
 }
 function createArtworkDetailLayer(cutFromBase){
   const e=artworkPixelEditor,s=e?.selection,key=state.productKey,index=state.artworkEditorIndex,parent=state.uploads[key]?.[index];
@@ -3104,18 +3625,28 @@ function createArtworkDetailLayer(cutFromBase){
   const technique=document.getElementById('detail-layer-technique')?.value||'Patch',src=detail.toDataURL('image/png');
   pushHistory();
   const detailIndex=insertArtworkInPlacementOrder({id:`detail-${Date.now()}`,parentId:parent.id,isTechniqueLayer:true,lockedToParent:true,detailLayer:true,src,originalSrc:src,x:px,y:py,w:pw,h:ph,baseW:pw,baseH:ph,scale:100,rotation:parent.rotation||0,technique,locked:false,zone:parent.zone||state.activeZone,fileFormat:'PNG',pixelWidth:w,pixelHeight:h,note:`Selected detail from Artwork ${index+1}; ${cutFromBase?'cut from base':'overlay on base'}.`});
-  if(cutFromBase){if(e.selectionMask){const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height);for(let i=0;i<e.selectionMask.length;i++)if(e.selectionMask[i])image.data[i*4+3]=0;e.ctx.putImageData(image,0,0);}else e.ctx.clearRect(x,y,w,h);pushArtworkPixelHistory();detectArtworkColors();}
+  if(cutFromBase){if(e.selectionMask){const image=e.ctx.getImageData(0,0,e.canvas.width,e.canvas.height);for(let i=0;i<e.selectionMask.length;i++)if(e.selectionMask[i])image.data[i*4+3]=0;e.ctx.putImageData(image,0,0);}else e.ctx.clearRect(x,y,w,h);detectArtworkColors();pushArtworkPixelHistory();}
   clearArtworkSelection();
   parent.editorDraft=e.canvas.toDataURL('image/png');
   state.selectedGraphic[key]=detailIndex;
   alert(`Artwork ${detailIndex+1} created as ${technique}. Later placements were renumbered automatically. Click Apply Changes to finish.`);
 }
 function loadArtworkPixelSnapshot(src,after){
-  const e=artworkPixelEditor;if(!e)return;const img=new Image();img.onload=()=>{e.canvas.width=img.naturalWidth;e.canvas.height=img.naturalHeight;e.ctx=e.canvas.getContext('2d',{willReadFrequently:true});e.ctx.clearRect(0,0,e.canvas.width,e.canvas.height);e.ctx.drawImage(img,0,0);after?.();};img.src=src;
+  const e=artworkPixelEditor;if(!e)return;const img=new Image();img.onload=()=>{const max=1600,ratio=Math.min(1,max/Math.max(img.naturalWidth||1,img.naturalHeight||1));e.canvas.width=Math.max(1,Math.round((img.naturalWidth||1)*ratio));e.canvas.height=Math.max(1,Math.round((img.naturalHeight||1)*ratio));e.ctx=e.canvas.getContext('2d',{willReadFrequently:true});e.ctx.clearRect(0,0,e.canvas.width,e.canvas.height);e.ctx.drawImage(img,0,0,e.canvas.width,e.canvas.height);after?.();};img.src=src;
 }
-function undoArtworkPixels(){const e=artworkPixelEditor;if(!e||e.undo.length<2)return;e.redo.push(e.undo.pop());loadArtworkPixelSnapshot(e.undo[e.undo.length-1],detectArtworkColors);}
-function redoArtworkPixels(){const e=artworkPixelEditor;if(!e||!e.redo.length)return;const src=e.redo.pop();e.undo.push(src);loadArtworkPixelSnapshot(src,detectArtworkColors);}
-function resetArtworkPixels(){const e=artworkPixelEditor,g=state.uploads[state.productKey]?.[state.artworkEditorIndex];if(!e||!g)return;loadArtworkPixelSnapshot(g.originalSrc||g.src,()=>{pushArtworkPixelHistory();detectArtworkColors();});clearArtworkSelection();}
+function refreshArtworkAfterHistory(){
+  const e=artworkPixelEditor;if(!e)return;
+  e.paletteSelection=new Set();e.combineTarget=null;
+  clearArtworkSelection();detectArtworkColors();applyArtworkEditorZoom();
+}
+function undoArtworkPixels(){const e=artworkPixelEditor;if(!e||e.undo.length<2)return;e.redo.push(e.undo.pop());loadArtworkPixelSnapshot(e.undo[e.undo.length-1],refreshArtworkAfterHistory);}
+function redoArtworkPixels(){const e=artworkPixelEditor;if(!e||!e.redo.length)return;const src=e.redo.pop();e.undo.push(src);loadArtworkPixelSnapshot(src,refreshArtworkAfterHistory);}
+function resetArtworkPixels(){
+  const e=artworkPixelEditor,g=state.uploads[state.productKey]?.[state.artworkEditorIndex];if(!e||!g)return;
+  const source=e.originalSource||g.originalSrc||g.src;
+  loadArtworkPixelSnapshot(source,()=>{e.paletteSelection=new Set();e.combineTarget=null;e.undo=[];e.redo=[];detectArtworkColors();pushArtworkPixelHistory();resetArtworkEditorZoom();});
+  clearArtworkSelection();
+}
 function applyArtworkPixelEdits(){
   const e=artworkPixelEditor,g=state.uploads[state.productKey]?.[state.artworkEditorIndex];if(!e||!g)return;
   pushHistory();g.src=e.canvas.toDataURL('image/png');g.palette=[...(e.palette||[])];g.fileFormat='PNG';g.pixelWidth=e.canvas.width;g.pixelHeight=e.canvas.height;g.editorDraft=null;g.crop=null;g.sourceX=null;g.sourceY=null;g.sourceW=null;g.sourceH=null;
@@ -3125,6 +3656,22 @@ function downloadEditedArtwork(){
   const e=artworkPixelEditor;if(!e)return;e.canvas.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${state.productKey}-artwork-${(state.artworkEditorIndex??0)+1}-edited.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);},'image/png');
 }
 
+function toggleArtworkCard(event,index){
+  if(event){event.preventDefault();event.stopPropagation();}
+  const key=state.productKey,g=state.uploads[key]?.[index];
+  if(!g)return;
+  const cardId=g.id||('legacy-'+index);
+  if(state.expandedArtwork[key]===cardId){
+    state.expandedArtwork[key]=null;
+    if(state.selectedGraphic[key]===index)state.selectedGraphic[key]=null;
+  }else{
+    state.expandedArtwork[key]=cardId;
+    state.selectedGraphic[key]=index;
+    state.activeZone=g.zone||'Front';
+    if(state.activeZone==='Front'||state.activeZone==='Back')state.garmentView=state.activeZone;
+  }
+  render();
+}
 function selectGraphic(index){
   const g=state.uploads[state.productKey]?.[index];
   state.selectedGraphic[state.productKey]=index;
@@ -3223,6 +3770,12 @@ function updateGraphicMetric(metric,value){
   }
   render();
 }
+function updateGraphicMetricAt(index,metric,value){
+  const key=state.productKey;
+  if(!state.uploads[key]?.[index])return;
+  state.selectedGraphic[key]=index;
+  updateGraphicMetric(metric,value);
+}
 
 function resizeGraphic(scale){
   const key = state.productKey;
@@ -3265,7 +3818,8 @@ function duplicateGraphic(){
     });
   }
   cloneIndex=state.uploads[key].findIndex(g=>g.id===clone.id);
-  state.selectedGraphic[key]=cloneIndex;
+  state.selectedGraphic[key]=null;
+  state.expandedArtwork[key]=null;
   render();
 }
 function duplicateGraphicAt(index){state.selectedGraphic[state.productKey]=index;duplicateGraphic();}
@@ -3283,6 +3837,8 @@ function deleteGraphic(index){
   const records=state.uploads[key].map((g,i)=>({graphic:g,index:i})).filter(r=>r.index===index || (!target.isTechniqueLayer&&target.id&&r.graphic.parentId===target.id));
   state.deletedGraphics[key].push(records);
   const removeIndices=new Set(records.map(r=>r.index));
+  const expandedId=state.expandedArtwork[key];
+  if(records.some(r=>(r.graphic.id||('legacy-'+r.index))===expandedId))state.expandedArtwork[key]=null;
   state.uploads[key]=state.uploads[key].filter((g,i)=>!removeIndices.has(i));
   state.selectedGraphic[key]=null;
   render();
