@@ -1130,6 +1130,25 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
 </script>
 <!-- SPOOL studio board layout -->
 <style id="ts-css">
+.ts-panel.ts-m-ai .inline-options-head,.ts-panel.ts-m-ai .studio-text-tools,.ts-panel.ts-m-ai .inline-options>.fabric-section,.ts-panel.ts-m-ai .upload-note{display:none!important}
+.ts-ai textarea{width:100%;border:1px solid #e2e2de;border-radius:12px;background:#fff;padding:12px 14px;font:inherit;font-size:14px;resize:vertical;outline:none;box-sizing:border-box}
+.ts-ai textarea:focus{border-color:#141414}
+.ts-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.ts-chip{border:1px solid #e2e2de!important;background:#f4f4f1!important;border-radius:999px!important;padding:7px 12px;font:600 12px Inter,Poppins,sans-serif;cursor:pointer;color:#141414}
+.ts-chip.on{background:#141414!important;color:#fff!important;border-color:#141414!important}
+.ts-ai-opt{display:flex;align-items:center;gap:8px;font-size:12px;color:#444;margin:4px 0 12px}
+.ts-ai-go{width:100%;height:46px;background:#141414!important;color:#fff!important;justify-content:center}
+.ts-ai-go:hover{background:#e0562f!important}
+.ts-ai-go:disabled{background:#8a8a8a!important;cursor:default}
+.ts-ai-err{font-size:12px;color:#b3261e;margin:0 0 10px}
+.ts-ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ts-ai-res{position:relative;padding:0;border:1px solid #e6e6e2!important;border-radius:10px!important;overflow:hidden;background:#f3f3f0 linear-gradient(90deg,#f3f3f0,#e9e9e5,#f3f3f0);background-size:200% 100%;animation:tsShim 1.4s infinite linear;cursor:pointer;aspect-ratio:1/1}
+.ts-ai-res img{width:100%;height:100%;object-fit:contain;display:block;background:#fff;opacity:0;transition:opacity .3s}
+.ts-ai-res.ready{animation:none}.ts-ai-res.ready img{opacity:1}
+.ts-ai-res.failed::after{content:"Try again";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:#999}
+.ts-ai-res span{position:absolute;left:8px;right:8px;bottom:8px;background:#141414;color:#fff;font:700 11px Inter,sans-serif;padding:7px;border-radius:6px;opacity:0;transition:.2s}
+.ts-ai-res:hover span,.ts-ai-res.busy span{opacity:1}
+@keyframes tsShim{to{background-position:-200% 0}}
 .ts-panel.ts-m-upload .inline-options .studio-text-tools,.ts-panel.ts-m-upload .inline-options>.fabric-section{display:none!important}
 .ts-panel.ts-m-text .inline-options-head,.ts-panel.ts-m-text .inline-options>.fabric-section,.ts-panel.ts-m-text .upload-note,.ts-panel.ts-m-text .studio-text-tools>summary{display:none!important}
 .ts-panel.ts-m-deco .inline-options-head,.ts-panel.ts-m-deco .studio-text-tools,.ts-panel.ts-m-deco .upload-note{display:none!important}
@@ -4317,6 +4336,7 @@ render();
     ref:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',
     pack:'<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>',
     deco:'<svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.6L18 9l-4.2 1.6L12 15l-1.8-4.4L6 9l4.2-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>',
+    ai:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M3 16l4-4 5 5M11 12l2-2 4 4"/><path d="M19 2l.9 2.1L22 5l-2.1.9L19 8l-.9-2.1L16 5l2.1-.9z"/></svg>',
     plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
     undo:'<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
     zin:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6M11 8v6"/></svg>',
@@ -4326,6 +4346,7 @@ render();
   };
   var RAIL = [
     {m:'Artwork', label:'Upload', icon:'upload', mode:'upload'},
+    {m:'Artwork', label:'AI Design', icon:'ai', mode:'ai'},
     {m:'Artwork', label:'Text', icon:'text', mode:'text'},
     {m:'Artwork', label:'Decoration', icon:'deco', mode:'deco'},
     {m:'Fabric', label:'Color', icon:'color'},
@@ -4335,7 +4356,27 @@ render();
     {m:'Wash', label:'Wash', icon:'wash'},
     {m:'Reference', label:'Reference', icon:'ref'}
   ];
-  var TS = {mode:null, scroll:{}};
+  var TS = {mode:null, scroll:{}, ai:{prompt:'', style:'Typography', results:[], white:false, busy:false, err:''}};
+  var AI_ENDPOINT = 'https://spool-ai.chrishwang0327.workers.dev'; /* SPOOL AI Worker URL, e.g. https://spool-ai.YOURNAME.workers.dev */
+  var AI_STYLES = {Typography:'bold typographic lettering design', Graphic:'illustrated graphic, clean flat vector art', Badge:'circular badge emblem logo design', Vintage:'distressed vintage retro print', Poster:'poster style graphic composition', Streetwear:'bold high contrast streetwear graphic'};
+  function aiLoad(){
+    var imgs=[].slice.call(document.querySelectorAll('.ts-ai-res img[data-src]')), n=0;
+    function next(){ var im=imgs[n++]; if(!im) return; var tries=0, base=im.getAttribute('data-src');
+      im.onload=function(){ im.parentNode.classList.add('ready'); next(); };
+      im.onerror=function(){ if(++tries<4){ setTimeout(function(){ im.src=base+'&retry='+tries; },2500); } else { im.parentNode.classList.add('failed'); next(); } };
+      im.src=base; }
+    next();
+  }
+  function aiHTML(){
+    var a=TS.ai;
+    var chips=Object.keys(AI_STYLES).map(function(s){ return '<button class="ts-chip'+(a.style===s?' on':'')+'" onclick="tsAiStyle('+"'"+s+"'"+')">'+s+'</button>'; }).join('');
+    var res = a.results.length ? '<div class="ts-sub">Results <span style="font-weight:500;color:#888">&middot; click one to add it</span></div><div class="ts-ai-grid">'+a.results.map(function(u,i){ return '<button class="ts-ai-res" id="ts-ai-r'+i+'" onclick="tsAiAdd('+i+')" title="Add to garment"><img data-src="'+u+'" alt="AI design option '+(i+1)+'" crossorigin="anonymous" loading="lazy"><span>Add</span></button>'; }).join('')+'</div>' : '';
+    return '<div class="ts-ai"><textarea id="ts-ai-prompt" rows="3" placeholder="Describe your idea, e.g. \'SPOOL NYC in chrome lettering with stars\'" oninput="tsAiPrompt(this.value)">'+esc(a.prompt)+'</textarea>'+
+      '<div class="ts-chips">'+chips+'</div>'+
+      (a.err?'<div class="ts-ai-err">'+esc(a.err)+'</div>':'')+
+      '<button class="ts-btn ts-ai-go" onclick="tsAiGen()"'+(a.busy||!AI_ENDPOINT?' disabled':'')+'>'+(a.busy?'Generating... (about 20 sec)':(AI_ENDPOINT?'&#10022; Generate':'AI Design coming soon'))+'</button>'+res+
+      '<div class="ts-note">AI designs are reviewed and prepared for production before sampling.</div></div>';
+  }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function em(){ return (state.configurable && state.configurable.indexOf('Artwork')===0) ? (TS.mode||'upload') : null; }
   function configs(){ var p=PRODUCTS[state.productKey]; return (p&&p.configs)||[]; }
@@ -4412,6 +4453,7 @@ render();
     var insp=slot.querySelector('.artwork-inspector'); if(insp){ var aside=document.getElementById('ts-attr'); var hd=document.createElement('div'); hd.className='ts-sub'; hd.textContent='Artwork'; aside.appendChild(hd); aside.appendChild(insp); }
     var rq=document.createElement('button'); rq.className='ts-btn light'; rq.textContent='Request Sample'; rq.onclick=function(){ openSampleRequest(); }; acts.appendChild(rq);
     document.getElementById('ts-panel').classList.add('ts-m-'+(em()||'x'));
+    if(em()==='ai'){ slot.insertAdjacentHTML('afterbegin', aiHTML()); aiLoad(); }
     if(em()==='text'){ var d=slot.querySelector('details.studio-text-tools'); if(d){ d.open=true; if(TS.focus){ TS.focus=false; setTimeout(function(){ var inp=document.getElementById('studio-text'); if(inp) inp.focus(); d.scrollIntoView({block:'start'}); },30); } } }
     ['ts-panel','ts-attr'].forEach(function(id){ var el=document.getElementById(id); if(el && TS.scroll[id]) el.scrollTop=TS.scroll[id]; });
   }
@@ -4429,6 +4471,36 @@ render();
     if(!isFinite(f)||f<=0) return;
     pushHistory(); g.w*=f; g.h*=f; g.x=cx-g.w/2; g.y=cy-g.h/2; if(g.baseW) g.scale=Math.round(g.w/g.baseW*100);
     render();
+  };
+  window.tsAiPrompt=function(v){ TS.ai.prompt=v; };
+  window.tsAiStyle=function(s){ TS.ai.style=s; render(); };
+  window.tsAiWhite=function(v){ TS.ai.white=!!v; };
+  window.tsAiGen=function(){
+    if(!AI_ENDPOINT||TS.ai.busy) return;
+    var p=(TS.ai.prompt||'').trim(); if(!p){ alert('Describe your idea first.'); var el=document.getElementById('ts-ai-prompt'); if(el) el.focus(); return; }
+    var full=p+'. Style: '+AI_STYLES[TS.ai.style]+'. A standalone graphic for an apparel screen print: flat vector artwork, bold clean shapes, crisp readable lettering, limited color palette, centered, transparent background. No t-shirt, no clothing, no person, no mockup, no photo.';
+    TS.ai.busy=true; TS.ai.err=''; render();
+    fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full,n:2})})
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||'Generation failed'); return j; }); })
+      .then(function(j){ TS.ai.results=(j.images||[]).concat(TS.ai.results).slice(0,8); })
+      .catch(function(e){ TS.ai.err=(e&&e.message)||'Generation failed. Try again.'; })
+      .then(function(){ TS.ai.busy=false; render(); });
+  };
+  window.tsAiAdd=function(i){
+    var url=TS.ai.results[i]; if(!url) return; var loaded=document.querySelector('#ts-ai-r'+i+' img'); if(loaded && loaded.complete && loaded.naturalWidth) url=loaded.currentSrc||loaded.src; var btn=document.getElementById('ts-ai-r'+i); if(btn){ btn.classList.add('busy'); var sp=btn.querySelector('span'); if(sp) sp.textContent='Adding...'; }
+    fetch(url).then(function(r){ return r.blob(); }).then(function(blob){
+      return new Promise(function(done){
+        if(!TS.ai.white){ done(blob); return; }
+        var img=new Image(); img.onload=function(){ var c=document.createElement('canvas'); c.width=img.naturalWidth; c.height=img.naturalHeight; var x=c.getContext('2d'); x.drawImage(img,0,0); var d=x.getImageData(0,0,c.width,c.height), px=d.data;
+          for(var k=0;k<px.length;k+=4){ var m=Math.min(px[k],px[k+1],px[k+2]); if(m>=242) px[k+3]=0; else if(m>=215) px[k+3]=Math.round(px[k+3]*(242-m)/27); }
+          x.putImageData(d,0,0); c.toBlob(function(b){ done(b||blob); },'image/png'); };
+        img.onerror=function(){ done(blob); }; img.src=URL.createObjectURL(blob);
+      });
+    }).then(function(b){
+      var inp=document.querySelector('.ts-panel .inline-options-head input[type=file]');
+      if(!inp){ alert('Could not add the design. Try again.'); return; }
+      var f=new File([b],'ai-design-'+(i+1)+'.png',{type:'image/png'}); var dt=new DataTransfer(); dt.items.add(f); inp.files=dt.files; inp.dispatchEvent(new Event('change',{bubbles:true}));
+    }).catch(function(){ alert('That design could not be loaded. Try generating again.'); if(btn){ btn.classList.remove('busy'); } });
   };
   window.tsCenter=function(){ var g=sel(); if(!g) return; var c=getArtworkCalibration(g); pushHistory(); g.x=c.originX+(c.unitsW-g.w)/2; render(); };
   var orig=render;
