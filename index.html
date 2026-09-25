@@ -1130,9 +1130,18 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
 </script>
 <!-- SPOOL studio board layout -->
 <style id="ts-css">
+.ts-seg{display:flex;background:#f0f0ed;border-radius:10px;padding:3px;margin:14px 0 6px}
+.ts-seg button{flex:1;border:0!important;background:none!important;padding:9px 6px;font:600 12px Inter,sans-serif;color:#555;cursor:pointer;border-radius:8px!important}
+.ts-seg button.on{background:#fff!important;color:#141414;box-shadow:0 1px 3px rgba(0,0,0,.12)!important}
+.ts-hint{font-size:11.5px;color:#888;margin-bottom:12px}
+.ts-ai-cell{position:relative}
+.ts-ai-mod{position:absolute;top:8px;right:8px;border:0!important;background:#fff!important;color:#141414;font:700 11px Inter,sans-serif;padding:6px 10px;border-radius:999px!important;box-shadow:0 1px 4px rgba(0,0,0,.18)!important;cursor:pointer;opacity:0;transition:.2s}
+.ts-ai-cell:hover .ts-ai-mod{opacity:1}
+.ts-ai-mod:hover{background:#141414!important;color:#fff}
+@media (hover:none){.ts-ai-mod{opacity:1}}
 .ts-refs{display:flex;gap:8px;flex-wrap:wrap}
 .ts-ref{position:relative;width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid #e2e2de;background:#f3f3f0}
-.ts-ref img{width:100%;height:100%;object-fit:cover;display:block}
+.ts-ref img{width:100%;height:100%;object-fit:contain;display:block;background:#fff}
 .ts-ref button{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;border:0!important;background:rgba(20,20,20,.75)!important;color:#fff!important;font-size:13px;line-height:1;cursor:pointer;padding:0}
 .ts-ref-add{width:72px;height:72px;border:1.5px dashed #c9c9c3;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 11px Inter,sans-serif;color:#555;cursor:pointer;background:#fafaf8}
 .ts-ref-add span{font-size:20px;line-height:1;margin-bottom:2px}
@@ -4364,7 +4373,7 @@ render();
     {m:'Wash', label:'Wash', icon:'wash'},
     {m:'Reference', label:'Reference', icon:'ref'}
   ];
-  var TS = {mode:null, scroll:{}, ai:{prompt:'', style:'Typography', results:[], white:false, busy:false, err:'', refs:[]}};
+  var TS = {mode:null, scroll:{}, ai:{prompt:'', style:'Typography', results:[], white:false, busy:false, err:'', refs:[], mode:'edit'}};
   var AI_ENDPOINT = 'https://spool-ai.chrishwang0327.workers.dev'; /* SPOOL AI Worker URL, e.g. https://spool-ai.YOURNAME.workers.dev */
   var AI_STYLES = {Typography:'bold typographic lettering design', Graphic:'illustrated graphic, clean flat vector art', Badge:'circular badge emblem logo design', Vintage:'distressed vintage retro print', Poster:'poster style graphic composition', Streetwear:'bold high contrast streetwear graphic'};
   function aiLoad(){
@@ -4378,13 +4387,13 @@ render();
   function aiHTML(){
     var a=TS.ai;
     var chips=Object.keys(AI_STYLES).map(function(s){ return '<button class="ts-chip'+(a.style===s?' on':'')+'" onclick="tsAiStyle('+"'"+s+"'"+')">'+s+'</button>'; }).join('');
-    var res = a.results.length ? '<div class="ts-sub">Results <span style="font-weight:500;color:#888">&middot; click one to add it</span></div><div class="ts-ai-grid">'+a.results.map(function(u,i){ return '<button class="ts-ai-res" id="ts-ai-r'+i+'" onclick="tsAiAdd('+i+')" title="Add to garment"><img data-src="'+u+'" alt="AI design option '+(i+1)+'" crossorigin="anonymous" loading="lazy"><span>Add</span></button>'; }).join('')+'</div>' : '';
-    return '<div class="ts-ai"><textarea id="ts-ai-prompt" rows="3" placeholder="Describe your idea, e.g. \'SPOOL NYC in chrome lettering with stars\'" oninput="tsAiPrompt(this.value)">'+esc(a.prompt)+'</textarea>'+
+    var res = a.results.length ? '<div class="ts-sub">Results <span style="font-weight:500;color:#888">&middot; click one to add it</span></div><div class="ts-ai-grid">'+a.results.map(function(u,i){ return '<div class="ts-ai-cell"><button class="ts-ai-res" id="ts-ai-r'+i+'" onclick="tsAiAdd('+i+')" title="Add to garment"><img data-src="'+u+'" alt="AI design option '+(i+1)+'" crossorigin="anonymous" loading="lazy"><span>Add to garment</span></button><button class="ts-ai-mod" onclick="tsAiMod('+i+')" title="Modify this design">Modify</button></div>'; }).join('')+'</div>' : '';
+    return '<div class="ts-ai"><textarea id="ts-ai-prompt" rows="3" placeholder="'+(a.refs.length&&a.mode==='edit'?'Describe the change, e.g. change the text to SPOOL NYC and make it red':'Describe your idea, e.g. SPOOL NYC in chrome lettering with stars')+'" oninput="tsAiPrompt(this.value)">'+esc(a.prompt)+'</textarea>'+
       '<div class="ts-sub" style="margin:16px 0 8px">Reference images <span style="font-weight:500;color:#888">&middot; optional, up to 3</span></div>'+
       '<div class="ts-refs">'+a.refs.map(function(r,i){ return '<div class="ts-ref"><img src="'+r+'" alt="Reference '+(i+1)+'"><button onclick="tsAiRefDel('+i+')" aria-label="Remove reference">&times;</button></div>'; }).join('')+
       (a.refs.length<3?'<label class="ts-ref-add"><span>+</span>Upload<input type="file" accept="image/png,image/jpeg,image/webp" multiple onchange="tsAiRef(this.files)"></label>':'')+'</div>'+
-      '<div class="ts-sub" style="margin:16px 0 0">Style</div>'+
-      '<div class="ts-chips">'+chips+'</div>'+
+      (a.refs.length?'<div class="ts-seg"><button class="'+(a.mode==='edit'?'on':'')+'" onclick="tsAiMode('+"'edit'"+')">Modify this design</button><button class="'+(a.mode!=='edit'?'on':'')+'" onclick="tsAiMode('+"'inspire'"+')">Use as inspiration</button></div><div class="ts-hint">'+(a.mode==='edit'?'Keeps your graphic and changes only what you describe.':'Creates a new design inspired by your image.')+'</div>':'')+
+      (a.refs.length&&a.mode==='edit'?'':'<div class="ts-sub" style="margin:16px 0 0">Style</div><div class="ts-chips">'+chips+'</div>')+
       (a.err?'<div class="ts-ai-err">'+esc(a.err)+'</div>':'')+
       '<button class="ts-btn ts-ai-go" onclick="tsAiGen()"'+(a.busy||!AI_ENDPOINT?' disabled':'')+'>'+(a.busy?(a.refs.length?'Generating from reference... (about 30 sec)':'Generating... (about 20 sec)'):(AI_ENDPOINT?'&#10022; Generate':'AI Design coming soon'))+'</button>'+res+
       '<div class="ts-note">AI designs are reviewed and prepared for production before sampling.</div></div>';
@@ -4485,6 +4494,8 @@ render();
     render();
   };
   window.tsAiPrompt=function(v){ TS.ai.prompt=v; };
+  window.tsAiMode=function(m){ TS.ai.mode=m; render(); };
+  window.tsAiMod=function(i){ var u=TS.ai.results[i]; if(!u) return; TS.ai.mode='edit'; TS.ai.prompt=''; var im=new Image(); im.onload=function(){ var c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; var cx=c.getContext('2d'); cx.fillStyle='#ffffff'; cx.fillRect(0,0,c.width,c.height); cx.drawImage(im,0,0); TS.ai.refs=[c.toDataURL('image/jpeg',0.92)]; render(); }; im.onerror=function(){ TS.ai.refs=[u]; render(); }; im.src=u; setTimeout(function(){ var el=document.getElementById('ts-ai-prompt'); if(el){ el.focus(); el.scrollIntoView({block:'center'}); } },40); };
   window.tsAiRefDel=function(i){ TS.ai.refs.splice(i,1); render(); };
   window.tsAiRef=function(files){
     var list=[].slice.call(files||[]).filter(function(f){ return /^image\//.test(f.type); }).slice(0, 3-TS.ai.refs.length);
@@ -4492,7 +4503,7 @@ render();
     Promise.all(list.map(function(f){ return new Promise(function(done){
       if(f.size>15*1024*1024){ done(null); return; }
       var img=new Image(), url=URL.createObjectURL(f);
-      img.onload=function(){ var s=Math.min(1,1024/Math.max(img.naturalWidth,img.naturalHeight)); var c=document.createElement('canvas'); c.width=Math.round(img.naturalWidth*s); c.height=Math.round(img.naturalHeight*s); c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); done(f.type==='image/png'?c.toDataURL('image/png'):c.toDataURL('image/jpeg',0.9)); };
+      img.onload=function(){ var s=Math.min(1,1024/Math.max(img.naturalWidth,img.naturalHeight)); var c=document.createElement('canvas'); c.width=Math.round(img.naturalWidth*s); c.height=Math.round(img.naturalHeight*s); var cx=c.getContext('2d'); cx.fillStyle='#ffffff'; cx.fillRect(0,0,c.width,c.height); cx.drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); done(c.toDataURL('image/jpeg',0.92)); };
       img.onerror=function(){ URL.revokeObjectURL(url); done(null); };
       img.src=url; }); })).then(function(arr){ arr.forEach(function(d){ if(d && TS.ai.refs.length<3) TS.ai.refs.push(d); }); render(); });
   };
@@ -4501,9 +4512,10 @@ render();
   window.tsAiGen=function(){
     if(!AI_ENDPOINT||TS.ai.busy) return;
     var p=(TS.ai.prompt||'').trim(); if(!p){ alert('Describe your idea first.'); var el=document.getElementById('ts-ai-prompt'); if(el) el.focus(); return; }
-    var full=(TS.ai.refs.length?'Use the attached reference image(s) as visual inspiration for subject, style and composition, but create a new original graphic. ':'')+p+'. Style: '+AI_STYLES[TS.ai.style]+'. A standalone graphic for an apparel screen print: flat vector artwork, bold clean shapes, crisp readable lettering, limited color palette, centered, transparent background. No t-shirt, no clothing, no person, no mockup, no photo.';
+    var editing=TS.ai.refs.length&&TS.ai.mode==='edit';
+    var full=editing ? 'Edit the attached graphic. Keep the same overall design, layout, subject, lettering style and linework, and change only the following: '+p+'. Output a clean flat apparel print graphic, centered, transparent background.' : (TS.ai.refs.length?'Use the attached reference image(s) as visual inspiration for subject, style and composition, but create a new original graphic. ':'')+p+'. Style: '+AI_STYLES[TS.ai.style]+'. A standalone graphic for an apparel screen print: flat vector artwork, bold clean shapes, crisp readable lettering, limited color palette, centered, transparent background. No t-shirt, no clothing, no person, no mockup, no photo.';
     TS.ai.busy=true; TS.ai.err=''; render();
-    fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full,n:2,refs:TS.ai.refs})})
+    fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full,n:2,refs:TS.ai.refs,mode:editing?'edit':'inspire'})})
       .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||'Generation failed'); return j; }); })
       .then(function(j){ TS.ai.results=(j.images||[]).concat(TS.ai.results).slice(0,8); })
       .catch(function(e){ TS.ai.err=(e&&e.message)||'Generation failed. Try again.'; })
