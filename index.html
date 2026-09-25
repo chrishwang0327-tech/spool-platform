@@ -1128,6 +1128,93 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
   };
 })();
 </script>
+<!-- SPOOL studio board layout -->
+<style id="ts-css">
+body.ts-mode{background:#f3f3ef!important;background-image:none!important}
+body.ts-mode #app{max-width:none!important;padding:0!important;margin:0!important;min-height:100vh}
+body.ts-mode #app>.logo,body.ts-mode #app>.studio-nav,body.ts-mode #app>.top-row,body.ts-mode #app>.item-wrap,body.ts-mode #music-toggle,body.ts-mode .account-button{display:none!important}
+.ts-shell{display:flex;flex-direction:column;height:100vh;font-family:Inter,Poppins,sans-serif;color:#141414}
+.ts-top{height:60px;background:#141414;color:#fff;display:flex;align-items:center;gap:14px;flex:none}
+.ts-exit{width:60px;height:60px;border:0;border-right:1px solid #2c2c2c;background:none;color:#fff;cursor:pointer;display:grid;place-items:center}
+.ts-exit:hover{background:#222}
+.ts-title{font-weight:700;font-size:15px;max-width:240px;min-width:0}
+.ts-title div{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ts-title small{display:block;font-weight:500;font-size:11px;color:#9a9a9a;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ts-steps{flex:1;display:flex;justify-content:center;align-items:center;gap:10px;min-width:0}
+.ts-step{display:flex;align-items:center;gap:8px;background:none;border:0;color:#7d7d7d;font:inherit;font-size:14px;font-weight:600;cursor:pointer;padding:6px 4px;white-space:nowrap}
+.ts-step i{width:26px;height:26px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-style:normal;font-size:12px}
+.ts-step.on,.ts-step.done{color:#fff}.ts-step.done i{background:#fff;color:#141414;border-color:#fff}
+.ts-sep{width:24px;height:1px;background:#444;flex:none}
+.ts-actions{display:flex;gap:8px;padding-right:10px;align-items:center}
+.ts-btn,.ts-actions .save-design-wrap>.icon-action{height:42px;padding:0 18px;border-radius:8px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;border:0;background:#3a3a3a;color:#fff;box-shadow:none;letter-spacing:0;text-transform:none;display:inline-flex;align-items:center;gap:6px;margin:0}
+.ts-btn:hover,.ts-actions .save-design-wrap>.icon-action:hover{background:#4a4a4a}
+.ts-btn.light{background:#fffefa;color:#141414}.ts-btn.light:hover{background:#e0562f;color:#fff}
+.ts-actions .save-design-wrap{position:relative}.ts-actions .save-design-wrap>.icon-action svg{display:none}
+.ts-actions .save-design-wrap>*:not(.icon-action){position:absolute;right:0;top:48px;z-index:60;color:#141414}
+.ts-body{flex:1;display:flex;min-height:0}
+.ts-rail{width:84px;background:#ebeae5;display:flex;flex-direction:column;padding:6px 0;overflow-y:auto;flex:none}
+.ts-ri{position:relative;background:none;border:0;padding:12px 2px;font:inherit;font-size:11px;font-weight:500;color:#222;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.ts-ri svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ts-ri:hover{background:#f5f5f2}.ts-ri.on{background:#fff}
+.ts-ri b{position:absolute;top:10px;right:18px;width:7px;height:7px;border-radius:50%;background:#1f7a4d}
+.ts-grow{flex:1}
+.ts-panel{width:380px;background:#fff;border-right:1px solid #e6e5e0;overflow-y:auto;flex:none;padding:18px 20px 40px}
+.ts-panel-h{font-size:17px;font-weight:700;margin:2px 0 14px}
+.ts-panel .config-side{position:static!important;width:auto!important;max-width:none!important;margin:0!important;padding:0!important;top:auto!important}
+.ts-panel .item-title,.ts-panel .config-btn{display:none!important}
+.ts-panel .config-grid{display:block!important;margin:0!important}
+.ts-panel .inline-options{margin:0!important;box-shadow:none!important;border:0!important;padding:0!important;background:none!important;width:auto!important}
+.ts-panel-empty{font-size:13px;color:#777;line-height:1.6}
+.ts-canvas{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff}
+.ts-tool{height:60px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex:none}
+.ts-tool div{display:flex;gap:4px;align-items:center}
+.ts-ib{width:40px;height:40px;border:0;background:none;cursor:pointer;border-radius:8px;display:grid;place-items:center;color:#333}
+.ts-ib:hover{background:#f1f1ee}.ts-ib svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ts-zone{font-size:12px;color:#777;margin-left:8px}
+.ts-stage{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:10px 18px 18px}
+.ts-stage .item-art{width:100%;max-width:820px;margin:0!important;position:static!important;box-shadow:none!important;background:none!important;border:0!important;padding:0!important}
+.ts-stage .canvas-file-name{display:none!important}
+.ts-stage .garment-stage{background:#fff!important;box-shadow:none!important;border:0!important}
+.ts-stage .view-tabs{display:flex;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.ts-stage .view-tab{border-radius:8px!important;background:#ececea!important;color:#141414!important;border:0!important;padding:11px 22px!important;font:600 14px Inter,Poppins,sans-serif!important;box-shadow:none!important;text-transform:none!important;letter-spacing:0!important}
+.ts-stage .view-tab.active{background:#141414!important;color:#fff!important}
+.ts-attr{width:300px;background:#fff;border-left:1px solid #e6e5e0;padding:20px 18px 40px;overflow-y:auto;flex:none}
+.ts-attr h3{font-size:19px;margin:4px 0 18px}
+.ts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 12px}
+.ts-f label{display:block;font-size:13px;color:#333;margin-bottom:7px}
+.ts-in{position:relative}.ts-in input{width:100%;height:46px;border:1px solid #e2e2de;border-radius:8px;background:#f7f7f5;padding:0 34px 0 12px;font:inherit;font-size:14px;color:#141414;outline:none}
+.ts-in input:focus{border-color:#141414;background:#fff}.ts-in input:disabled{color:#aaa}
+.ts-in span{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:12px;color:#999;pointer-events:none}
+.ts-sel{width:100%;height:42px;border:1px solid #e2e2de;border-radius:8px;background:#f7f7f5;padding:0 10px;font:inherit;font-size:13px}
+.ts-row{display:flex;gap:8px;margin-top:16px}.ts-row .ts-btn{flex:1;height:38px;font-size:12px;padding:0 10px;background:#f0f0ed;color:#141414}.ts-row .ts-btn:hover{background:#e4e4e0}.ts-row .ts-btn.del:hover{background:#b3261e;color:#fff}
+.ts-sub{font-size:12px;font-weight:700;margin:26px 0 10px;color:#141414}
+.ts-layers{display:flex;flex-direction:column;gap:6px}
+.ts-layer{display:flex;align-items:center;gap:10px;padding:6px;border:1px solid #eee;border-radius:8px;background:#fff;cursor:pointer;font:inherit;font-size:12px;text-align:left;color:#141414}
+.ts-layer.on{border-color:#141414}.ts-layer img{width:36px;height:36px;object-fit:contain;background:#f3f3f0;border-radius:6px}
+.ts-layer span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1}
+.ts-note{font-size:12px;color:#888;line-height:1.6;margin-top:18px}
+@media(max-width:1250px){.ts-panel{width:320px}.ts-attr{width:260px}.ts-step span{display:none}}
+@media(max-width:960px){.ts-shell{height:auto;min-height:100vh}.ts-top{flex-wrap:wrap;height:auto;padding-bottom:8px}.ts-steps{order:3;width:100%;flex:none}.ts-body{flex-direction:column}.ts-rail{width:auto;flex-direction:row;overflow-x:auto;padding:0}.ts-ri{min-width:72px}.ts-grow{display:none}.ts-panel,.ts-attr{width:auto;border:0;border-top:1px solid #e6e5e0}.ts-canvas{order:-1}.ts-panel{order:1}.ts-attr{order:2}.ts-title{max-width:40vw}}
+.ts-stage .canvas-controls,.ts-stage .canvas-hint{display:none!important}
+.ts-stage .garment-stage{filter:none!important;width:100%!important;padding:0!important}
+.ts-stage #garment-viewport{width:100%!important;height:calc(100vh - 210px)!important;min-height:420px;background:#fff!important;border:0!important;box-shadow:none!important;border-radius:0!important;display:flex!important;align-items:center;justify-content:center;overflow:hidden}
+.ts-stage #garment-viewport::after{display:none!important}
+.ts-stage #garment-canvas-inner{width:min(94%,calc(100vh - 230px))!important;height:auto!important;aspect-ratio:1/1;flex:none}
+.ts-stage #garment-canvas-inner>svg{width:100%!important;height:100%!important}
+.ts-stage .view-tabs{margin-top:6px!important}
+.ts-panel .close-config-btn{display:none!important}
+.ts-panel button,.ts-panel .sub-btn,.ts-panel .upload-btn,.ts-panel .placement-tab,.ts-panel .layer-upload-btn,.ts-panel input,.ts-panel select,.ts-panel textarea,.ts-panel details,.ts-panel .pattern-card{box-shadow:none!important;border-radius:8px!important;transform:none!important;filter:none!important}
+.ts-panel .sub-btn,.ts-panel .placement-tab{background:#f4f4f1!important;border:1px solid #e4e4df!important;font-family:Inter,Poppins,sans-serif!important;font-weight:600!important;text-transform:none!important;letter-spacing:0!important;color:#141414!important}
+.ts-panel .sub-btn.selected,.ts-panel .placement-tab.active{background:#141414!important;color:#fff!important;border-color:#141414!important}
+.ts-panel .upload-btn{display:flex!important;justify-content:center;align-items:center;width:100%!important;height:52px;background:#141414!important;color:#fff!important;border:0!important;font:700 15px Inter,Poppins,sans-serif!important;text-transform:none!important;letter-spacing:0!important}
+.ts-panel .inline-options-head{display:block!important}
+.ts-panel .inline-options-head>*:not(.upload-btn){position:absolute;right:26px;top:84px}
+.ts-panel .fabric-label{font-family:Inter,Poppins,sans-serif!important;font-size:13px!important;font-weight:700!important;letter-spacing:0!important;text-transform:none!important;text-decoration:none!important;background:none!important}
+.ts-panel details{background:#f7f7f5!important;border:1px solid #e8e8e4!important}
+.ts-panel .submit-btn{border-radius:8px!important;box-shadow:none!important;width:100%}
+.ts-panel *{font-family:Inter,Poppins,sans-serif}
+.ts-panel em,.ts-panel i,.ts-panel .hint,.ts-panel [class*="note"]{font-family:Inter,Poppins,sans-serif!important;font-style:normal}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -4209,6 +4296,138 @@ render();
     try{const saved=await spoolDBGet(`current-${key}`);if(saved){state.selections[key]=saved.selections||{};state.uploads[key]=saved.uploads||[];state.marks[key]=saved.marks||[];state.decorationReferences[key]=saved.decorationReferences||[];state.configReferences[key]=saved.configReferences||{fit:[],wash:[]};state.decorationReferenceNotes[key]=saved.decorationReferenceNotes||{};state.configReferenceNotes[key]=saved.configReferenceNotes||{fit:'',wash:''};state.packageReferences[key]=saved.packageReferences||{trim:{},branding:{}};state.packageReferenceNotes[key]=saved.packageReferenceNotes||{trim:{},branding:{}};state.fitSpecs[key]=saved.fitSpecs||{};state.referenceStudio[key]=saved.referenceStudio||state.referenceStudio[key];state.designFileNames[key]=saved.designName||null;state.designFileIds[key]=saved.designId||null;changed=true;}}catch(error){}
   }
   if(changed)render();
+})();
+</script>
+<script>
+(function(){
+  var ICONS = {
+    upload:'<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>',
+    text:'<svg viewBox="0 0 24 24"><path d="M5 5h14M12 5v15M9 20h6"/></svg>',
+    color:'<svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
+    fit:'<svg viewBox="0 0 24 24"><path d="M8 4l-5 3 2 4 3-1v10h8V10l3 1 2-4-5-3c-.5 1.5-2 2.5-4 2.5S8.5 5.5 8 4z"/></svg>',
+    trim:'<svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 17M8 15.5L20 7"/></svg>',
+    brand:'<svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg>',
+    wash:'<svg viewBox="0 0 24 24"><path d="M3 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg>',
+    ref:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',
+    pack:'<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>',
+    plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    undo:'<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+    zin:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6M11 8v6"/></svg>',
+    zout:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6"/></svg>',
+    fitv:'<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+    exit:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5M10 8l-4 4 4 4M6 12h10"/></svg>'
+  };
+  var RAIL = [
+    {m:'Artwork', label:'Upload', icon:'upload'},
+    {m:'Artwork', label:'Text', icon:'text', text:true},
+    {m:'Fabric', label:'Color', icon:'color'},
+    {m:'Fit', label:'Fit', icon:'fit'},
+    {m:'Trim', label:'Trim', icon:'trim'},
+    {m:'Branding', label:'Branding', icon:'brand'},
+    {m:'Wash', label:'Wash', icon:'wash'},
+    {m:'Reference', label:'Reference', icon:'ref'}
+  ];
+  var TS = {text:false, scroll:{}};
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function configs(){ var p=PRODUCTS[state.productKey]; return (p&&p.configs)||[]; }
+  function cfgFor(m){ var c=configs(); for(var i=0;i<c.length;i++) if(c[i].indexOf(m)===0) return c[i]; return null; }
+  function isSet(name){ try{ var el=[].find.call(document.querySelectorAll('.config-btn'),function(b){ var n=b.querySelector('.name'); return n && n.textContent.trim()===name; }); return el && el.querySelector('.value') && !el.querySelector('.value.unset'); }catch(e){ return false; } }
+  function railHTML(){
+    var cur=state.configurable, h='';
+    RAIL.forEach(function(r,i){
+      var name=cfgFor(r.m); if(!name) return;
+      var on = cur===name && (!!r.text===TS.text);
+      h += '<button class="ts-ri'+(on?' on':'')+'" onclick="tsRail('+i+')" title="'+esc(name)+'">'+ICONS[r.icon]+r.label+(!r.text&&isSet(name)?'<b></b>':'')+'</button>';
+    });
+    h += '<div class="ts-grow"></div>';
+    h += '<button class="ts-ri" onclick="openTechPack()">'+ICONS.pack+'Tech Pack</button>';
+    h += '<button class="ts-ri" onclick="newDesign()">'+ICONS.plus+'New</button>';
+    return h;
+  }
+  function step(){ var c=state.configurable; return (!c||c.indexOf('Artwork')===0)?2:3; }
+  function topHTML(){
+    var p=PRODUCTS[state.productKey], s=step();
+    var fn=document.querySelector('#app .canvas-file-name'); var file=fn?fn.textContent.replace(/^\s*Design file\s*/i,'').trim():'';
+    var steps=[['Product','goHome()'],['Design','tsStep(2)'],['Details','tsStep(3)'],['Quote','openSampleRequest()']];
+    var st=steps.map(function(x,i){ var n=i+1, cls=n===1?'done':(n===s?'on':''); return (i?'<span class="ts-sep"></span>':'')+'<button class="ts-step '+cls+'" onclick="'+x[1]+'"><i>'+(n===1?'&#10003;':n)+'</i><span>'+x[0]+'</span></button>'; }).join('');
+    return '<button class="ts-exit" onclick="goHome()" title="Back to all blanks" aria-label="Back to all blanks">'+ICONS.exit+'</button>'+
+      '<div class="ts-title"><div>'+esc(p?p.label:'')+' design</div><small>'+esc(file||'Unsaved design')+'</small></div>'+
+      '<div class="ts-steps">'+st+'</div><div class="ts-actions" id="ts-actions"><button class="ts-btn" onclick="openTechPack()">Tech Pack</button></div>';
+  }
+  function num(v,d){ return (Math.round(v*Math.pow(10,d))/Math.pow(10,d)).toFixed(d); }
+  function attrHTML(){
+    var key=state.productKey, list=(state.uploads[key]||[]), i=state.selectedGraphic[key], g=(i!=null)?list[i]:null;
+    var m=null; try{ if(g) m=getArtworkMetrics(g); }catch(e){}
+    var dis = g?'':' disabled';
+    function field(label,id,val,unit){ return '<div class="ts-f"><label>'+label+'</label><div class="ts-in"><input type="number" step="any" id="ts-'+id+'" value="'+val+'"'+dis+' onchange="tsSet('+"'"+id+"'"+',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"><span>'+unit+'</span></div></div>'; }
+    var scale = g&&g.baseW ? g.w/g.baseW*100 : 100;
+    var h = '<h3>Attributes</h3><div class="ts-grid">'+
+      field('Width','w', m?num(m.width,2):'0','in')+field('Height','h', m?num(m.height,2):'0','in')+
+      field('Rotate','r', g?num(g.rotation||0,1):'0.0','&deg;')+field('Scale','s', g?num(scale,0):'0','%')+
+      field('From left','x', m?num(m.left,2):'0','in')+field('From top','y', m?num(m.top,2):'0','in')+'</div>';
+    if(g){
+      var techs=(typeof ARTWORK_TECHNIQUES!=='undefined'?ARTWORK_TECHNIQUES:[]);
+      if(techs.length) h += '<div class="ts-sub">Technique</div><select class="ts-sel" onchange="setGraphicTechnique('+i+',this.value)">'+techs.map(function(t){return '<option'+(g.technique===t?' selected':'')+'>'+esc(t)+'</option>';}).join('')+'</select>';
+      h += '<div class="ts-row"><button class="ts-btn" onclick="tsCenter()">Center</button><button class="ts-btn" onclick="openArtworkEditor('+i+')">Edit</button><button class="ts-btn del" onclick="deleteGraphic('+i+')">Delete</button></div>';
+    } else {
+      h += '<div class="ts-note">Select artwork on the garment to edit its size, rotation and position. Sizes are real print dimensions.</div>';
+    }
+    var zone=state.activeZone||'Front', layers=[];
+    list.forEach(function(x,j){ if(!x.isTechniqueLayer && (x.zone||'Front')===zone) layers.push([x,j]); });
+    if(layers.length){
+      h += '<div class="ts-sub">Layers &middot; '+esc(zone)+'</div><div class="ts-layers">'+layers.map(function(p){ var x=p[0]; return '<button class="ts-layer'+(p[1]===i?' on':'')+'" onclick="selectGraphic('+p[1]+')"><img src="'+x.src+'" alt=""><span>'+esc(x.studioText?x.studioText.text:(x.originalFileName||('Artwork '+(p[1]+1))))+'</span></button>'; }).join('')+'</div>';
+    }
+    return h;
+  }
+  function layout(){
+    var app=document.getElementById('app'); if(!app) return;
+    if(state.view!=='item'){ document.body.classList.remove('ts-mode'); return; }
+    var wrap=app.querySelector('.item-wrap'); if(!wrap) return;
+    document.body.classList.add('ts-mode');
+    var name=state.configurable;
+    var railIdx=-1; RAIL.forEach(function(r,i){ if(cfgFor(r.m)===name && !!r.text===TS.text) railIdx=i; });
+    var title = railIdx>-1 ? (RAIL[railIdx].text?'Text':name) : 'Design';
+    var shell=document.createElement('div'); shell.className='ts-shell'; shell.id='ts-shell';
+    shell.innerHTML='<header class="ts-top">'+topHTML()+'</header><div class="ts-body"><nav class="ts-rail" aria-label="Design tools">'+railHTML()+'</nav>'+
+      '<aside class="ts-panel" id="ts-panel"><div class="ts-panel-h">'+esc(title)+'</div><div id="ts-panel-slot"></div></aside>'+
+      '<main class="ts-canvas"><div class="ts-tool"><div><button class="ts-ib" onclick="undoDesign()" title="Undo">'+ICONS.undo+'</button><span class="ts-zone">'+esc(state.activeZone||'Front')+'</span></div>'+
+      '<div><button class="ts-ib" onclick="zoomCanvas(1.08)" title="Zoom in">'+ICONS.zin+'</button><button class="ts-ib" onclick="zoomCanvas(.9259)" title="Zoom out">'+ICONS.zout+'</button><button class="ts-ib" onclick="resetCanvas()" title="Reset view">'+ICONS.fitv+'</button></div></div>'+
+      '<div class="ts-stage" id="ts-stage"></div></main><aside class="ts-attr" id="ts-attr">'+attrHTML()+'</aside></div>';
+    app.appendChild(shell);
+    var art=wrap.querySelector('.item-art'), side=wrap.querySelector('.config-side');
+    if(art) document.getElementById('ts-stage').appendChild(art);
+    var slot=document.getElementById('ts-panel-slot');
+    if(side && name) slot.appendChild(side); else slot.innerHTML='<div class="ts-panel-empty">Pick a tool on the left to upload artwork, add text, or set color, fit, trims, branding and wash.</div>';
+    var save=app.querySelector('.top-row .save-design-wrap'); var acts=document.getElementById('ts-actions');
+    if(save) acts.appendChild(save);
+    var rq=document.createElement('button'); rq.className='ts-btn light'; rq.textContent='Request Sample'; rq.onclick=function(){ openSampleRequest(); }; acts.appendChild(rq);
+    if(TS.text){ var d=slot.querySelector('details.studio-text-tools'); if(d){ d.open=true; if(TS.focus){ TS.focus=false; setTimeout(function(){ var inp=document.getElementById('studio-text'); if(inp) inp.focus(); d.scrollIntoView({block:'start'}); },30); } } }
+    ['ts-panel','ts-attr'].forEach(function(id){ var el=document.getElementById(id); if(el && TS.scroll[id]) el.scrollTop=TS.scroll[id]; });
+  }
+  window.tsRail=function(i){ var r=RAIL[i], name=cfgFor(r.m); if(!name) return; TS.text=!!r.text; TS.focus=TS.text; TS.scroll={}; state.view='item'; state.configurable=name; render(); };
+  window.tsStep=function(n){ TS.text=false; TS.scroll={}; state.configurable = n===2 ? cfgFor('Artwork') : cfgFor('Fit'); render(); };
+  function sel(){ var key=state.productKey, i=state.selectedGraphic[key]; var g=(i!=null)?(state.uploads[key]||[])[i]:null; return (g&&!g.locked)?g:null; }
+  window.tsSet=function(field,val){
+    var g=sel(), v=parseFloat(val); if(!g||!isFinite(v)) return;
+    var c=getArtworkCalibration(g), m=getArtworkMetrics(g), cx=g.x+g.w/2, cy=g.y+g.h/2, f=1;
+    if(field==='r'){ pushHistory(); g.rotation=((v%360)+360)%360; render(); return; }
+    if(field==='x'){ pushHistory(); g.x=c.originX+v*c.unitsW/c.physicalW; render(); return; }
+    if(field==='y'){ pushHistory(); g.y=c.originY+v*c.unitsH/c.physicalH; render(); return; }
+    if(v<=0) return;
+    if(field==='w') f=v/m.width; else if(field==='h') f=v/m.height; else if(field==='s') f=(g.baseW? v/100*g.baseW/g.w : v/100);
+    if(!isFinite(f)||f<=0) return;
+    pushHistory(); g.w*=f; g.h*=f; g.x=cx-g.w/2; g.y=cy-g.h/2; if(g.baseW) g.scale=Math.round(g.w/g.baseW*100);
+    render();
+  };
+  window.tsCenter=function(){ var g=sel(); if(!g) return; var c=getArtworkCalibration(g); pushHistory(); g.x=c.originX+(c.unitsW-g.w)/2; render(); };
+  var orig=render;
+  render=function(){
+    ['ts-panel','ts-attr'].forEach(function(id){ var el=document.getElementById(id); if(el) TS.scroll[id]=el.scrollTop; });
+    var r=orig.apply(this, arguments);
+    try{ layout(); }catch(e){ console.error('ts layout', e); document.body.classList.remove('ts-mode'); }
+    return r;
+  };
+  try{ layout(); }catch(e){}
 })();
 </script>
 </body>
