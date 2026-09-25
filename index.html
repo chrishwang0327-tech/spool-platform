@@ -1639,7 +1639,7 @@ function render(){
   const music=document.getElementById('background-music'),musicPlaying=music&&!music.paused;
   let html = `<button id="music-toggle" class="music-button ${musicPlaying?'playing':''}" onclick="toggleBackgroundMusic()" title="${musicPlaying?'Pause':'Play'} background music" aria-label="Toggle background music">${musicPlaying?'♫':'♪'}</button><button class="account-button" onclick="openAccount()" title="My Account" aria-label="My Account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.5 3.4-7 8-7s7.3 2.5 8 7"/></svg></button><div class="logo" onclick="goHome()"><img src="assets/spool-logo-1.png" alt="Spool"></div>`;
 
-  html += `<nav class="studio-nav" aria-label="Main navigation"><a href="#home" onclick="goHome()" ${state.view==='home'?'aria-current="page"':''}>Home</a><a href="#studio" onclick="state.view='studio';state.configurable=null;render();window.scrollTo(0,0)" ${state.view==='studio'||state.view==='item'?'aria-current="page"':''}>Design Studio</a></nav>`;
+  html += `<nav class="studio-nav" aria-label="Main navigation"><a href="#home" onclick="goHome()" ${state.view==='home'?'aria-current="page"':''}>Home</a></nav>`;
   if(state.view === 'studio'){
     html += renderStudio();
   } else if(state.view === 'home'){
@@ -1727,7 +1727,7 @@ function renderAccountModal(){
 
 function renderStudio(){
   const items=[['tee','Tee','Start with an everyday essential.'],['hoodie','Hoodie','Build your next statement piece.'],['sweatshirt','Sweatshirt','Make a clean canvas your own.'],['sweatpants','Sweatpants','Complete the collection.']];
-  return `<main class="studio-landing"><section class="studio-hero"><div><div class="studio-eyebrow">SPOOL NYC / Design Studio</div><h1>Your idea.<br>Your next favorite piece.</h1><p>Choose a garment. Add your artwork or create a graphic from scratch. Explore colors, placement, and finishing details in one place.</p><a class="studio-primary" href="#studio-garments">Choose your garment ↗</a></div><div class="studio-hero-art"><img src="assets/tee.png" alt="Tee with example studio lettering"><span>YOUR<br>IDEA HERE.</span><small>Made to be yours / concept preview</small></div></section><section id="studio-garments"><div class="studio-section-head"><h2>Start with a blank.</h2><p>Four starting points. Your creative direction.</p></div><div class="studio-grid">${items.map(([key,label,description])=>`<button class="studio-card" onclick="startStudioDesign('${key}')" aria-label="Design a ${label}"><img src="assets/${key}.png" alt="${label} garment preview"><span class="studio-card-body"><strong>${label}</strong><small>${description}</small><span class="studio-card-action">Start designing ↗</span></span></button>`).join('')}</div></section><section class="studio-steps" aria-label="How the studio works"><div><h3>01 / Make it yours</h3><p>Upload artwork, create text, or try a starter graphic. Adjust placement and colors on your garment.</p></div><div><h3>02 / Refine the details</h3><p>Explore fit, fabric, trims, and branding. Final materials and techniques are confirmed with SPOOL.</p></div><div><h3>03 / Save your direction</h3><p>Save designs on this device and export your tech pack. Online production requests are not connected yet.</p></div></section></main>`;
+  return `<main class="studio-landing"><section class="studio-hero"><div><div class="studio-eyebrow">SPOOL NYC / Design Studio</div><h1>Your idea.<br>Your next favorite piece.</h1><p>Choose a garment. Add your artwork or create a graphic from scratch. Explore colors, placement, and finishing details in one place.</p><a class="studio-primary" href="#studio-garments">Choose your garment ↗</a></div><div class="studio-hero-art"><img src="assets/tee.png" alt="Tee with example studio lettering"><span>YOUR<br>IDEA HERE.</span><small>Made to be yours / concept preview</small></div></section><section id="studio-garments"><div class="studio-section-head"><h2>Start with a blank.</h2><p>Four starting points. Your creative direction.</p></div><div class="studio-grid">${items.map(([key,label,description])=>`<button class="studio-card" onclick="startStudioDesign('${key}')" aria-label="Design a ${label}"><img src="assets/${key}.png" alt="${label} garment preview"><span class="studio-card-body"><strong>${label}</strong><small>${description}</small><span class="studio-card-action">Start designing ↗</span></span></button>`).join('')}</div></section><section class="studio-steps" aria-label="How the studio works"><div><h3>01 / Make it yours</h3><p>Upload artwork, create text, or try a starter graphic. Adjust placement and colors on your garment.</p></div><div><h3>02 / Refine the details</h3><p>Explore fit, fabric, trims, and branding. Final materials and techniques are confirmed with SPOOL.</p></div><div><h3>03 / Save your direction</h3><p>Save designs on this device, export your tech pack, and request a sample by email.</p></div></section></main>`;
 }
 function startStudioDesign(key){
   goItem(key);
@@ -1945,7 +1945,7 @@ function renderItem(){
 
   return `
     <div class="top-row">
-      <a class="back-btn" href="#studio" onclick="state.view='studio';render()" style="text-decoration:none;color:inherit">&larr; Design Studio</a>
+      <a class="back-btn" href="#home" onclick="goHome()" style="text-decoration:none;color:inherit">&larr; All blanks</a>
       <div class="top-actions">
         <button class="icon-action" onclick="undoDesign()" title="Undo last action (Command + Z)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7 4 12l5 5"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>
@@ -2287,7 +2287,7 @@ function renderSampleModal(){
     <div class="modal-backdrop" onclick="closeSampleRequest(event)">
       <div class="sample-modal" onclick="event.stopPropagation()">
         <div class="modal-head"><h2>Sample Requested</h2><button class="close-modal" onclick="closeSampleRequest()">×</button></div>
-        <div class="confirm-box">Your ${PRODUCTS[state.productKey].label} design has been attached to the sample request. This prototype does not send a real order.</div>
+        <div class="confirm-box">Your email app should now be open with your ${PRODUCTS[state.productKey].label} sample request. Attach your tech pack PDF and hit send. Nothing opened? Email us at <a href="mailto:info@noboundaryapparel.com">info@noboundaryapparel.com</a>.</div>
       </div>
     </div>`;
   return `
@@ -2296,9 +2296,12 @@ function renderSampleModal(){
         <div class="modal-head"><h2>Request a Sample</h2><button class="close-modal" onclick="closeSampleRequest()">×</button></div>
         <div class="field"><label>Name</label><input id="sample-name" type="text" placeholder="Your name"></div>
         <div class="field"><label>Email</label><input id="sample-email" type="email" placeholder="you@example.com"></div>
-        <div class="field"><label>Size</label><input id="sample-size" type="text" placeholder="e.g. Medium"></div>
+        <div class="field"><label>Brand</label><input id="sample-brand" type="text" placeholder="Your brand name"></div>
+        <div class="field"><label>Sample size</label><input id="sample-size" type="text" placeholder="e.g. Medium"></div>
+        <div class="field"><label>Est. production quantity</label><input id="sample-qty" type="text" placeholder="e.g. 100 pcs"></div>
         <div class="field"><label>Special Request Notes</label><textarea id="sample-note" placeholder="Add any special requests, construction details, deadlines, or other notes…"></textarea></div>
-        <button class="submit-btn" onclick="submitSampleRequest()">Send Sample Request</button>
+        <button class="submit-btn" onclick="submitSampleRequest()">Email Sample Request</button>
+        <div style="font-size:11px;color:#777;margin-top:10px;line-height:1.6">Opens your email app with the request to info@noboundaryapparel.com. Download your tech pack (Create Tech Pack) and attach it before sending.</div>
       </div>
     </div>`;
 }
@@ -2672,6 +2675,15 @@ function submitSampleRequest(){
   state.sampleRequestNote=document.getElementById('sample-note').value.trim();
   if(!name || !email){ alert('Please enter your name and email.'); return; }
   saveDesign(false);
+  try{
+    const g=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+    const label=PRODUCTS[state.productKey].label;
+    const sel=(state.selections&&state.selections[state.productKey])||{};
+    const specs=Object.keys(sel).filter(k=>typeof sel[k]==='string'&&sel[k]).map(k=>'- '+k+': '+sel[k]);
+    const lines=['SPOOL sample request','','Garment: '+label,'Name: '+name,'Email: '+email,'Brand: '+(g('sample-brand')||'-'),'Sample size: '+(g('sample-size')||'-'),'Est. production quantity: '+(g('sample-qty')||'-'),'',...(specs.length?['Selections:',...specs,'']:[]),'Notes:',state.sampleRequestNote||'-','','[Please attach the tech pack PDF from SPOOL Design Studio]'];
+    const subject='SPOOL sample request: '+label+(g('sample-brand')?' / '+g('sample-brand'):'');
+    window.location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(lines.join('\n'));
+  }catch(e){}
   state.sampleOpen=true; state.sampleSubmitted=true; state.saveMessage=false; render();
 }
 async function openTechPack(){
