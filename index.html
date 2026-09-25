@@ -918,6 +918,215 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
 @media print{.studio-nav{display:none!important}}
 
 </style>
+<!-- SPOOL catalog (blanks grid) -->
+<style id="spool-catalog-css">
+#studio-garments{scroll-margin-top:20px}
+.spc-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin:35px 0 16px;flex-wrap:wrap}
+.spc-head h2{font-size:23px;letter-spacing:-.8px;margin:0}
+.spc-head p{font-size:12px;color:#666;margin:6px 0 0}
+.spc-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 0;border-top:1px solid #1a1a1a20;border-bottom:1px solid #1a1a1a20;margin-bottom:14px;position:sticky;top:0;background:#f7f7f2;z-index:5}
+.spc-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.spc-tab{font:inherit;font-size:11px;font-weight:600;padding:8px 14px;border:1px solid #1a1a1a25;background:var(--cream);color:var(--ink);cursor:pointer;border-radius:999px}
+.spc-tab span{color:#888;font-weight:500;margin-left:4px}
+.spc-tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}.spc-tab.on span{color:#bbb}
+.spc-tools{display:flex;gap:8px;align-items:center}
+.spc-search,.spc-sort{font:inherit;font-size:11px;padding:8px 12px;border:1px solid #1a1a1a25;background:var(--cream);color:var(--ink);border-radius:999px;outline:none}
+.spc-search{width:190px}.spc-search:focus,.spc-sort:focus{border-color:var(--ink)}
+.spc-count{font-size:11px;color:#777;margin:0 0 14px}
+.spc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px 18px}
+.spc-card{cursor:pointer;color:var(--ink);outline:none}
+.spc-card:focus-visible .spc-img{outline:2px solid var(--ink);outline-offset:2px}
+.spc-img{position:relative;aspect-ratio:1/1.08;background:#eeeee7;overflow:hidden;border:1px solid #1a1a1a14}
+.spc-g{position:absolute;inset:16px;transition:transform .35s}
+.spc-card:hover .spc-g{transform:scale(1.04)}
+.spc-g img{width:100%;height:100%;object-fit:contain;display:block}
+.spc-g i{position:absolute;inset:0;background:var(--c);mix-blend-mode:multiply;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+.spc-badges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;z-index:2}
+.spc-badge{font-size:9px;font-weight:700;letter-spacing:.6px;padding:4px 7px;background:var(--ink);color:#fff}
+.spc-badge.new{background:#e0562f}
+.spc-cta{position:absolute;left:10px;right:10px;bottom:10px;z-index:2;font:inherit;font-size:11px;font-weight:700;padding:11px;background:var(--ink);color:#fff;border:0;cursor:pointer;opacity:0;transform:translateY(8px);transition:.25s}
+.spc-cta:hover{background:#e0562f}
+.spc-card:hover .spc-cta,.spc-card:focus-within .spc-cta{opacity:1;transform:none}
+@media (hover:none){.spc-cta{opacity:1;transform:none}}
+.spc-sw{display:flex;gap:6px;align-items:center;margin:12px 0 8px;min-height:15px}
+.spc-dot{width:14px;height:14px;border-radius:50%;border:1px solid #1a1a1a30;padding:0;cursor:pointer;background:var(--c)}
+.spc-dot.on{outline:1.5px solid var(--ink);outline-offset:2px}
+.spc-more{font-size:10px;color:#777}
+.spc-name{font-size:13px;font-weight:600;line-height:1.35;margin:0}
+.spc-code{font-size:10px;color:#888;margin:3px 0 6px}
+.spc-spec{font-size:10.5px;color:#666;line-height:1.5}
+.spc-price{font-size:13px;font-weight:700;margin-top:8px}
+.spc-empty{grid-column:1/-1;padding:50px;text-align:center;font-size:12px;color:#777;border:1px dashed #1a1a1a30}
+.spc-ov{position:fixed;inset:0;background:rgba(26,26,26,.35);z-index:1000;display:flex;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;font-family:Poppins,sans-serif;color:#1a1a1a}
+.spc-ov.open{opacity:1;pointer-events:auto}
+.spc-dr{width:min(520px,100%);height:100%;background:#f7f7f2;overflow-y:auto;transform:translateX(30px);transition:transform .25s;position:relative}
+.spc-ov.open .spc-dr{transform:none}
+.spc-x{position:absolute;top:12px;right:12px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid #1a1a1a25;background:#fffefa;cursor:pointer;font-size:15px;color:#1a1a1a}
+.spc-dr .spc-img{aspect-ratio:1/.9;border:0}
+.spc-db{padding:22px 24px 30px}
+.spc-db h3{font-size:20px;letter-spacing:-.5px;margin:2px 0 4px}
+.spc-lbl{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#777;margin:20px 0 9px}
+.spc-lbl b{font-weight:500;text-transform:none;letter-spacing:0;color:#1a1a1a;margin-left:4px}
+.spc-dr .spc-sw{margin:0;flex-wrap:wrap;gap:9px}.spc-dr .spc-dot{width:24px;height:24px}
+.spc-sizes{display:flex;gap:6px;flex-wrap:wrap}
+.spc-size{font-size:11px;padding:6px 11px;border:1px solid #1a1a1a25;background:#fffefa}
+.spc-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.spc-tbl td{padding:9px 0;border-bottom:1px solid #1a1a1a15}.spc-tbl td:first-child{color:#777;width:38%}
+.spc-go{width:100%;margin-top:24px;font:inherit;font-size:12px;font-weight:700;padding:15px;background:#1a1a1a;color:#fff;border:0;cursor:pointer}
+.spc-go:hover{background:#e0562f}
+.spc-note{font-size:10.5px;color:#777;margin-top:10px;line-height:1.6}
+@media(max-width:1100px){.spc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.spc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 12px}.spc-bar{position:static}.spc-tools{width:100%}.spc-search{flex:1;width:auto}.spc-tabs{overflow-x:auto;flex-wrap:nowrap;width:100%;padding-bottom:2px}.spc-tab{white-space:nowrap}.spc-head{margin-top:26px}}
+.spc-g img{filter:grayscale(1) brightness(var(--b,1))}
+.spc-g[data-b="tee"]{--b:1.1}.spc-g[data-b="hoodie"]{--b:1.03}.spc-g[data-b="sweatpants"]{--b:1.18}.spc-g[data-b="sweatshirt"]{--b:3.9}
+</style>
+<script>
+(function(){
+  /* ===== EDIT CATALOG HERE =====
+     price = starting price per piece in USD (PLACEHOLDER - replace with real pricing)
+     show = default color shown on the card
+     colors = number of colorways (uses the first N of COLOR_ORDER), or pass cols:[...keys]
+     badge = 'NEW', 'BESTSELLER' or '' */
+  var ITEMS = [
+    {code:'SP-T01',base:'tee',name:'Heavyweight Boxy Tee',fit:'Boxy',sizes:'S-3XL',gsm:280,price:12,badge:'BESTSELLER',fabric:'100% combed cotton jersey',colors:8,order:1,show:'cream'},
+    {code:'SP-T02',base:'tee',name:'Oversized Drop Shoulder Tee',fit:'Oversized',sizes:'S-3XL',gsm:240,price:10,badge:'NEW',fabric:'100% cotton jersey',colors:10,order:5,show:'white'},
+    {code:'SP-T03',base:'tee',name:'Vintage Wash Boxy Tee',fit:'Boxy',sizes:'S-2XL',gsm:230,price:14,badge:'NEW',fabric:'100% cotton, garment washed',cols:['wblack','charcoal','sand','brown','forest','burgundy'],order:9,show:'wblack'},
+    {code:'SP-T04',base:'tee',name:'Regular Fit Crewneck Tee',fit:'Regular',sizes:'S-4XL',gsm:200,price:8,badge:'',fabric:'100% ringspun cotton',colors:12,order:13,show:'navy'},
+    {code:'SP-H01',base:'hoodie',name:'Heavyweight Pullover Hoodie',fit:'Relaxed',sizes:'S-3XL',gsm:450,price:28,badge:'BESTSELLER',fabric:'80/20 cotton-poly brushed fleece',colors:8,order:2,show:'black'},
+    {code:'SP-H02',base:'hoodie',name:'Boxy Cropped Hoodie',fit:'Boxy, cropped',sizes:'S-2XL',gsm:400,price:26,badge:'NEW',fabric:'100% cotton french terry',colors:6,order:6,show:'sand'},
+    {code:'SP-H03',base:'hoodie',name:'Full Zip Hoodie',fit:'Regular',sizes:'S-3XL',gsm:380,price:30,badge:'',fabric:'80/20 cotton-poly fleece',colors:6,order:10,show:'navy'},
+    {code:'SP-H04',base:'hoodie',name:'Vintage Wash Hoodie',fit:'Oversized',sizes:'S-2XL',gsm:420,price:32,badge:'NEW',fabric:'100% cotton fleece, garment washed',cols:['wblack','charcoal','sand','brown','forest'],order:14,show:'sand'},
+    {code:'SP-S01',base:'sweatshirt',name:'Heavyweight Crewneck',fit:'Relaxed',sizes:'S-3XL',gsm:400,price:22,badge:'BESTSELLER',fabric:'80/20 cotton-poly brushed fleece',colors:8,order:3,show:'grey'},
+    {code:'SP-S02',base:'sweatshirt',name:'Boxy Crewneck',fit:'Boxy',sizes:'S-2XL',gsm:380,price:22,badge:'NEW',fabric:'100% cotton french terry',colors:6,order:7,show:'forest'},
+    {code:'SP-S03',base:'sweatshirt',name:'Quarter-Zip Sweatshirt',fit:'Regular',sizes:'S-3XL',gsm:380,price:26,badge:'',fabric:'80/20 cotton-poly fleece',colors:5,order:11,show:'charcoal'},
+    {code:'SP-P01',base:'sweatpants',name:'Relaxed Fleece Sweatpants',fit:'Relaxed',sizes:'S-3XL',gsm:400,price:24,badge:'BESTSELLER',fabric:'80/20 cotton-poly brushed fleece',colors:8,order:4,show:'charcoal'},
+    {code:'SP-P02',base:'sweatpants',name:'Straight Leg Sweatpants',fit:'Straight',sizes:'S-2XL',gsm:380,price:24,badge:'NEW',fabric:'100% cotton french terry',colors:6,order:8,show:'black'},
+    {code:'SP-P03',base:'sweatpants',name:'Stacked Flare Sweatpants',fit:'Stacked flare',sizes:'S-2XL',gsm:400,price:26,badge:'NEW',fabric:'100% cotton fleece',colors:5,order:12,show:'cream'}
+  ];
+  var COLORS = {black:['Black','#1a1a1a'],white:['White','#f6f5f0'],cream:['Cream','#eee9dc'],grey:['Heather Grey','#b9b8b3'],charcoal:['Charcoal','#45443f'],navy:['Navy','#232a3d'],forest:['Forest','#2f4a3a'],brown:['Brown','#5a4232'],sand:['Sand','#cdbb9a'],wblack:['Washed Black','#3d3c39'],burgundy:['Burgundy','#5c2230'],sky:['Sky','#a8bfd3']};
+  var COLOR_ORDER = ['black','white','cream','grey','charcoal','navy','forest','brown','sand','wblack','burgundy','sky'];
+  var CATS = [['all','All'],['tee','Tees'],['hoodie','Hoodies'],['sweatshirt','Sweatshirts'],['sweatpants','Sweatpants']];
+  var SIZE_ORDER = ['XS','S','M','L','XL','2XL','3XL','4XL'];
+  /* ============================= */
+
+  var S = {cat:'all', q:'', sort:'featured', sel:{}, open:null};
+  function oz(g){ return (g*0.0295).toFixed(1); }
+  function cols(it){ return it.cols || COLOR_ORDER.slice(0, it.colors); }
+  function cur(it){ return S.sel[it.code] || it.show || cols(it)[0]; }
+  function find(code){ for(var i=0;i<ITEMS.length;i++) if(ITEMS[i].code===code) return ITEMS[i]; }
+  function money(n){ return '$' + Number(n).toFixed(2); }
+  function sizeList(r){ var p=r.split('-'), a=SIZE_ORDER.indexOf(p[0]), b=SIZE_ORDER.indexOf(p[1]); return a<0||b<0 ? [r] : SIZE_ORDER.slice(a,b+1); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function q(s){ return "'" + s + "'"; }
+
+  function garment(it){
+    var src = 'assets/' + it.base + '.png';
+    return '<div class="spc-g" data-b="' + it.base + '" style="--c:' + COLORS[cur(it)][1] + ';--m:url(' + src + ')"><img src="' + src + '" alt="' + esc(it.name) + ' in ' + COLORS[cur(it)][0] + '"><i></i></div>';
+  }
+  function badges(it){
+    return it.badge ? '<div class="spc-badges"><span class="spc-badge' + (it.badge==='NEW'?' new':'') + '">' + it.badge + '</span></div>' : '';
+  }
+  function dots(it, max){
+    var c = cols(it), shown = max ? c.slice(0,max) : c, h = '';
+    shown.forEach(function(k){
+      h += '<button class="spc-dot' + (k===cur(it)?' on':'') + '" style="--c:' + COLORS[k][1] + '" title="' + COLORS[k][0] + '" aria-label="' + COLORS[k][0] + '" onclick="event.stopPropagation();spc.pick(' + q(it.code) + ',' + q(k) + ')"></button>';
+    });
+    if(max && c.length > max) h += '<span class="spc-more">+' + (c.length-max) + '</span>';
+    return '<div class="spc-sw">' + h + '</div>';
+  }
+  function spec(it){ return 'Unisex | ' + it.sizes + ' | ' + cols(it).length + ' colors | ' + it.gsm + ' gsm | ' + oz(it.gsm) + ' oz'; }
+  function card(it){
+    return '<article class="spc-card" id="spc-c-' + it.code + '" tabindex="0" onclick="spc.open(' + q(it.code) + ')" onkeydown="if(event.key===' + q('Enter') + ')spc.open(' + q(it.code) + ')">' +
+      '<div class="spc-img">' + badges(it) + garment(it) + '<button class="spc-cta" onclick="event.stopPropagation();spc.design(' + q(it.code) + ')">Start designing &#8599;</button></div>' +
+      dots(it, 6) + '<p class="spc-name">' + esc(it.name) + '</p><div class="spc-code">#' + it.code + '</div>' +
+      '<div class="spc-spec">' + spec(it) + '</div><div class="spc-price">From ' + money(it.price) + '</div></article>';
+  }
+  function list(){
+    var term = S.q.trim().toLowerCase();
+    var r = ITEMS.filter(function(it){
+      if(S.cat !== 'all' && it.base !== S.cat) return false;
+      if(!term) return true;
+      return (it.name + ' ' + it.code + ' ' + it.fit + ' ' + it.fabric + ' ' + it.base).toLowerCase().indexOf(term) > -1;
+    });
+    var f = {
+      featured:function(a,b){return a.order-b.order;},
+      'new':function(a,b){return (b.badge==='NEW')-(a.badge==='NEW') || a.order-b.order;},
+      low:function(a,b){return a.price-b.price;},
+      high:function(a,b){return b.price-a.price;},
+      heavy:function(a,b){return b.gsm-a.gsm;}
+    }[S.sort];
+    return r.sort(f);
+  }
+  function results(){
+    var r = list();
+    return '<div class="spc-count">' + r.length + ' blank' + (r.length===1?'':'s') + '</div><div class="spc-grid">' +
+      (r.length ? r.map(card).join('') : '<div class="spc-empty">No blanks match that search.</div>') + '</div>';
+  }
+  function tabs(){
+    return CATS.map(function(c){
+      var n = c[0]==='all' ? ITEMS.length : ITEMS.filter(function(i){return i.base===c[0];}).length;
+      return '<button class="spc-tab' + (S.cat===c[0]?' on':'') + '" data-cat="' + c[0] + '" onclick="spc.cat(' + q(c[0]) + ')">' + c[1] + '<span>' + n + '</span></button>';
+    }).join('');
+  }
+  function refresh(){
+    var el = document.getElementById('spc-results'); if(el) el.innerHTML = results();
+    document.querySelectorAll('.spc-tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-cat')===S.cat); });
+  }
+  function drawer(it){
+    var c = COLORS[cur(it)];
+    var rows = [['Fit',it.fit],['Fabric',it.fabric],['Weight',it.gsm + ' gsm / ' + oz(it.gsm) + ' oz'],['Sizes',it.sizes],['Gender','Unisex']];
+    return '<div class="spc-dr" role="dialog" aria-modal="true" aria-label="' + esc(it.name) + '" onclick="event.stopPropagation()">' +
+      '<button class="spc-x" aria-label="Close" onclick="spc.close()">&#10005;</button>' +
+      '<div class="spc-img">' + badges(it) + garment(it) + '</div><div class="spc-db">' +
+      '<div class="spc-code">#' + it.code + '</div><h3>' + esc(it.name) + '</h3><div class="spc-price">From ' + money(it.price) + ' <span style="font-weight:500;color:#777;font-size:11px">/ piece</span></div>' +
+      '<div class="spc-lbl">Color<b>' + c[0] + '</b></div>' + dots(it) +
+      '<div class="spc-lbl">Sizes</div><div class="spc-sizes">' + sizeList(it.sizes).map(function(s){return '<span class="spc-size">' + s + '</span>';}).join('') + '</div>' +
+      '<div class="spc-lbl">Specs</div><table class="spc-tbl">' + rows.map(function(r){return '<tr><td>' + r[0] + '</td><td>' + esc(r[1]) + '</td></tr>';}).join('') + '</table>' +
+      '<button class="spc-go" onclick="spc.design(' + q(it.code) + ')">Start designing &#8599;</button>' +
+      '<div class="spc-note">Starting price per piece. Final materials, techniques and quantities are confirmed with SPOOL.</div></div></div>';
+  }
+  function overlay(){
+    var ov = document.getElementById('spc-ov');
+    if(!ov){ ov = document.createElement('div'); ov.id='spc-ov'; ov.className='spc-ov'; ov.onclick=function(){ window.spc.close(); }; document.body.appendChild(ov); }
+    return ov;
+  }
+
+  window.spc = {
+    cat:function(k){ S.cat=k; refresh(); },
+    search:function(v){ S.q=v; refresh(); },
+    sort:function(v){ S.sort=v; refresh(); },
+    pick:function(code,k){
+      S.sel[code]=k; var it=find(code);
+      var el=document.getElementById('spc-c-'+code); if(el) el.outerHTML=card(it);
+      if(S.open===code) overlay().innerHTML=drawer(it);
+    },
+    open:function(code){
+      var it=find(code); if(!it) return; S.open=code;
+      var ov=overlay(); ov.innerHTML=drawer(it);
+      requestAnimationFrame(function(){ ov.classList.add('open'); });
+      document.body.style.overflow='hidden';
+    },
+    close:function(){
+      var ov=document.getElementById('spc-ov'); if(ov) ov.classList.remove('open');
+      S.open=null; document.body.style.overflow='';
+    },
+    design:function(code){
+      var it=find(code); window.spc.close();
+      if(typeof window.startStudioDesign==='function') window.startStudioDesign(it.base);
+    }
+  };
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && S.open) window.spc.close(); });
+
+  window.renderSpoolCatalog = function(){
+    return '<section id="studio-garments"><div class="spc-head"><div><h2>Premium blanks.</h2><p>Browse the SPOOL catalog. Pick a blank and a color, then make it yours.</p></div></div>' +
+      '<div class="spc-bar"><div class="spc-tabs">' + tabs() + '</div><div class="spc-tools">' +
+      '<input class="spc-search" type="search" placeholder="Search blanks" aria-label="Search blanks" value="' + esc(S.q) + '" oninput="spc.search(this.value)">' +
+      '<select class="spc-sort" aria-label="Sort" onchange="spc.sort(this.value)">' +
+      [['featured','Featured'],['new','Newest'],['low','Price: low to high'],['high','Price: high to low'],['heavy','Heaviest first']].map(function(o){return '<option value="' + o[0] + '"' + (S.sort===o[0]?' selected':'') + '>' + o[1] + '</option>';}).join('') +
+      '</select></div></div><div id="spc-results">' + results() + '</div></section>';
+  };
+})();
+</script>
 </head>
 <body>
 <div id="app"></div>
@@ -1517,7 +1726,7 @@ function renderAccountModal(){
 
 function renderStudio(){
   const items=[['tee','Tee','Start with an everyday essential.'],['hoodie','Hoodie','Build your next statement piece.'],['sweatshirt','Sweatshirt','Make a clean canvas your own.'],['sweatpants','Sweatpants','Complete the collection.']];
-  return `<main class="studio-landing"><section class="studio-hero"><div><div class="studio-eyebrow">SPOOL NYC / Design Studio</div><h1>Your idea.<br>Your next favorite piece.</h1><p>Choose a garment. Add your artwork or create a graphic from scratch. Explore colors, placement, and finishing details in one place.</p><a class="studio-primary" href="#studio-garments">Choose your garment ↗</a></div><div class="studio-hero-art"><img src="assets/tee.png" alt="Tee with example studio lettering"><span>YOUR<br>IDEA HERE.</span><small>Made to be yours / concept preview</small></div></section><section id="studio-garments"><div class="studio-section-head"><h2>Start with a blank.</h2><p>Four starting points. Your creative direction.</p></div><div class="studio-grid">${items.map(([key,label,description])=>`<button class="studio-card" onclick="startStudioDesign('${key}')" aria-label="Design a ${label}"><img src="assets/${key}.png" alt="${label} garment preview"><span class="studio-card-body"><strong>${label}</strong><small>${description}</small><span class="studio-card-action">Start designing ↗</span></span></button>`).join('')}</div></section><section class="studio-steps" aria-label="How the studio works"><div><h3>01 / Make it yours</h3><p>Upload artwork, create text, or try a starter graphic. Adjust placement and colors on your garment.</p></div><div><h3>02 / Refine the details</h3><p>Explore fit, fabric, trims, and branding. Final materials and techniques are confirmed with SPOOL.</p></div><div><h3>03 / Save your direction</h3><p>Save designs on this device and export your tech pack. Online production requests are not connected yet.</p></div></section></main>`;
+  return `<main class="studio-landing"><section class="studio-hero"><div><div class="studio-eyebrow">SPOOL NYC / Design Studio</div><h1>Your idea.<br>Your next favorite piece.</h1><p>Choose a garment. Add your artwork or create a graphic from scratch. Explore colors, placement, and finishing details in one place.</p><a class="studio-primary" href="#studio-garments">Choose your garment ↗</a></div><div class="studio-hero-art"><img src="assets/tee.png" alt="Tee with example studio lettering"><span>YOUR<br>IDEA HERE.</span><small>Made to be yours / concept preview</small></div></section>${renderSpoolCatalog()}<section class="studio-steps" aria-label="How the studio works"><div><h3>01 / Make it yours</h3><p>Upload artwork, create text, or try a starter graphic. Adjust placement and colors on your garment.</p></div><div><h3>02 / Refine the details</h3><p>Explore fit, fabric, trims, and branding. Final materials and techniques are confirmed with SPOOL.</p></div><div><h3>03 / Save your direction</h3><p>Save designs on this device and export your tech pack. Online production requests are not connected yet.</p></div></section></main>`;
 }
 function startStudioDesign(key){
   goItem(key);
