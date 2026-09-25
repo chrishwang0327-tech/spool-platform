@@ -1130,6 +1130,9 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
 </script>
 <!-- SPOOL studio board layout -->
 <style id="ts-css">
+.ts-panel .placement-tabs{display:none!important}
+.ts-attr .artwork-inspector{margin:0!important;width:auto!important;max-width:none!important;padding:0!important}
+.ts-attr .artwork-inspector *{max-width:100%}
 body.ts-mode{background:#f3f3ef!important;background-image:none!important}
 body.ts-mode #app{max-width:none!important;padding:0!important;margin:0!important;min-height:100vh}
 body.ts-mode #app>.logo,body.ts-mode #app>.studio-nav,body.ts-mode #app>.top-row,body.ts-mode #app>.item-wrap,body.ts-mode #music-toggle,body.ts-mode .account-button{display:none!important}
@@ -1178,7 +1181,7 @@ body.ts-mode #app>.logo,body.ts-mode #app>.studio-nav,body.ts-mode #app>.top-row
 .ts-stage .view-tabs{display:flex;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
 .ts-stage .view-tab{border-radius:8px!important;background:#ececea!important;color:#141414!important;border:0!important;padding:11px 22px!important;font:600 14px Inter,Poppins,sans-serif!important;box-shadow:none!important;text-transform:none!important;letter-spacing:0!important}
 .ts-stage .view-tab.active{background:#141414!important;color:#fff!important}
-.ts-attr{width:300px;background:#fff;border-left:1px solid #e6e5e0;padding:20px 18px 40px;overflow-y:auto;flex:none}
+.ts-attr{width:340px;background:#fff;border-left:1px solid #e6e5e0;padding:20px 18px 40px;overflow-y:auto;flex:none}
 .ts-attr h3{font-size:19px;margin:4px 0 18px}
 .ts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 12px}
 .ts-f label{display:block;font-size:13px;color:#333;margin-bottom:7px}
@@ -1193,7 +1196,7 @@ body.ts-mode #app>.logo,body.ts-mode #app>.studio-nav,body.ts-mode #app>.top-row
 .ts-layer.on{border-color:#141414}.ts-layer img{width:36px;height:36px;object-fit:contain;background:#f3f3f0;border-radius:6px}
 .ts-layer span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1}
 .ts-note{font-size:12px;color:#888;line-height:1.6;margin-top:18px}
-@media(max-width:1250px){.ts-panel{width:320px}.ts-attr{width:260px}.ts-step span{display:none}}
+@media(max-width:1250px){.ts-panel{width:320px}.ts-attr{width:300px}.ts-step span{display:none}}
 @media(max-width:960px){.ts-shell{height:auto;min-height:100vh}.ts-top{flex-wrap:wrap;height:auto;padding-bottom:8px}.ts-steps{order:3;width:100%;flex:none}.ts-body{flex-direction:column}.ts-rail{width:auto;flex-direction:row;overflow-x:auto;padding:0}.ts-ri{min-width:72px}.ts-grow{display:none}.ts-panel,.ts-attr{width:auto;border:0;border-top:1px solid #e6e5e0}.ts-canvas{order:-1}.ts-panel{order:1}.ts-attr{order:2}.ts-title{max-width:40vw}}
 .ts-stage .canvas-controls,.ts-stage .canvas-hint{display:none!important}
 .ts-stage .garment-stage{filter:none!important;width:100%!important;padding:0!important}
@@ -4374,7 +4377,7 @@ render();
     }
     var zone=state.activeZone||'Front', layers=[];
     list.forEach(function(x,j){ if(!x.isTechniqueLayer && (x.zone||'Front')===zone) layers.push([x,j]); });
-    if(layers.length){
+    if(false&&layers.length){
       h += '<div class="ts-sub">Layers &middot; '+esc(zone)+'</div><div class="ts-layers">'+layers.map(function(p){ var x=p[0]; return '<button class="ts-layer'+(p[1]===i?' on':'')+'" onclick="selectGraphic('+p[1]+')"><img src="'+x.src+'" alt=""><span>'+esc(x.studioText?x.studioText.text:(x.originalFileName||('Artwork '+(p[1]+1))))+'</span></button>'; }).join('')+'</div>';
     }
     return h;
@@ -4400,6 +4403,7 @@ render();
     if(side && name) slot.appendChild(side); else slot.innerHTML='<div class="ts-panel-empty">Pick a tool on the left to upload artwork, add text, or set color, fit, trims, branding and wash.</div>';
     var save=app.querySelector('.top-row .save-design-wrap'); var acts=document.getElementById('ts-actions');
     if(save) acts.appendChild(save);
+    var insp=slot.querySelector('.artwork-inspector'); if(insp){ var aside=document.getElementById('ts-attr'); var hd=document.createElement('div'); hd.className='ts-sub'; hd.textContent='Artwork'; aside.appendChild(hd); aside.appendChild(insp); }
     var rq=document.createElement('button'); rq.className='ts-btn light'; rq.textContent='Request Sample'; rq.onclick=function(){ openSampleRequest(); }; acts.appendChild(rq);
     if(TS.text){ var d=slot.querySelector('details.studio-text-tools'); if(d){ d.open=true; if(TS.focus){ TS.focus=false; setTimeout(function(){ var inp=document.getElementById('studio-text'); if(inp) inp.focus(); d.scrollIntoView({block:'start'}); },30); } } }
     ['ts-panel','ts-attr'].forEach(function(id){ var el=document.getElementById(id); if(el && TS.scroll[id]) el.scrollTop=TS.scroll[id]; });
