@@ -872,6 +872,51 @@
 .save-design-menu button:hover{background:#222;color:#fff}
 .artwork-group-select{width:30px;height:30px;border:0;background:#eee;color:#222;font-weight:900;cursor:pointer}
 .artwork-group-select.is-selected{background:#1f7a4d;color:#fff}
+
+/* Design Studio: catalog and typography tools, using the existing garment editor. */
+.studio-nav{display:flex;justify-content:center;gap:8px;margin:0 0 28px;position:relative;z-index:22}
+.studio-nav a{padding:10px 17px;color:var(--ink);text-decoration:none;font-size:12px;font-weight:700;border:1px solid transparent;border-radius:40px}
+.studio-nav a[aria-current="page"]{background:var(--ink);color:var(--cream)}
+.studio-nav a:hover{border-color:var(--ink)}
+body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
+.studio-landing{max-width:1100px;margin:auto}
+.studio-eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700}
+.studio-hero{display:grid;grid-template-columns:1.3fr 1fr;align-items:center;gap:50px;padding:36px 0 48px;border-bottom:1px solid #1a1a1a24}
+.studio-hero h1{font-size:clamp(38px,5vw,66px);line-height:1.08;letter-spacing:-3px;margin:17px 0 22px;max-width:650px}
+.studio-hero p{font-size:14px;line-height:1.9;max-width:520px;color:#555}
+.studio-primary{display:inline-block;background:var(--ink);color:var(--cream);border:0;padding:15px 23px;font:700 12px 'Poppins',sans-serif;text-decoration:none;cursor:pointer}
+.studio-hero-art{position:relative;background:#e8e7df;min-height:320px;display:flex;align-items:center;justify-content:center;border-radius:3px}
+.studio-hero-art img{width:100%;height:330px;object-fit:contain}
+.studio-hero-art span{position:absolute;top:44%;left:50%;transform:translateX(-50%);font:900 28px Impact,sans-serif;text-align:center;line-height:1;color:#333}
+.studio-hero-art small{position:absolute;bottom:16px;left:20px;font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.studio-section-head{display:flex;justify-content:space-between;align-items:baseline;gap:20px;margin:35px 0 20px}
+.studio-section-head h2{font-size:23px;letter-spacing:-.8px;margin:0}
+.studio-section-head p{font-size:12px;color:#666}
+.studio-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.studio-card{border:1px solid #1a1a1a20;background:var(--cream);padding:0;text-align:left;color:var(--ink);cursor:pointer;font:inherit;transition:transform .2s}
+.studio-card:hover{transform:translateY(-4px);border-color:var(--ink)}
+.studio-card img{display:block;width:100%;height:210px;object-fit:contain;background:#eeeee7;padding:16px}
+.studio-card-body{display:block;padding:18px}
+.studio-card strong{display:block;font-size:15px;margin-bottom:7px}
+.studio-card small{display:block;font-size:11px;color:#666;line-height:1.7;min-height:38px}
+.studio-card .studio-card-action{display:block;font-size:11px;font-weight:700;margin-top:20px}
+.studio-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:40px;padding:28px 0;border-top:1px solid #1a1a1a24}
+.studio-steps h3{font-size:13px;margin:0 0 8px}.studio-steps p{font-size:12px;line-height:1.8;color:#666;margin:0}
+.studio-text-tools{margin:14px 0;padding:16px;background:var(--cream);border:1px solid #1a1a1a30}
+.studio-text-tools summary{cursor:pointer;font-size:13px;font-weight:800}
+.studio-text-tools label{display:block;font-size:11px;font-weight:700;margin:12px 0 5px}
+.studio-text-tools input:not([type=color]),.studio-text-tools select{width:100%;padding:10px;border:1px solid #aaa;background:#fff;font:inherit;font-size:12px}
+.studio-text-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}.studio-text-tools input[type=color]{width:100%;height:39px;padding:2px;border:1px solid #aaa;background:#fff}
+.studio-text-tools .studio-primary{margin-top:14px;width:100%}
+.studio-template-buttons{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.studio-template-buttons button,.studio-text-edit{padding:8px 10px;border:1px solid #999;background:var(--cream);font:700 10px 'Poppins',sans-serif;cursor:pointer}
+.studio-text-tools p{font:11px/1.6 'Poppins',sans-serif;color:#666;margin-bottom:0}
+.studio-nav a:focus-visible,.studio-card:focus-visible,.studio-primary:focus-visible{outline:3px solid #bf573b;outline-offset:4px}
+@media(max-width:760px){.studio-hero{grid-template-columns:1fr;gap:25px;padding-top:15px}.studio-hero h1{letter-spacing:-1.5px}.studio-hero-art{min-height:240px}.studio-hero-art img{height:260px}.studio-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.studio-card img{height:170px}.studio-card-body{padding:13px}.studio-section-head{display:block}.studio-steps{grid-template-columns:1fr;gap:20px}.studio-nav{margin-bottom:20px}}
+.studio-save-dialog{width:min(440px,90vw);border:1px solid var(--ink);background:var(--cream);padding:28px;color:var(--ink)}
+.studio-save-dialog::backdrop{background:#0007}.studio-save-dialog h2{font-size:22px;margin:0 0 20px}.studio-save-dialog label{display:block;font-size:12px;font-weight:700;margin-bottom:8px}.studio-save-dialog input{width:100%;padding:12px;font:inherit;border:1px solid #aaa}.studio-save-dialog p{font-size:12px;line-height:1.6;color:#666}.studio-save-dialog form>div{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.studio-save-dialog button{padding:12px 18px;cursor:pointer}
+@media print{.studio-nav{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -922,7 +967,7 @@ const FAQS = [
 /* ---------------- STATE ---------------- */
 
 let state = {
-  view: 'home',           // home | item | suboption | contact | questions
+  view: location.hash.startsWith('#studio') ? 'studio' : 'home',           // home | item | suboption | contact | questions
   productKey: null,
   configurable: null,
   selections: {           // per product, per configurable
@@ -1384,7 +1429,10 @@ function render(){
   const music=document.getElementById('background-music'),musicPlaying=music&&!music.paused;
   let html = `<button id="music-toggle" class="music-button ${musicPlaying?'playing':''}" onclick="toggleBackgroundMusic()" title="${musicPlaying?'Pause':'Play'} background music" aria-label="Toggle background music">${musicPlaying?'♫':'♪'}</button><button class="account-button" onclick="openAccount()" title="My Account" aria-label="My Account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.5 3.4-7 8-7s7.3 2.5 8 7"/></svg></button><div class="logo" onclick="goHome()"><img src="assets/spool-logo-1.png" alt="Spool"></div>`;
 
-  if(state.view === 'home'){
+  html += `<nav class="studio-nav" aria-label="Main navigation"><a href="#home" onclick="goHome()" ${state.view==='home'?'aria-current="page"':''}>Home</a><a href="#studio" onclick="state.view='studio';state.configurable=null;render();window.scrollTo(0,0)" ${state.view==='studio'||state.view==='item'?'aria-current="page"':''}>Design Studio</a></nav>`;
+  if(state.view === 'studio'){
+    html += renderStudio();
+  } else if(state.view === 'home'){
     html += renderHome();
   } else if(state.view === 'item'){
     html += renderItem();
@@ -1464,6 +1512,56 @@ function renderAccountModal(){
     <div class="fabric-label" style="margin-top:24px">Design Requests</div><div class="saved-designs">${requests.length?requests.map(r=>`<div class="saved-design-card"><div><div class="saved-design-name">${r.id} — ${r.product}</div><div class="saved-design-date">${new Date(r.submittedAt).toLocaleString()} · ${r.studio?.email||''}</div><p>${String(r.studio?.notes||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</p><span class="request-status">${r.status}</span><div class="saved-design-actions"><button onclick="openDesignRequest('${r.id}')">Open Request</button><button class="delete" onclick="deleteDesignRequest('${r.id}')">Delete</button></div></div></div>`).join(''):'<div class="empty-designs">No design requests submitted yet.</div>'}</div>
     <div class="graphic-tools" style="justify-content:flex-end"><button class="graphic-tool" onclick="logoutAccount()">Log Out</button></div>
   </div></div>`;
+}
+
+
+function renderStudio(){
+  const items=[['tee','Tee','Start with an everyday essential.'],['hoodie','Hoodie','Build your next statement piece.'],['sweatshirt','Sweatshirt','Make a clean canvas your own.'],['sweatpants','Sweatpants','Complete the collection.']];
+  return `<main class="studio-landing"><section class="studio-hero"><div><div class="studio-eyebrow">SPOOL NYC / Design Studio</div><h1>Your idea.<br>Your next favorite piece.</h1><p>Choose a garment. Add your artwork or create a graphic from scratch. Explore colors, placement, and finishing details in one place.</p><a class="studio-primary" href="#studio-garments">Choose your garment ↗</a></div><div class="studio-hero-art"><img src="assets/tee.png" alt="Tee with example studio lettering"><span>YOUR<br>IDEA HERE.</span><small>Made to be yours / concept preview</small></div></section><section id="studio-garments"><div class="studio-section-head"><h2>Start with a blank.</h2><p>Four starting points. Your creative direction.</p></div><div class="studio-grid">${items.map(([key,label,description])=>`<button class="studio-card" onclick="startStudioDesign('${key}')" aria-label="Design a ${label}"><img src="assets/${key}.png" alt="${label} garment preview"><span class="studio-card-body"><strong>${label}</strong><small>${description}</small><span class="studio-card-action">Start designing ↗</span></span></button>`).join('')}</div></section><section class="studio-steps" aria-label="How the studio works"><div><h3>01 / Make it yours</h3><p>Upload artwork, create text, or try a starter graphic. Adjust placement and colors on your garment.</p></div><div><h3>02 / Refine the details</h3><p>Explore fit, fabric, trims, and branding. Final materials and techniques are confirmed with SPOOL.</p></div><div><h3>03 / Save your direction</h3><p>Save designs on this device and export your tech pack. Online production requests are not connected yet.</p></div></section></main>`;
+}
+function startStudioDesign(key){
+  goItem(key);
+  state.configurable='Artwork & Technique';
+  state.studioTextEditId=null;
+  render();
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',()=>{
+  if(location.hash==='#studio'){state.view='studio';state.configurable=null;render();window.scrollTo(0,0);}
+  else if(location.hash==='#home'){goHome();window.scrollTo(0,0);}
+});
+function studioAttr(value){return escapeText(value).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function renderStudioTextTools(){
+  const edited=state.uploads[state.productKey].find(g=>g.id===state.studioTextEditId);
+  const text=edited?.studioText||{text:'YOUR BRAND',font:'bold',color:'#1a1a1a',layout:'wordmark'};
+  return `<details class="studio-text-tools" ${edited?'open':''}><summary>${edited?'Edit lettering':'Create text & starter graphics'}</summary><label for="studio-text">Your text</label><input id="studio-text" maxlength="60" value="${studioAttr(text.text)}" placeholder="Your brand or message"><div class="studio-text-options"><div><label for="studio-font">Lettering</label><select id="studio-font"><option value="bold" ${text.font==='bold'?'selected':''}>Bold</option><option value="serif" ${text.font==='serif'?'selected':''}>Collegiate</option><option value="mono" ${text.font==='mono'?'selected':''}>Mono</option></select></div><div><label for="studio-color">Ink color</label><input id="studio-color" type="color" value="${studioAttr(text.color)}"></div></div><label for="studio-layout">Layout</label><select id="studio-layout"><option value="wordmark" ${text.layout==='wordmark'?'selected':''}>Wordmark</option><option value="badge" ${text.layout==='badge'?'selected':''}>Badge</option><option value="label" ${text.layout==='label'?'selected':''}>Box label</option></select><button class="studio-primary" onclick="addStudioText()">${edited?'Update lettering':'Add to garment'}</button>${edited?'<button class="studio-text-edit" onclick="state.studioTextEditId=null;render()">Cancel editing</button>':''}<p>Or add a starter graphic, then edit its lettering:</p><div class="studio-template-buttons"><button onclick="addStudioPreset('badge')">Studio badge</button><button onclick="addStudioPreset('label')">Box label</button><button onclick="addStudioPreset('wordmark')">Wordmark</button></div><p>Lettering is rendered as a high-resolution transparent image. Edit its wording with “Edit lettering” on the artwork card.</p></details>`;
+}
+function addStudioPreset(layout){addStudioText({text:'YOUR BRAND',font:layout==='badge'?'serif':'bold',color:'#1a1a1a',layout});}
+function editStudioText(index){state.studioTextEditId=state.uploads[state.productKey][index].id;render();document.getElementById('studio-text')?.focus();}
+function addStudioText(preset){
+  const spec=preset||{text:document.getElementById('studio-text').value.trim(),font:document.getElementById('studio-font').value,color:document.getElementById('studio-color').value,layout:document.getElementById('studio-layout').value};
+  spec.text=String(spec.text).trim().slice(0,60);
+  if(!spec.text){alert('Add a brand name or message first.');return;}
+  const canvas=document.createElement('canvas');canvas.width=2400;canvas.height=spec.layout==='badge'?1400:700;
+  const ctx=canvas.getContext('2d');
+  const fonts={bold:'900 240px Arial, sans-serif',serif:'bold 240px Georgia, serif',mono:'bold 240px monospace'};
+  ctx.font=fonts[spec.font]||fonts.bold;ctx.fillStyle=spec.color;ctx.strokeStyle=spec.color;ctx.lineWidth=22;ctx.textAlign='center';ctx.textBaseline='middle';
+  const available=spec.layout==='badge'?1640:2100,measured=ctx.measureText(spec.text).width;
+  ctx.font=ctx.font.replace('240px',Math.floor(Math.min(240,240*available/Math.max(1,measured)))+'px');
+  if(spec.layout==='badge'){ctx.beginPath();ctx.ellipse(1200,700,1080,570,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(820,1010);ctx.lineTo(1580,1010);ctx.stroke();}
+  if(spec.layout==='label')ctx.strokeRect(60,70,2280,560);
+  ctx.fillText(spec.text,1200,canvas.height/2);
+  pushHistory();
+  const key=state.productKey;
+  const existing=!preset&&state.uploads[key].find(g=>g.id===state.studioTextEditId);
+  const art={src:canvas.toDataURL('image/png'),studioText:{...spec},fileFormat:'PNG',pixelWidth:canvas.width,pixelHeight:canvas.height,originalFileName:'studio-lettering.png'};
+  if(existing){const ratio=canvas.height/canvas.width;existing.h=existing.h*ratio/(existing.pixelHeight/existing.pixelWidth);existing.baseH=existing.h/(existing.scale/100||1);Object.assign(existing,art);state.selectedGraphic[key]=state.uploads[key].indexOf(existing);state.expandedArtwork[key]=existing.id;}
+  else{const c=getArtworkCalibration({zone:state.activeZone});const inches=state.activeZone.includes('Sleeve')?3:state.activeZone==='Hood'?4:8;const width=inches*c.unitsW/c.physicalW,height=width*canvas.height/canvas.width;const idx=insertArtworkInPlacementOrder({...art,x:c.originX+(c.unitsW-width)/2,y:c.originY+30,w:width,h:height,baseW:width,baseH:height,scale:100,rotation:0,technique:'Screen Print',locked:false,zone:state.activeZone});state.expandedArtwork[key]=state.uploads[key][idx].id;}
+  state.studioTextEditId=null;render();
+}
+function downloadStudioGraphic(index){
+  const g=state.uploads[state.productKey][index];if(!g?.studioText)return;
+  const bytes=Uint8Array.from(atob(g.src.split(',')[1]),c=>c.charCodeAt(0));const url=URL.createObjectURL(new Blob([bytes],{type:'image/png'}));const a=document.createElement('a');a.href=url;a.download='spool-studio-graphic.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
 
 function renderHome(){
@@ -1597,6 +1695,7 @@ function renderItem(){
                 ${g.crop?`<svg viewBox="${g.crop.x-g.crop.w*.12} ${g.crop.y-g.crop.h*.12} ${g.crop.w*1.24} ${g.crop.h*1.24}"><image href="${g.src}" x="${g.sourceX??0}" y="${g.sourceY??0}" width="${g.sourceW??200}" height="${g.sourceH??200}" preserveAspectRatio="xMidYMid meet"/></svg>`:`<img src="${g.src}" alt="Uploaded artwork ${g.index+1}">`}
                 <div class="artwork-file-meta">${artworkFileMeta(g)}</div>
                 <select class="layer-technique" onclick="event.stopPropagation()" onchange="setGraphicTechnique(${g.index},this.value)">${ARTWORK_TECHNIQUES.map(t=>`<option value="${t}" ${(ARTWORK_TECHNIQUES.includes(g.technique)?g.technique:'Screen Print')===t?'selected':''}>${t}</option>`).join('')}</select>
+                ${g.studioText?`<div class="artwork-card-actions"><button onclick="event.stopPropagation();editStudioText(${g.index})">Edit lettering</button><button onclick="event.stopPropagation();downloadStudioGraphic(${g.index})">Download graphic</button></div>`:''}
                 <div class="artwork-card-actions"><button onclick="event.stopPropagation();toggleGraphicLockAt(${g.index})">${g.locked?'Unlock':'Lock'}</button><button onclick="event.stopPropagation();duplicateGraphicAt(${g.index})">Duplicate</button></div>
                 ${artworkAlignmentControls(g.index)}
               </div>
@@ -1615,6 +1714,7 @@ function renderItem(){
       </div>`:'';
       panel=`<div class="inline-options-head"><label class="upload-btn">&#8593; Upload Image<input type="file" multiple accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="handleImageUpload(event)"></label></div>
         <div class="placement-tabs">${['Front','Back','Right Sleeve','Left Sleeve',...((state.productKey==='hoodie'||state.productKey==='fullzip')?['Hood']:[])].map(z=>`<button class="placement-tab ${state.activeZone===z?'active':''}" onclick="setActiveZone('${z}')">${z}</button>`).join('')}</div>
+        ${renderStudioTextTools()}
         ${inspector}
         <div class="fabric-section"><div class="fabric-label">Decoration Technique</div>${optionGrid('Technique'+zoneKey,OPTION_VALUES.Technique)}${state.brushMode?`<details class="decoration-settings"><summary>Size, Color & Spacing — ${state.decorationSize||4} mm</summary><div class="decoration-settings-body"><div class="fabric-label">Size</div><select class="layer-technique" onchange="setDecorationSize(this.value)">${[2,4,6,8,10].map(size=>`<option value="${size}" ${(state.decorationSize||4)===size?'selected':''}>${size} mm</option>`).join('')}</select><div class="fabric-label" style="margin-top:14px">Color</div><div style="display:flex;align-items:center;gap:10px"><input type="color" value="${state.decorationColor||'#eafcff'}" oninput="setDecorationColor(this.value)" aria-label="Decoration color" style="width:46px;height:38px;border:0;background:transparent"><input value="${state.decorationColor||'#eafcff'}" onchange="setDecorationColor(this.value)" aria-label="Decoration color hex" style="width:105px;padding:9px;background:#fff;border:0;font-weight:700;text-transform:uppercase"></div><div class="fabric-label" style="margin-top:14px">Brush Spacing</div><div class="decoration-spacing-row"><input type="range" min="45" max="250" step="5" value="${state.decorationSpacing||100}" oninput="previewDecorationSpacing(this)" onchange="setDecorationSpacing(this.value)" aria-label="Decoration spacing"><span class="decoration-spacing-value">${state.decorationSpacing||100}%</span></div></div></details><button class="remove-decoration-btn" onclick="removeActiveDecoration()">Remove ${brushDisplayName(state.brushMode)}</button>${decorationReferenceHtml}`:''}</div>
         <div class="upload-note">Each placement keeps its own artwork and technique settings.</div>`;
@@ -1649,7 +1749,7 @@ function renderItem(){
 
   return `
     <div class="top-row">
-      <div class="back-btn" onclick="goHome()">&larr; Back</div>
+      <a class="back-btn" href="#studio" onclick="state.view='studio';render()" style="text-decoration:none;color:inherit">&larr; Design Studio</a>
       <div class="top-actions">
         <button class="icon-action" onclick="undoDesign()" title="Undo last action (Command + Z)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7 4 12l5 5"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>
@@ -2267,6 +2367,17 @@ function toggleSaveDesignMenu(event){
 function saveDesignAsIs(){state.saveMenuOpen=false;return saveDesign(true,'same');}
 function saveDesignNewName(){state.saveMenuOpen=false;return saveDesign(true,'new');}
 
+function promptDesignName(defaultName){
+  return new Promise(resolve=>{
+    const dialog=document.createElement('dialog');
+    dialog.className='studio-save-dialog';
+    dialog.setAttribute('aria-labelledby','studio-save-title');
+    dialog.innerHTML=`<form method="dialog"><h2 id="studio-save-title">Save your design</h2><label for="studio-save-name">Design name</label><input id="studio-save-name" name="designName" maxlength="100" required><p>Saved on this device. Use the same browser to open it later.</p><div><button value="cancel" formnovalidate>Cancel</button><button value="save" class="studio-primary">Save design</button></div></form>`;
+    dialog.querySelector('input').value=defaultName;
+    dialog.addEventListener('close',()=>{const name=dialog.returnValue==='save'?dialog.querySelector('input').value:null;dialog.remove();resolve(name);},{once:true});
+    document.body.appendChild(dialog);dialog.showModal();dialog.querySelector('input').select();
+  });
+}
 async function saveDesign(addToLibrary=true, mode='auto'){
   const key=state.productKey;
   try{
@@ -2288,7 +2399,7 @@ async function saveDesign(addToLibrary=true, mode='auto'){
         existingIndex=-1;
       }
       if(mode!=='same'||existingIndex<0){
-        const typedName=window.prompt('Enter a name for this design file:',designName);
+        const typedName=await promptDesignName(designName);
         if(typedName===null)return;
         designName=typedName.trim();
         if(!designName){alert('Please enter a design file name.');return;}
