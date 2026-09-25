@@ -1130,6 +1130,14 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
 </script>
 <!-- SPOOL studio board layout -->
 <style id="ts-css">
+.ts-refs{display:flex;gap:8px;flex-wrap:wrap}
+.ts-ref{position:relative;width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid #e2e2de;background:#f3f3f0}
+.ts-ref img{width:100%;height:100%;object-fit:cover;display:block}
+.ts-ref button{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;border:0!important;background:rgba(20,20,20,.75)!important;color:#fff!important;font-size:13px;line-height:1;cursor:pointer;padding:0}
+.ts-ref-add{width:72px;height:72px;border:1.5px dashed #c9c9c3;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 11px Inter,sans-serif;color:#555;cursor:pointer;background:#fafaf8}
+.ts-ref-add span{font-size:20px;line-height:1;margin-bottom:2px}
+.ts-ref-add:hover{border-color:#141414;color:#141414}
+.ts-ref-add input{display:none}
 .ts-panel.ts-m-ai .inline-options-head,.ts-panel.ts-m-ai .studio-text-tools,.ts-panel.ts-m-ai .inline-options>.fabric-section,.ts-panel.ts-m-ai .upload-note{display:none!important}
 .ts-ai textarea{width:100%;border:1px solid #e2e2de;border-radius:12px;background:#fff;padding:12px 14px;font:inherit;font-size:14px;resize:vertical;outline:none;box-sizing:border-box}
 .ts-ai textarea:focus{border-color:#141414}
@@ -4356,7 +4364,7 @@ render();
     {m:'Wash', label:'Wash', icon:'wash'},
     {m:'Reference', label:'Reference', icon:'ref'}
   ];
-  var TS = {mode:null, scroll:{}, ai:{prompt:'', style:'Typography', results:[], white:false, busy:false, err:''}};
+  var TS = {mode:null, scroll:{}, ai:{prompt:'', style:'Typography', results:[], white:false, busy:false, err:'', refs:[]}};
   var AI_ENDPOINT = 'https://spool-ai.chrishwang0327.workers.dev'; /* SPOOL AI Worker URL, e.g. https://spool-ai.YOURNAME.workers.dev */
   var AI_STYLES = {Typography:'bold typographic lettering design', Graphic:'illustrated graphic, clean flat vector art', Badge:'circular badge emblem logo design', Vintage:'distressed vintage retro print', Poster:'poster style graphic composition', Streetwear:'bold high contrast streetwear graphic'};
   function aiLoad(){
@@ -4372,9 +4380,13 @@ render();
     var chips=Object.keys(AI_STYLES).map(function(s){ return '<button class="ts-chip'+(a.style===s?' on':'')+'" onclick="tsAiStyle('+"'"+s+"'"+')">'+s+'</button>'; }).join('');
     var res = a.results.length ? '<div class="ts-sub">Results <span style="font-weight:500;color:#888">&middot; click one to add it</span></div><div class="ts-ai-grid">'+a.results.map(function(u,i){ return '<button class="ts-ai-res" id="ts-ai-r'+i+'" onclick="tsAiAdd('+i+')" title="Add to garment"><img data-src="'+u+'" alt="AI design option '+(i+1)+'" crossorigin="anonymous" loading="lazy"><span>Add</span></button>'; }).join('')+'</div>' : '';
     return '<div class="ts-ai"><textarea id="ts-ai-prompt" rows="3" placeholder="Describe your idea, e.g. \'SPOOL NYC in chrome lettering with stars\'" oninput="tsAiPrompt(this.value)">'+esc(a.prompt)+'</textarea>'+
+      '<div class="ts-sub" style="margin:16px 0 8px">Reference images <span style="font-weight:500;color:#888">&middot; optional, up to 3</span></div>'+
+      '<div class="ts-refs">'+a.refs.map(function(r,i){ return '<div class="ts-ref"><img src="'+r+'" alt="Reference '+(i+1)+'"><button onclick="tsAiRefDel('+i+')" aria-label="Remove reference">&times;</button></div>'; }).join('')+
+      (a.refs.length<3?'<label class="ts-ref-add"><span>+</span>Upload<input type="file" accept="image/png,image/jpeg,image/webp" multiple onchange="tsAiRef(this.files)"></label>':'')+'</div>'+
+      '<div class="ts-sub" style="margin:16px 0 0">Style</div>'+
       '<div class="ts-chips">'+chips+'</div>'+
       (a.err?'<div class="ts-ai-err">'+esc(a.err)+'</div>':'')+
-      '<button class="ts-btn ts-ai-go" onclick="tsAiGen()"'+(a.busy||!AI_ENDPOINT?' disabled':'')+'>'+(a.busy?'Generating... (about 20 sec)':(AI_ENDPOINT?'&#10022; Generate':'AI Design coming soon'))+'</button>'+res+
+      '<button class="ts-btn ts-ai-go" onclick="tsAiGen()"'+(a.busy||!AI_ENDPOINT?' disabled':'')+'>'+(a.busy?(a.refs.length?'Generating from reference... (about 30 sec)':'Generating... (about 20 sec)'):(AI_ENDPOINT?'&#10022; Generate':'AI Design coming soon'))+'</button>'+res+
       '<div class="ts-note">AI designs are reviewed and prepared for production before sampling.</div></div>';
   }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -4473,14 +4485,25 @@ render();
     render();
   };
   window.tsAiPrompt=function(v){ TS.ai.prompt=v; };
+  window.tsAiRefDel=function(i){ TS.ai.refs.splice(i,1); render(); };
+  window.tsAiRef=function(files){
+    var list=[].slice.call(files||[]).filter(function(f){ return /^image\//.test(f.type); }).slice(0, 3-TS.ai.refs.length);
+    if(!list.length) return;
+    Promise.all(list.map(function(f){ return new Promise(function(done){
+      if(f.size>15*1024*1024){ done(null); return; }
+      var img=new Image(), url=URL.createObjectURL(f);
+      img.onload=function(){ var s=Math.min(1,1024/Math.max(img.naturalWidth,img.naturalHeight)); var c=document.createElement('canvas'); c.width=Math.round(img.naturalWidth*s); c.height=Math.round(img.naturalHeight*s); c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); done(f.type==='image/png'?c.toDataURL('image/png'):c.toDataURL('image/jpeg',0.9)); };
+      img.onerror=function(){ URL.revokeObjectURL(url); done(null); };
+      img.src=url; }); })).then(function(arr){ arr.forEach(function(d){ if(d && TS.ai.refs.length<3) TS.ai.refs.push(d); }); render(); });
+  };
   window.tsAiStyle=function(s){ TS.ai.style=s; render(); };
   window.tsAiWhite=function(v){ TS.ai.white=!!v; };
   window.tsAiGen=function(){
     if(!AI_ENDPOINT||TS.ai.busy) return;
     var p=(TS.ai.prompt||'').trim(); if(!p){ alert('Describe your idea first.'); var el=document.getElementById('ts-ai-prompt'); if(el) el.focus(); return; }
-    var full=p+'. Style: '+AI_STYLES[TS.ai.style]+'. A standalone graphic for an apparel screen print: flat vector artwork, bold clean shapes, crisp readable lettering, limited color palette, centered, transparent background. No t-shirt, no clothing, no person, no mockup, no photo.';
+    var full=(TS.ai.refs.length?'Use the attached reference image(s) as visual inspiration for subject, style and composition, but create a new original graphic. ':'')+p+'. Style: '+AI_STYLES[TS.ai.style]+'. A standalone graphic for an apparel screen print: flat vector artwork, bold clean shapes, crisp readable lettering, limited color palette, centered, transparent background. No t-shirt, no clothing, no person, no mockup, no photo.';
     TS.ai.busy=true; TS.ai.err=''; render();
-    fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full,n:2})})
+    fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full,n:2,refs:TS.ai.refs})})
       .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||'Generation failed'); return j; }); })
       .then(function(j){ TS.ai.results=(j.images||[]).concat(TS.ai.results).slice(0,8); })
       .catch(function(e){ TS.ai.err=(e&&e.message)||'Generation failed. Try again.'; })
