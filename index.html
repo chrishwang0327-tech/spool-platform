@@ -4647,5 +4647,32 @@ render();
   try{ layout(); }catch(e){}
 })();
 </script>
+<script id="reference-studio-handoff">
+/* Receives a design from the Reference Studio (studio.html → "Edit design")
+   and opens it in this editor with the graphic as an editable layer. */
+(function(){
+  if(new URLSearchParams(location.search).get('edit')!=='reference') return;
+  function readHandoff(){return new Promise(res=>{try{const r=indexedDB.open('spool-ref-studio',1);
+    r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('designs',{keyPath:'id'});};
+    r.onsuccess=()=>{const db=r.result;const tx=db.transaction('kv','readwrite');const s=tx.objectStore('kv');const g=s.get('handoff');g.onsuccess=()=>{s.delete('handoff');res(g.result||null);};g.onerror=()=>res(null);};
+    r.onerror=()=>res(null);}catch(e){res(null);}});}
+  function imgSize(src){return new Promise(res=>{const i=new Image();i.onload=()=>res([i.naturalWidth||1,i.naturalHeight||1]);i.onerror=()=>res([1,1]);i.src=src;});}
+  window.addEventListener('load',async()=>{
+    history.replaceState(null,'',location.pathname);
+    const h=await readHandoff(); if(!h||!h.graphic) return;
+    const key=PRODUCTS[h.key]?h.key:'tee';
+    startStudioDesign(key);
+    const [iw,ih]=await imgSize(h.graphic);
+    (h.zones&&h.zones.length?h.zones:['Front']).forEach((zone,i)=>{
+      state.activeZone=zone;
+      let w=zone==='Back'?60:48, hh=w*ih/iw; if(hh>80){hh=80;w=hh*iw/ih;}
+      insertArtworkInPlacementOrder({id:`art-${Date.now()}-ref${i}`,src:h.graphic,x:100-w/2,y:zone==='Back'?64:72,w,h:hh,
+        baseW:w,baseH:hh,scale:100,rotation:0,technique:'Screen Print',locked:false,zone,fileFormat:'PNG',pixelWidth:iw,pixelHeight:ih,originalFileName:'reference-studio-graphic.png'},false);
+    });
+    state.activeZone=h.zones&&h.zones[0]||'Front'; state.garmentView=state.activeZone==='Back'?'Back':'Front';
+    state.selectedGraphic[key]=null; render();
+  });
+})();
+</script>
 </body>
 </html>
