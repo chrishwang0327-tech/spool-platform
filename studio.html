@@ -189,6 +189,23 @@ main{padding:32px 32px 72px;gap:32px}
 .btn.dark:hover{background:var(--accent);border-color:var(--accent)}
 @media (max-width:960px){header{padding:14px 16px}main{padding:20px 16px 48px}.output{position:static}.hdr-cta a{padding:8px 14px;font-size:12px}}
 @media (max-width:520px){.hdr-cta{display:none}.intro{padding:24px 20px}}
+
+/* ref zoom + lightbox */
+.drop .zoom{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--y);color:var(--ink);font-size:22px;font-weight:500;line-height:34px;text-align:center;opacity:0;transition:.15s;z-index:2;pointer-events:none;box-shadow:0 2px 8px rgba(32,29,24,.25)}
+.drop .x{top:68%!important}
+.drop.filled{cursor:zoom-in}
+.drop.filled input{pointer-events:none}
+.drop.filled:hover .zoom{opacity:1}
+.drop.filled::before{content:"";position:absolute;inset:0;background:rgba(32,29,24,0);transition:.15s;z-index:1;pointer-events:none}
+.drop.filled:hover::before{background:rgba(32,29,24,.25)}
+@media (hover:none){.drop.filled .zoom,.drop.filled .x{opacity:1}}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(32,29,24,.82);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s}
+.lb.open{opacity:1;pointer-events:auto}
+.lb img{max-width:min(92vw,1100px);max-height:80vh;object-fit:contain;border-radius:16px;background:#FDFDF9;box-shadow:0 30px 80px rgba(0,0,0,.4);transform:scale(.96);transition:transform .2s}
+.lb.open img{transform:none}
+.lb-cap{color:#FDFDF9;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+.lb-x{position:absolute;top:18px;right:18px;width:42px;height:42px;border-radius:50%;background:#FDFDF9;color:var(--ink);font-size:20px}
+.lb-x:hover{background:var(--y)}
 </style>
 </head>
 <body>
@@ -334,6 +351,7 @@ main{padding:32px 32px 72px;gap:32px}
 </main>
 
 <div class="toast" id="toast"></div>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Reference preview"><button class="lb-x" id="lbX" aria-label="Close">✕</button><img id="lbImg" alt=""><div class="lb-cap" id="lbCap"></div></div>
 
 <script>
 /* ---------- Garment silhouettes (viewBox 0 0 200 220) ---------- */
@@ -448,6 +466,22 @@ document.querySelectorAll('.drop').forEach(d=>{
     e.preventDefault(); e.stopPropagation();
     state.refs[slot]=null; d.querySelector('img')?.remove(); d.classList.remove('filled'); input.value='';
     if(slot==='body') $('#bodyMode [data-v=preset]').click();
+  });
+});
+
+/* ---------- reference lightbox ---------- */
+const lb=$('#lb');
+function openLB(src,cap){ $('#lbImg').src=src; $('#lbImg').alt=cap+' reference'; $('#lbCap').textContent=cap+' reference'; lb.classList.add('open'); }
+function closeLB(){ lb.classList.remove('open'); }
+lb.addEventListener('click',e=>{ if(e.target!==$('#lbImg')) closeLB(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLB(); });
+document.querySelectorAll('.drop').forEach(d=>{
+  const z=document.createElement('span'); z.className='zoom'; z.textContent='+'; z.setAttribute('aria-hidden','true'); d.appendChild(z);
+  d.addEventListener('click',e=>{
+    if(!d.classList.contains('filled')) return;
+    e.preventDefault();
+    const cap=d.parentElement.querySelector('.slot-label')?.textContent||'Reference';
+    openLB(state.refs[d.dataset.slot],cap);
   });
 });
 
