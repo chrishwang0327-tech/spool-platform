@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Design Studio — SPOOL</title>
+<title>Reference Studio — SPOOL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#FEE32B; --ink:#201D18; --muted:#5f5622; --line:#e3d47a; --card:#FDFDF9; --soft:#FBEF9C; --accent:#877928;
+  --bg:#FDFDF9; --ink:#201D18; --muted:#7a7566; --line:#201D1814; --card:#FDFDF9; --soft:#F3F1E8; --accent:#877928; --y:#FEE32B; --y2:#FBEF9C;
   --radius:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -137,14 +137,66 @@ main{max-width:1360px;margin:0 auto;padding:8px 32px 60px;display:grid;grid-temp
   .hdr-spacer{display:none}
   .back span{display:none}
 }
+
+/* ===== modern / clean layer ===== */
+body{font-family:Outfit,Poppins,sans-serif;font-size:14.5px}
+header{padding:20px 32px;position:sticky;top:0;z-index:8;background:rgba(253,253,249,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);max-width:none}
+header > *{flex:1}
+.back{font-weight:500;color:var(--ink);opacity:.7}.back:hover{opacity:1}
+.brand{flex:0 0 auto}.brand img{height:22px;display:block;margin:0 auto}
+.brand span{font-size:10px;letter-spacing:.3em;margin-top:6px}
+.hdr-cta{display:flex;justify-content:flex-end}
+.hdr-cta a{font-weight:500;font-size:13px;text-decoration:none;background:var(--ink);color:#FDFDF9;border-radius:99px;padding:9px 18px}
+.hdr-cta a:hover{background:var(--accent)}
+main{padding:32px 32px 72px;gap:32px}
+.intro{position:relative;overflow:hidden;background:var(--y);border-radius:24px;padding:30px 30px 28px;margin-bottom:18px;isolation:isolate}
+.intro::after{content:"";position:absolute;right:-60px;top:-70px;width:260px;height:260px;border:12px solid #FDFDF9;border-radius:50%;z-index:-1}
+.intro h1{font-size:clamp(30px,3.4vw,44px);font-weight:600;line-height:.98;letter-spacing:-.035em;text-transform:uppercase}
+.intro p{color:var(--ink);opacity:.75;margin:12px 0 0;max-width:440px}
+.step,.global{border:1px solid var(--line);box-shadow:0 1px 2px rgba(32,29,24,.04);padding:22px;border-radius:22px}
+.step-title,.global h3{font-weight:600;font-size:16px;letter-spacing:-.01em}
+.num{background:var(--y);color:var(--ink);border-radius:99px;padding:1px 8px;font-size:10.5px}
+.opt{border:0;background:var(--soft)}
+.plus{height:22px;font-size:16px;opacity:.5}
+.drop{background:var(--soft);border:1.5px dashed #c9c3ad}
+.drop:hover,.drop.over{background:var(--y2);border-color:var(--accent)}
+.drop.filled{border:2px solid var(--ink)}
+.field{background:var(--soft);border:1px solid transparent;border-radius:14px;padding:12px 14px}
+.field:focus{background:#FDFDF9;border-color:var(--ink);box-shadow:0 0 0 4px var(--y2)}
+.chip{background:#FDFDF9;border-color:var(--line);padding:6px 13px;font-size:12.5px}
+.chip:hover{background:var(--y2);border-color:transparent}
+.chip.on{background:var(--ink);border-color:var(--ink)}
+.seg{background:var(--soft)}
+.preset{background:#FDFDF9;border-color:var(--line);border-radius:14px;padding:8px 4px 6px}
+.preset:hover{background:var(--y2);border-color:transparent}
+.preset.on{background:var(--y2);border-color:var(--ink)}
+.sw{width:26px;height:26px}
+.create{background:var(--y);color:var(--ink);padding:17px;border-radius:99px;font-weight:600;letter-spacing:.16em;box-shadow:0 8px 24px rgba(254,227,43,.35)}
+.create:hover{background:var(--ink);color:var(--y)}
+.create small{opacity:.65}
+.output{top:96px;border-radius:26px;padding:24px;box-shadow:0 1px 2px rgba(32,29,24,.04),0 20px 50px -30px rgba(32,29,24,.25)}
+.out-head h2{font-size:13px;letter-spacing:.2em}
+.recipe span{background:var(--soft);padding:4px 11px}
+.empty{background:var(--soft);border:0;border-radius:20px}
+.hero,.thumb{background:var(--soft)}
+.hero{border-radius:20px}
+.thumb{border-radius:14px;border:2px solid transparent}
+.thumb:hover{background:var(--y2)}
+.thumb.on{border-color:var(--ink);background:var(--y2)}
+.btn{border:1px solid var(--line);background:#FDFDF9}
+.btn:hover{background:var(--y2);border-color:transparent}
+.btn.dark{background:var(--ink);border-color:var(--ink)}
+.btn.dark:hover{background:var(--accent);border-color:var(--accent)}
+@media (max-width:960px){header{padding:14px 16px}main{padding:20px 16px 48px}.output{position:static}.hdr-cta a{padding:8px 14px;font-size:12px}}
+@media (max-width:520px){.hdr-cta{display:none}.intro{padding:24px 20px}}
 </style>
 </head>
 <body>
 
 <header>
   <a class="back" href="/">← <span>Back to blanks</span></a>
-  <a class="brand" href="/"><b>SPOOL</b><span>Design Studio</span></a>
-  <div class="hdr-spacer"></div>
+  <a class="brand" href="/"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Reference Studio</span></a>
+  <div class="hdr-cta"><a href="/#spool-blanks">Shop blanks</a></div>
 </header>
 
 <main>

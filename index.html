@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Outfit:wght@400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --green-bg:#FEE32B;
@@ -1128,6 +1128,92 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
 })();
 </script>
 <!-- SPOOL studio board layout -->
+<style id="spool-modern-css">
+/* ===== Modern home (catalog) — scoped to home view; editor untouched ===== */
+body.home-mode{background:#FDFDF9;--y:#FEE32B;--y2:#FBEF9C;--ol:#877928;--k:#201D18;--line:#201D1814;--card:#F3F1E8}
+body.home-mode #app{max-width:1360px;margin:0 auto;padding:0 32px 64px}
+body.home-mode .logo{position:absolute;left:32px;top:22px;transform:none;justify-content:flex-start;width:auto;margin:0}
+body.home-mode .logo img{width:112px}
+body.home-mode .studio-nav{position:absolute;top:20px;right:118px;padding:0;margin:0;gap:4px}
+body.home-mode .studio-nav a{font:500 13px 'Outfit',sans-serif;letter-spacing:.02em;padding:9px 16px;border:0;border-radius:99px;color:var(--k)}
+body.home-mode .studio-nav a[aria-current="page"]{background:transparent;color:var(--k);box-shadow:inset 0 -2px 0 var(--k);border-radius:0}
+body.home-mode .studio-nav a:hover{background:var(--y2)}
+body.home-mode .studio-nav a[href="studio.html"]{background:var(--k);color:#FDFDF9;padding:9px 18px}
+body.home-mode .studio-nav a[href="studio.html"]:hover{background:var(--ol)}
+body.home-mode .account-button,body.home-mode .music-button{top:24px;width:34px;height:34px;border:1px solid var(--line);box-shadow:none;background:#FDFDF9}
+body.home-mode .account-button{right:32px}body.home-mode .music-button{right:74px}
+body.home-mode .account-button:hover,body.home-mode .music-button:hover{transform:none;background:var(--y2)}
+body.home-mode .music-button.playing{background:var(--k);color:#FDFDF9}
+.spool-home{padding-top:84px!important}
+/* hero */
+.sp-hero{position:relative;overflow:hidden;background:var(--y);border-radius:28px;min-height:440px;display:flex;align-items:flex-end;justify-content:flex-end;padding:48px 52px;margin-bottom:56px;isolation:isolate}
+.sp-hero svg.sp-mark{position:absolute;left:-2%;top:-14%;height:132%;width:auto;z-index:-1}
+.sp-hero-copy{max-width:640px;text-align:right}
+.sp-eyebrow{font:600 11px 'Outfit',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--k);opacity:.7;margin-bottom:18px}
+.sp-hero h1{font:600 clamp(40px,6vw,82px)/.95 'Outfit',sans-serif;letter-spacing:-.035em;text-transform:uppercase;color:var(--k);margin:0}
+.sp-hero p{font:400 15px/1.6 'Outfit',sans-serif;color:var(--k);opacity:.78;margin:22px 0 28px auto;max-width:420px}
+.sp-ctas{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.sp-btn{font:600 13px 'Outfit',sans-serif;letter-spacing:.04em;padding:14px 24px;border-radius:99px;text-decoration:none;cursor:pointer;border:1.5px solid var(--k);transition:.2s}
+.sp-btn.dark{background:var(--k);color:#FDFDF9}.sp-btn.dark:hover{background:var(--ol);border-color:var(--ol)}
+.sp-btn.ghost{background:transparent;color:var(--k)}.sp-btn.ghost:hover{background:#FDFDF9}
+.sp-arrow{position:absolute;left:52px;bottom:44px;font:500 12px 'Outfit',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--k);text-decoration:none}
+/* catalog */
+#spool-blanks{padding-top:0}
+.spc-head{margin:0 0 22px!important;align-items:flex-end}
+.spc-head h2{font:600 clamp(28px,3.4vw,40px)/1 'Outfit',sans-serif!important;letter-spacing:-.03em!important}
+.spc-head p{font:400 14px 'Outfit',sans-serif!important;color:#6b665a!important;margin-top:10px!important}
+.spc-bar{background:rgba(253,253,249,.86)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:0!important;border-bottom:1px solid var(--line,#201D1814)!important;padding:14px 0!important;margin-bottom:20px!important}
+.spc-tab{font:500 12.5px 'Outfit',sans-serif!important;padding:9px 16px!important;border:1px solid #201D1814!important;background:#FDFDF9!important;transition:.15s}
+.spc-tab:hover{background:#FBEF9C!important}
+.spc-tab.on{background:#201D18!important;color:#FDFDF9!important;border-color:#201D18!important}
+.spc-tab span{font-weight:400}
+.spc-search,.spc-sort{font:400 12.5px 'Outfit',sans-serif!important;padding:10px 16px!important;border:1px solid #201D1814!important;background:#F3F1E8!important}
+.spc-search{width:240px}
+.spc-search:focus,.spc-sort:focus{background:#FDFDF9!important;border-color:#201D18!important}
+.spc-count{font:400 12px 'Outfit',sans-serif;color:#8a8577}
+.spc-grid{gap:40px 20px!important}
+.spc-img{background:#F3F1E8!important;border:0!important;border-radius:18px;transition:background .25s}
+.spc-card:hover .spc-img{background:#FBEF9C!important}
+.spc-g{inset:22px!important}
+.spc-badge{font:600 9.5px 'Outfit',sans-serif!important;letter-spacing:.08em!important;padding:5px 10px!important;border-radius:99px;background:#201D18!important}
+.spc-badge.new{background:#FEE32B!important;color:#201D18!important}
+.spc-cta{font:600 12px 'Outfit',sans-serif!important;border-radius:99px;left:14px!important;right:14px!important;bottom:14px!important;padding:12px!important}
+.spc-cta:hover{background:#877928!important}
+.spc-sw{margin:16px 0 10px!important}
+.spc-dot{width:13px!important;height:13px!important}
+.spc-name{font:500 15px/1.3 'Outfit',sans-serif!important;letter-spacing:-.01em}
+.spc-code{font:400 11px 'Outfit',sans-serif!important;color:#9a9586!important}
+.spc-spec{font:400 12px/1.5 'Outfit',sans-serif!important;color:#6b665a!important}
+.spc-price{font:600 15px 'Outfit',sans-serif!important;margin-top:10px!important}
+.spc-empty{border-radius:18px}
+/* drawer */
+.spc-ov{background:rgba(32,29,24,.32)!important;backdrop-filter:blur(3px)}
+.spc-dr{background:#FDFDF9!important;border-radius:24px 0 0 24px;box-shadow:-20px 0 60px rgba(32,29,24,.12)}
+.spc-dr .spc-img{border-radius:0!important}
+.spc-db{font-family:'Outfit',sans-serif}
+.spc-db h3{font:600 26px/1.1 'Outfit',sans-serif!important;letter-spacing:-.02em!important}
+.spc-lbl{font:600 10.5px 'Outfit',sans-serif!important;letter-spacing:.14em!important;color:#8a8577!important}
+.spc-size{border-radius:99px;font-family:'Outfit',sans-serif!important;padding:7px 14px!important}
+.spc-tbl{font-family:'Outfit',sans-serif;font-size:13px!important}
+.spc-go{border-radius:99px;font:600 13px 'Outfit',sans-serif!important;letter-spacing:.06em;padding:16px!important;background:#201D18!important}
+.spc-go:hover{background:#877928!important}
+.spc-x{border:0!important;background:#F3F1E8!important}
+.sp-foot{margin-top:72px;padding:28px 0 0;border-top:1px solid #201D1814;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font:400 12.5px 'Outfit',sans-serif;color:#6b665a}
+.sp-foot a{color:#201D18;text-decoration:none;margin-left:18px}.sp-foot a:hover{text-decoration:underline}
+@media(max-width:860px){
+  body.home-mode #app{padding:0 16px 48px}
+  body.home-mode .logo{left:16px;top:20px}body.home-mode .logo img{width:92px}
+  body.home-mode .studio-nav{top:66px;left:16px;right:16px;justify-content:flex-start}
+  body.home-mode .account-button{right:16px;top:20px}body.home-mode .music-button{right:56px;top:20px}
+  .spool-home{padding-top:120px!important}
+  .sp-hero{min-height:380px;padding:32px 24px;border-radius:22px;align-items:flex-end}
+  .sp-hero svg.sp-mark{height:100%;top:0;left:-20%;opacity:.9}
+  .sp-arrow{display:none}
+  .sp-eyebrow{font-size:9.5px;letter-spacing:.14em}
+  .sp-hero svg.sp-mark{opacity:.55}
+  .spc-search{width:auto}
+}
+</style>
 <style id="ts-css">
 .ts-seg{display:flex;background:#f0f0ed;border-radius:10px;padding:3px;margin:14px 0 6px}
 .ts-seg button{flex:1;border:0!important;background:none!important;padding:9px 6px;font:600 12px Inter,sans-serif;color:#555;cursor:pointer;border-radius:8px!important}
@@ -1903,7 +1989,21 @@ function downloadStudioGraphic(index){
 }
 
 function renderHome(){
-  return `<main class="spool-home" id="spool-home">${renderSpoolCatalog()}</main>`;
+  const hero=`<section class="sp-hero" aria-label="SPOOL">
+    <svg class="sp-mark" viewBox="0 0 900 700" fill="none" stroke="#FDFDF9" stroke-width="16" aria-hidden="true"><path d="M360 150 C 330 80 250 50 180 50 C 90 50 30 105 30 180 C 30 260 95 290 190 320 C 300 355 370 390 370 480 C 370 570 295 640 190 640 C 100 640 30 595 10 520"/><path d="M470 640 L470 60 L640 60 C 760 60 830 130 830 230 C 830 330 760 400 640 400 L470 400"/></svg>
+    <a class="sp-arrow" href="#spool-blanks" onclick="event.preventDefault();document.getElementById('spool-blanks').scrollIntoView({behavior:'smooth'})">↓ Shop blanks</a>
+    <div class="sp-hero-copy">
+      <div class="sp-eyebrow">SPOOL · Premium blanks &amp; custom production</div>
+      <h1>Start with<br>a blank.<br>Make it yours.</h1>
+      <p>Pick a premium blank, add your artwork, and request a sample — all in one place.</p>
+      <div class="sp-ctas">
+        <a class="sp-btn dark" href="#spool-blanks" onclick="event.preventDefault();document.getElementById('spool-blanks').scrollIntoView({behavior:'smooth'})">Browse blanks</a>
+        <a class="sp-btn ghost" href="studio.html">Reference Studio →</a>
+      </div>
+    </div>
+  </section>`;
+  const foot=`<footer class="sp-foot"><span>© ${new Date().getFullYear()} SPOOL</span><span><a href="#spool-blanks">Blanks</a><a href="studio.html">Reference Studio</a><a href="mailto:info@noboundaryapparel.com">Contact</a></span></footer>`;
+  return `<main class="spool-home" id="spool-home">${hero}${renderSpoolCatalog()}${foot}</main>`;
 }
 
 function artworkFormatLabel(graphic){
