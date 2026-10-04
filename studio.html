@@ -350,6 +350,7 @@ main{padding:32px 32px 72px;gap:32px}
       <div class="actions">
         <button class="btn" id="regen">↻ Regenerate</button>
         <button class="btn" id="download">Download</button>
+        <button class="btn" id="dlGraphic" title="AI extracts just the print graphic as a PNG">Download graphic only</button>
         <button class="btn" disabled>Tech pack<span class="soon">soon</span></button>
         <button class="btn dark" id="sample" style="margin-left:auto">Request sample →</button>
       </div>
@@ -536,7 +537,9 @@ function buildPrompt(p,roles){
   });
   if(p.body.mode==='describe') L.push(`Garment: ${p.body.note}.`); else if(p.body.note) L.push(`Garment changes: ${p.body.note}.`);
   L.push(`Garment base color: ${colorName}. Finish: ${WASH_WORDS[p.finish.wash]}${p.finish.note?', '+p.finish.note:''}.`);
-  if(roles.includes('graphic')) L.push(`Print placement: ${p.placement==='both'?'front (show the front view)':p.placement==='back'?'back — show the BACK view of the garment':'front chest / center front'}.`);
+  if(p.placement==='back') L[0]=L[0].replace('front view','BACK view (the back of the garment facing the camera)');
+  if(p.placement==='both') L[0]=L[0].replace('ONE '+garment+', laid flat / ghost-mannequin style, front view, centered','ONE '+garment+' shown twice side by side — FRONT view on the left and BACK view on the right, laid flat / ghost-mannequin style');
+  if(roles.includes('graphic')) L.push(`Print placement: ${p.placement==='both'?'small graphic on the front left chest AND a large version of the graphic across the back (unless the notes say otherwise)':p.placement==='back'?'large print across the upper back':'front chest / center front'}.`);
   if(p.direction) L.push(`Overall direction: ${p.direction}.`);
   L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
   return L.join('\n');
@@ -672,6 +675,26 @@ $('#download').onclick=async()=>{
     ctx.drawImage(a,parseFloat(art.style.left)/100*S,parseFloat(art.style.top)/100*S*1.1,w,h);
   }
   const l=document.createElement('a'); l.download=`spool-design-v${state.active+1}.png`; l.href=c.toDataURL('image/png'); l.click();
+};
+
+/* download graphic only — AI extracts the print from the selected design */
+$('#dlGraphic').onclick=async()=>{
+  const v=state.variations[state.active]; if(!v) return;
+  const save=src=>{const l=document.createElement('a'); l.download=`spool-graphic-v${state.active+1}.png`; l.href=src; l.click();};
+  if(v.graphic) return save(v.graphic);
+  if(!AI_ENDPOINT||!v.url){
+    if(state.refs.graphic) return save(state.refs.graphic);
+    return toast('Generate a design first');
+  }
+  const b=$('#dlGraphic'); b.disabled=true; b.textContent='Extracting graphic… ~30 sec';
+  try{
+    const img=await shrink(v.url,1024);
+    const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:'extract',images:[{dataUrl:img}],
+      prompt:'Extract ONLY the printed graphic artwork from this garment photo and recreate it as a clean, flat, front-facing print file: no garment, no fabric texture, no wrinkles, no shadows, no wash effect. Keep every element, text, color and proportion of the artwork exactly. Transparent background (or pure white if transparency is not possible). Crisp edges, centered, high resolution, ready for screen printing.'})});
+    const d=await r.json(); if(!r.ok||!d.images?.length) throw new Error(d.error||'failed');
+    v.graphic=d.images[0].src; save(v.graphic);
+  }catch(e){ console.error(e); toast('Could not extract the graphic — try again'); }
+  b.disabled=false; b.textContent='Download graphic only';
 };
 
 /* request sample → email */

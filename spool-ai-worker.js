@@ -1,8 +1,9 @@
 /**
  * SPOOL Reference Studio — AI image Worker (Cloudflare Workers)
  *
- * Keeps your API keys secret. The studio page sends references + prompt here;
- * this Worker asks OpenAI and Gemini for 2 images each and returns all 4.
+ * Keeps your API keys secret. The studio page sends references + prompt here.
+ *  task "design"  (default): 4 images — 2 OpenAI + 2 Gemini, or 4 OpenAI if no Gemini key.
+ *  task "extract": 1 image — the print graphic alone, transparent background when supported.
  *
  * Secrets (set in Cloudflare → Worker → Settings → Variables and Secrets):
  *   OPENAI_API_KEY   your OpenAI API key (platform.openai.com)
@@ -46,9 +47,19 @@ export default {
       .slice(0, MAX_IMAGES);
     if (!prompt) return json({ error: 'Missing prompt' }, 400);
 
+    const task = body.task === 'extract' ? 'extract' : 'design';
     const jobs = [];
-    if (env.OPENAI_API_KEY) jobs.push(openai(env, prompt, images));
-    if (env.GEMINI_API_KEY) jobs.push(gemini(env, prompt, images), gemini(env, prompt, images));
+    if (task === 'extract') {
+      if (env.OPENAI_API_KEY) jobs.push(openai(env, prompt, images, { n: 1, background: 'transparent', quality: 'high' }));
+      else if (env.GEMINI_API_KEY) jobs.push(gemini(env, prompt, images));
+    } else {
+      const both = env.OPENAI_API_KEY && env.GEMINI_API_KEY;
+      if (env.OPENAI_API_KEY) jobs.push(openai(env, prompt, images, { n: both ? 2 : 4 }));
+      if (env.GEMINI_API_KEY) {
+        const g = env.OPENAI_API_KEY ? 2 : 4;
+        for (let i = 0; i < g; i++) jobs.push(gemini(env, prompt, images));
+      }
+    }
     if (!jobs.length) return json({ error: 'No API keys configured on the Worker' }, 500);
 
     const settled = await Promise.allSettled(jobs);
@@ -62,18 +73,27 @@ export default {
   }
 };
 
-/* ---------- OpenAI: one call, n=2 ---------- */
-async function openai(env, prompt, images) {
+/* ---------- OpenAI: one call, n images ---------- */
+async function openai(env, prompt, images, opt = {}) {
   const model = env.OPENAI_MODEL || 'gpt-image-2';
-  const common = { model, prompt, n: 2, size: '1024x1024', quality: env.OPENAI_QUALITY || 'medium' };
+  const common = { model, prompt, n: opt.n || 2, size: '1024x1024', quality: opt.quality || env.OPENAI_QUALITY || 'medium' };
+  if (opt.background) common.background = opt.background;
   const url = images.length ? 'https://api.openai.com/v1/images/edits' : 'https://api.openai.com/v1/images/generations';
-  const payload = images.length ? { ...common, images: images.map(i => ({ image_url: i.dataUrl })) } : common;
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  const data = await r.json().catch(() => ({}));
+  const call = async (extra) => {
+    const payload = images.length ? { ...common, ...extra, images: images.map(i => ({ image_url: i.dataUrl })) } : { ...common, ...extra };
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return [r, await r.json().catch(() => ({}))];
+  };
+  let [r, data] = await call({});
+  // Some models don't support transparent backgrounds — retry without it.
+  if (!r.ok && common.background && /background|transparen/i.test(data?.error?.message || '')) {
+    delete common.background;
+    [r, data] = await call({});
+  }
   if (!r.ok) throw new Error(`OpenAI ${r.status}: ${data?.error?.message || 'error'}`);
   return (data.data || []).map(d => ({
     provider: 'ChatGPT',
