@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Studio — SPOOL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f7f2; --ink:#1a1a1a; --muted:#6b6b66; --line:#dcdcd4; --card:#ffffff; --soft:#ecece6;
+  --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Poppins,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;padding:22px 32px;max-width:1360px;margin:0 auto}
+.back{font-size:13px;text-decoration:none;color:var(--muted)}
+.back:hover{color:var(--ink)}
+.brand{text-align:center;text-decoration:none}
+.brand b{display:block;font-weight:700;font-size:26px;letter-spacing:.32em;padding-left:.32em}
+.brand span{display:block;font-size:11px;letter-spacing:.28em;color:var(--muted);text-transform:uppercase;margin-top:-2px}
+.hdr-spacer{width:80px}
+
+main{max-width:1360px;margin:0 auto;padding:8px 32px 60px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:start}
+
+/* left: recipe */
+.intro h1{font-size:28px;font-weight:600;letter-spacing:-.01em}
+.intro p{color:var(--muted);margin:4px 0 20px}
+
+.step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:grid;grid-template-columns:108px 1fr;gap:18px;align-items:start}
+.plus{display:flex;justify-content:center;color:var(--muted);font-size:20px;height:28px;align-items:center}
+.step-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.num{font-size:11px;font-weight:600;color:var(--muted)}
+.step-title{font-weight:600;font-size:15px}
+.opt{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 8px}
+
+/* upload circle */
+.drop{width:108px;height:108px;border-radius:50%;border:1.5px dashed #b9b9b0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;background:var(--bg);transition:.15s}
+.drop:hover,.drop.over{border-color:var(--ink);background:#efefe8}
+.drop b{font-size:15px;font-weight:600;line-height:1}
+.drop small{font-size:10px;letter-spacing:.12em;color:var(--muted);margin-top:3px}
+.drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop .x{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(26,26,26,.85);color:#fff;border-radius:99px;font-size:11px;padding:3px 10px;opacity:0;transition:.15s;z-index:2}
+.drop.filled{border-style:solid;border-color:var(--ink)}
+.drop.filled:hover .x{opacity:1}
+.slot-label{font-size:10px;letter-spacing:.14em;text-align:center;color:var(--muted);margin-top:8px;text-transform:uppercase}
+
+.field{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);outline:none;resize:none}
+.field:focus{border-color:var(--ink);background:#fff}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;background:#fff;transition:.12s}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.hint{font-size:11px;color:var(--muted);margin-top:6px}
+
+/* body tabs + presets */
+.seg{display:inline-flex;background:var(--soft);border-radius:99px;padding:3px;margin-bottom:10px}
+.seg button{padding:4px 12px;border-radius:99px;font-size:12px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.preset{border:1px solid var(--line);border-radius:12px;padding:6px 4px 5px;background:#fff;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;transition:.12s}
+.preset svg{width:34px;height:34px}
+.preset:hover{border-color:var(--ink)}
+.preset.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.hidden{display:none!important}
+
+/* global settings */
+.global{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.global h3{font-size:15px;font-weight:600;margin-bottom:10px}
+.row{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.row > div{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.swatches{display:flex;gap:6px}
+.sw{width:24px;height:24px;border-radius:50%;border:1px solid rgba(0,0,0,.15);position:relative}
+.sw.on::after{content:"";position:absolute;inset:-4px;border:1.5px solid var(--ink);border-radius:50%}
+
+.create{margin-top:18px;width:100%;background:var(--ink);color:#fff;border-radius:99px;padding:15px;font-weight:600;letter-spacing:.14em;font-size:14px;transition:.15s;display:flex;align-items:center;justify-content:center;gap:10px}
+.create:hover{background:#000}
+.create:disabled{opacity:.45;cursor:not-allowed}
+.create small{font-weight:400;letter-spacing:0;opacity:.6;font-size:11px}
+
+/* right: output */
+.output{position:sticky;top:20px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;min-height:640px;display:flex;flex-direction:column}
+.out-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.out-head h2{font-size:15px;font-weight:600;letter-spacing:.14em}
+.recipe{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.recipe span{font-size:11px;background:var(--soft);border-radius:99px;padding:3px 10px}
+
+.empty{flex:1;border:1.5px dashed var(--line);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}
+.empty .eq{font-size:13px;color:var(--ink);font-weight:500;margin:14px 0 6px;letter-spacing:.06em}
+
+.hero{flex:1;background:var(--bg);border-radius:18px;position:relative;display:flex;align-items:center;justify-content:center;min-height:400px;overflow:hidden}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.thumb{background:var(--bg);border-radius:12px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:1.5px solid transparent;overflow:hidden;position:relative}
+.thumb.on{border-color:var(--ink)}
+.thumb .gar{width:78%}
+.hero .gar{width:min(74%,420px)}
+.gar{position:relative}
+.gar svg{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 18px rgba(0,0,0,.10))}
+.gar .art{position:absolute;object-fit:contain}
+.vlabel{position:absolute;top:12px;left:12px;font-size:11px;background:#fff;border-radius:99px;padding:3px 10px}
+.side-toggle{position:absolute;top:12px;right:12px}
+
+.loading .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.7) 50%,transparent 70%);background-size:200% 100%;animation:sh 1.1s infinite}
+.loading .thumb::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.7) 50%,transparent 70%);background-size:200% 100%;animation:sh 1.1s infinite}
+@keyframes sh{from{background-position:150% 0}to{background-position:-50% 0}}
+
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--ink);border-radius:99px;padding:9px 16px;font-size:13px;font-weight:500}
+.btn:hover{background:var(--soft)}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.dark:hover{background:#000}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn .soon{font-size:10px;opacity:.7;margin-left:4px}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:960px){
+  main{grid-template-columns:1fr;padding:8px 16px 40px}
+  header{padding:18px 16px}
+  .output{position:static;min-height:0}
+  .hero{min-height:320px}
+}
+@media (max-width:520px){
+  .step{grid-template-columns:1fr;justify-items:start}
+  .step > .slot{display:flex;align-items:center;gap:12px}
+  .slot-label{margin-top:0}
+  .presets{grid-template-columns:repeat(4,1fr)}
+  .hdr-spacer{display:none}
+  .back span{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="/">← <span>Back to blanks</span></a>
+  <a class="brand" href="/"><b>SPOOL</b><span>Design Studio</span></a>
+  <div class="hdr-spacer"></div>
+</header>
+
+<main>
+  <!-- LEFT: recipe -->
+  <section>
+    <div class="intro">
+      <h1>Build from references.</h1>
+      <p>Graphic + Body + Finish = your design. Every slot is optional; add a note to each so the AI knows what to take from it.</p>
+    </div>
+
+    <!-- 01 GRAPHIC -->
+    <div class="step" id="step-graphic">
+      <div class="slot">
+        <label class="drop" data-slot="graphic">
+          <b>REF.</b><small>UPLOAD</small>
+          <input type="file" accept="image/*">
+          <span class="x">Remove</span>
+        </label>
+        <div class="slot-label">Graphic</div>
+      </div>
+      <div>
+        <div class="step-head"><span class="num">01</span><span class="step-title">Graphic</span><span class="opt">Optional</span></div>
+        <input class="field" id="p-graphic" placeholder="e.g. keep the logo, make it distressed, 2 colors max">
+        <div class="chips" data-group="graphicUse">
+          <button class="chip on" data-v="full">Full artwork</button>
+          <button class="chip" data-v="logo">Logo only</button>
+          <button class="chip" data-v="style">Style only</button>
+          <button class="chip" data-v="colors">Colors only</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="plus">+</div>
+
+    <!-- 02 BODY -->
+    <div class="step" id="step-body">
+      <div class="slot">
+        <label class="drop" data-slot="body">
+          <b>REF.</b><small>UPLOAD</small>
+          <input type="file" accept="image/*">
+          <span class="x">Remove</span>
+        </label>
+        <div class="slot-label">Body</div>
+      </div>
+      <div>
+        <div class="step-head"><span class="num">02</span><span class="step-title">Body</span></div>
+        <div class="seg" id="bodyMode">
+          <button class="on" data-v="preset">Preset</button>
+          <button data-v="upload">My reference</button>
+          <button data-v="describe">Describe</button>
+        </div>
+        <div class="presets" id="presets"></div>
+        <input class="field" id="p-body" placeholder="Modify it: cropped, boxy fit, drop shoulder, no pocket">
+        <div class="hint" id="bodyHint">Start from a SPOOL blank, then customize with a note. Upload overrides the preset.</div>
+      </div>
+    </div>
+
+    <div class="plus">+</div>
+
+    <!-- 03 FINISH -->
+    <div class="step" id="step-wash">
+      <div class="slot">
+        <label class="drop" data-slot="wash">
+          <b>REF.</b><small>UPLOAD</small>
+          <input type="file" accept="image/*">
+          <span class="x">Remove</span>
+        </label>
+        <div class="slot-label">Washing / Etc.</div>
+      </div>
+      <div>
+        <div class="step-head"><span class="num">03</span><span class="step-title">Wash &amp; Finish</span><span class="opt">Optional</span></div>
+        <input class="field" id="p-wash" placeholder="e.g. heavy sun fade, cracked print, raw hem">
+        <div class="chips" data-group="wash">
+          <button class="chip on" data-v="none">Clean</button>
+          <button class="chip" data-v="garment">Garment dye</button>
+          <button class="chip" data-v="pigment">Pigment dye</button>
+          <button class="chip" data-v="vintage">Vintage fade</button>
+          <button class="chip" data-v="acid">Acid wash</button>
+          <button class="chip" data-v="distressed">Distressed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOBAL -->
+    <div class="global">
+      <h3>Overall direction</h3>
+      <textarea class="field" id="p-global" rows="2" placeholder="e.g. 90s skate, heavyweight, minimal, for a NYC streetwear drop"></textarea>
+      <div class="row">
+        <div>
+          <span class="lbl">Base color</span>
+          <div class="swatches" id="colors"></div>
+        </div>
+        <div>
+          <span class="lbl">Placement</span>
+          <div class="chips" data-group="placement" style="margin-top:0">
+            <button class="chip on" data-v="front">Front</button>
+            <button class="chip" data-v="back">Back</button>
+            <button class="chip" data-v="both">Both</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="create" id="create">CREATE <small>4 variations</small></button>
+  </section>
+
+  <!-- RIGHT: output -->
+  <section class="output" id="output">
+    <div class="out-head">
+      <h2>FINAL DESIGN</h2>
+      <div class="seg hidden" id="sideSeg" style="margin:0">
+        <button class="on" data-v="front">Front</button>
+        <button data-v="back">Back</button>
+      </div>
+    </div>
+    <div class="recipe" id="recipe"></div>
+
+    <div class="empty" id="empty">
+      <svg width="64" height="64" viewBox="0 0 200 220" fill="none" stroke="#b9b9b0" stroke-width="5"><path d="M60 20 L85 12 Q100 24 115 12 L140 20 L180 50 L162 78 L145 68 L145 205 L55 205 L55 68 L38 78 L20 50 Z"/></svg>
+      <div class="eq">GRAPHIC + BODY + FINISH</div>
+      <div>Add your references and hit Create.<br>You'll get 4 variations to pick from.</div>
+    </div>
+
+    <div class="hidden" id="result" style="display:flex;flex-direction:column;flex:1">
+      <div class="hero" id="hero"><span class="vlabel" id="vlabel">Variation 1</span></div>
+      <div class="thumbs" id="thumbs"></div>
+      <div class="actions">
+        <button class="btn" id="regen">↻ Regenerate</button>
+        <button class="btn" id="download">Download</button>
+        <button class="btn" disabled>Tech pack<span class="soon">soon</span></button>
+        <button class="btn dark" id="sample" style="margin-left:auto">Request sample →</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Garment silhouettes (viewBox 0 0 200 220) ---------- */
+const BODIES = {
+  tee:       {name:'Tee', top:true, path:'M60 20 L85 12 Q100 24 115 12 L140 20 L180 50 L162 78 L145 68 L145 205 L55 205 L55 68 L38 78 L20 50 Z', detail:'M85 12 Q100 30 115 12'},
+  hoodie:    {name:'Hoodie', top:true, path:'M68 44 Q66 8 100 6 Q134 8 132 44 L150 50 L178 160 L158 166 L146 100 L146 205 L54 205 L54 100 L42 166 L22 160 L50 50 Z', detail:'M80 44 Q100 62 120 44 M72 150 L128 150 L136 185 L64 185 Z'},
+  zip:       {name:'Zip hood', top:true, path:'M68 44 Q66 8 100 6 Q134 8 132 44 L150 50 L178 160 L158 166 L146 100 L146 205 L54 205 L54 100 L42 166 L22 160 L50 50 Z', detail:'M80 44 Q100 62 120 44 M100 56 L100 205'},
+  crew:      {name:'Crewneck', top:true, path:'M60 22 L85 14 Q100 26 115 14 L140 22 L176 158 L156 164 L145 82 L145 205 L55 205 L55 82 L44 164 L24 158 Z', detail:'M85 14 Q100 32 115 14 M55 195 L145 195'},
+  trucker:   {name:'Trucker', top:true, path:'M60 22 L82 12 L100 30 L118 12 L140 22 L176 160 L156 166 L146 84 L146 200 L54 200 L54 84 L44 166 L24 160 Z', detail:'M82 12 L92 44 L100 30 L108 44 L118 12 M100 30 L100 200 M62 70 L90 70 L90 92 L62 92 Z M110 70 L138 70 L138 92 L110 92 Z'},
+  sweatpant: {name:'Sweatpant', top:false, path:'M58 12 L142 12 L152 196 Q150 206 140 206 L112 206 L100 72 L88 206 L60 206 Q50 206 48 196 Z', detail:'M58 24 L142 24 M54 192 L84 192 M116 192 L146 192'},
+  denim:     {name:'5-Pocket', top:false, path:'M62 12 L138 12 L148 206 L112 206 L100 70 L88 206 L52 206 Z', detail:'M62 24 L138 24 M66 24 Q72 46 88 40 M134 24 Q128 46 112 40 M100 24 L100 62'},
+  shorts:    {name:'Shorts', top:false, path:'M56 30 L144 30 L156 138 L110 142 L100 84 L90 142 L44 138 Z', detail:'M56 42 L144 42'}
+};
+const COLORS = [
+  ['#f2efe6','Natural'],['#ffffff','White'],['#1c1c1c','Black'],['#8f8f8a','Heather'],
+  ['#2f3a4f','Navy'],['#5a6146','Olive'],['#7a5338','Brown'],['#b4c2cf','Sky']
+];
+
+const state = {
+  refs:{graphic:null, body:null, wash:null},
+  graphicUse:'full', wash:'none', placement:'front',
+  bodyMode:'preset', body:'hoodie', color:COLORS[0][0],
+  variations:[], active:0, side:'front'
+};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const toast = m => {const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)};
+function shade(hex, amt){ // darken/lighten for strokes & variations
+  let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;
+  const f=v=>Math.max(0,Math.min(255,Math.round(v+amt)));
+  return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+const lum = hex => {let n=parseInt(hex.slice(1),16);return (.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255};
+
+let gid=0;
+function garmentSVG(key, fill, small, washO){
+  const b=BODIES[key]; const stroke = lum(fill)<.35 ? shade(fill,55) : shade(fill,-55); const id='w'+(gid++);
+  const wash = washO ? `<defs><clipPath id="c${id}"><path d="${b.path}"/></clipPath><radialGradient id="r${id}"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+    <g clip-path="url(#c${id})" opacity="${washO}"><circle cx="70" cy="80" r="45" fill="url(#r${id})"/><circle cx="135" cy="140" r="50" fill="url(#r${id})"/><circle cx="90" cy="185" r="35" fill="url(#r${id})"/><circle cx="150" cy="40" r="30" fill="url(#r${id})"/></g>` : '';
+  return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+    <path d="${b.path}" fill="${fill}" stroke="${stroke}" stroke-width="${small?2.5:1.6}" stroke-linejoin="round"/>${wash}
+    <path d="${b.detail}" fill="none" stroke="${stroke}" stroke-width="${small?2:1.2}" stroke-linejoin="round" opacity=".8"/>
+  </svg>`;
+}
+
+/* ---------- build presets & swatches ---------- */
+const presetsEl=$('#presets');
+Object.entries(BODIES).forEach(([k,b])=>{
+  const el=document.createElement('button');
+  el.className='preset'+(k===state.body?' on':''); el.dataset.v=k;
+  el.innerHTML=garmentSVG(k,'#f2efe6',true)+b.name;
+  el.onclick=()=>{state.body=k;presetsEl.querySelectorAll('.preset').forEach(p=>p.classList.toggle('on',p===el));};
+  presetsEl.appendChild(el);
+});
+const colorsEl=$('#colors');
+COLORS.forEach(([c,n],i)=>{
+  const el=document.createElement('button');
+  el.className='sw'+(i===0?' on':''); el.style.background=c; el.title=n;
+  el.onclick=()=>{state.color=c;colorsEl.querySelectorAll('.sw').forEach(s=>s.classList.toggle('on',s===el));};
+  colorsEl.appendChild(el);
+});
+
+/* ---------- chip groups ---------- */
+document.querySelectorAll('.chips[data-group]').forEach(g=>{
+  g.addEventListener('click',e=>{
+    const c=e.target.closest('.chip'); if(!c) return;
+    g.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));
+    state[g.dataset.group]=c.dataset.v;
+  });
+});
+
+/* ---------- body mode ---------- */
+const bodyHints={
+  preset:'Start from a SPOOL blank, then customize with a note. Upload overrides the preset.',
+  upload:'Upload a photo or flat of the body you want. Add notes for what to change.',
+  describe:'Describe the body from scratch: garment type, fit, length, details.'
+};
+$('#bodyMode').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.bodyMode=b.dataset.v;
+  $('#bodyMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  presetsEl.classList.toggle('hidden',state.bodyMode!=='preset');
+  $('#bodyHint').textContent=bodyHints[state.bodyMode];
+  $('#p-body').placeholder = state.bodyMode==='describe'
+    ? 'e.g. oversized double-knit hoodie, cropped, raglan sleeve, side zips'
+    : 'Modify it: cropped, boxy fit, drop shoulder, no pocket';
+  if(state.bodyMode==='upload' && !state.refs.body) $('.drop[data-slot=body] input').click();
+});
+
+/* ---------- uploads (click + drag/drop) ---------- */
+document.querySelectorAll('.drop').forEach(d=>{
+  const slot=d.dataset.slot, input=d.querySelector('input');
+  const load=file=>{
+    if(!file||!file.type.startsWith('image/')) return toast('Please use an image file');
+    const r=new FileReader();
+    r.onload=()=>{
+      state.refs[slot]=r.result;
+      d.querySelector('img')?.remove();
+      const img=new Image(); img.src=r.result; d.prepend(img);
+      d.classList.add('filled');
+      if(slot==='body'){ $('#bodyMode [data-v=upload]').click(); }
+    };
+    r.readAsDataURL(file);
+  };
+  input.onchange=()=>load(input.files[0]);
+  ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over')}));
+  ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('over')}));
+  d.addEventListener('drop',e=>load(e.dataTransfer.files[0]));
+  d.querySelector('.x').addEventListener('click',e=>{
+    if(!d.classList.contains('filled')) return;
+    e.preventDefault(); e.stopPropagation();
+    state.refs[slot]=null; d.querySelector('img')?.remove(); d.classList.remove('filled'); input.value='';
+    if(slot==='body') $('#bodyMode [data-v=preset]').click();
+  });
+});
+
+/* ---------- payload for the AI backend ---------- */
+function buildPayload(){
+  return {
+    graphic:{image:state.refs.graphic, use:state.graphicUse, note:$('#p-graphic').value.trim()},
+    body:{mode:state.bodyMode, preset:state.bodyMode==='preset'?state.body:null, image:state.refs.body, note:$('#p-body').value.trim()},
+    finish:{image:state.refs.wash, wash:state.wash, note:$('#p-wash').value.trim()},
+    direction:$('#p-global').value.trim(),
+    color:state.color, placement:state.placement, variations:4
+  };
+}
+
+/*
+  Hook up your image model here (e.g. Higgsfield / any image-gen API).
+  Return an array of image URLs. Until then, the studio renders a local
+  mock composite so the flow can be tested end to end.
+*/
+async function generateDesign(payload){
+  await new Promise(r=>setTimeout(r,1400));
+  return null; // null = use mock preview
+}
+
+/* ---------- mock variations ---------- */
+function mockVariations(p){
+  const key = p.body.preset || 'tee';
+  const base = p.color;
+  return [0,1,2,3].map(i=>({
+    body:key,
+    color: i===0?base : shade(base, [0,-22,18,-40][i]),
+    scale:[1,.78,1.15,.6][i],
+    y:[0,-6,8,-14][i],
+    x:i===3?14:0,
+    wash:p.finish.wash
+  }));
+}
+
+const WASH = {
+  none:{f:'none',o:0},
+  garment:{f:'saturate(.85) contrast(.96)',o:.15},
+  pigment:{f:'saturate(.7) sepia(.12)',o:.35},
+  vintage:{f:'saturate(.55) brightness(1.08) sepia(.18)',o:.45},
+  acid:{f:'contrast(1.1) saturate(.5)',o:.75},
+  distressed:{f:'saturate(.7) contrast(1.05)',o:.4}
+};
+
+function garmentEl(v, big){
+  const b=BODIES[v.body];
+  const wrap=document.createElement('div'); wrap.className='gar';
+  wrap.innerHTML=garmentSVG(v.body,v.color,!big,(WASH[v.wash]||WASH.none).o);
+  wrap.querySelector('svg').style.filter=(WASH[v.wash]||WASH.none).f+' drop-shadow(0 10px 18px rgba(0,0,0,.10))';
+  const showArt = state.refs.graphic && (state.side==='front' ? state.placement!=='back' : state.placement!=='front');
+  if(showArt){
+    const img=new Image(); img.src=state.refs.graphic; img.className='art';
+    const W = (b.top?30:16)*v.scale, cx = b.top?50:(state.side==='front'?36:64);
+    const cy = b.top ? (state.side==='back'?36:30) : 58;
+    Object.assign(img.style,{width:W+'%',left:(cx-W/2+v.x)+'%',top:(cy+v.y*.4)+'%'});
+    if(state.graphicUse==='style') img.style.filter='grayscale(1) contrast(1.3)';
+    if(state.graphicUse==='colors') img.style.filter='blur(6px) saturate(1.4)';
+    if(state.graphicUse==='logo') img.style.width=W*.55+'%';
+    if(v.wash==='distressed'||v.wash==='vintage') img.style.opacity='.82';
+    wrap.appendChild(img);
+  }
+  return wrap;
+}
+
+function render(){
+  const hero=$('#hero'), thumbs=$('#thumbs');
+  hero.querySelector('.gar')?.remove();
+  hero.appendChild(garmentEl(state.variations[state.active],true));
+  $('#vlabel').textContent='Variation '+(state.active+1);
+  thumbs.innerHTML='';
+  state.variations.forEach((v,i)=>{
+    const t=document.createElement('button'); t.className='thumb'+(i===state.active?' on':'');
+    t.appendChild(garmentEl(v,false)); t.onclick=()=>{state.active=i;render();};
+    thumbs.appendChild(t);
+  });
+}
+
+function renderRecipe(p){
+  const parts=[];
+  parts.push(p.graphic.image ? 'Graphic: '+({full:'full artwork',logo:'logo only',style:'style only',colors:'colors only'})[p.graphic.use] : 'No graphic');
+  parts.push('Body: '+(p.body.mode==='preset'?BODIES[p.body.preset].name:p.body.mode==='upload'?'your reference':'described'));
+  parts.push('Finish: '+$(`.chips[data-group=wash] .chip.on`).textContent);
+  parts.push('Placement: '+p.placement);
+  $('#recipe').innerHTML=parts.map(x=>`<span>${x}</span>`).join('');
+}
+
+async function create(){
+  const p=buildPayload();
+  if(p.body.mode==='upload' && !p.body.image) return toast('Upload a body reference or pick a preset');
+  if(p.body.mode==='describe' && !p.body.note) return toast('Describe the body you want');
+  const btn=$('#create'); btn.disabled=true; btn.firstChild.textContent='CREATING… ';
+  $('#empty').classList.add('hidden'); $('#result').classList.remove('hidden');
+  $('#sideSeg').classList.remove('hidden');
+  renderRecipe(p);
+  if(!state.variations.length){ state.variations=mockVariations(p); render(); }
+  $('#output').classList.add('loading');
+  const urls=await generateDesign(p);
+  state.variations=mockVariations(p); state.active=0;
+  if(Array.isArray(urls)) state.variations.forEach((v,i)=>v.url=urls[i]);
+  render();
+  $('#output').classList.remove('loading');
+  btn.disabled=false; btn.firstChild.textContent='CREATE ';
+  if(window.innerWidth<960) $('#output').scrollIntoView({behavior:'smooth'});
+}
+$('#create').onclick=create;
+$('#regen').onclick=create;
+
+$('#sideSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.side=b.dataset.v;
+  $('#sideSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
+
+/* download current variation as PNG */
+$('#download').onclick=async()=>{
+  const gar=$('#hero .gar'); const svg=gar.querySelector('svg');
+  const S=1200, c=document.createElement('canvas'); c.width=S; c.height=S*1.1;
+  const ctx=c.getContext('2d'); ctx.fillStyle='#f7f7f2'; ctx.fillRect(0,0,c.width,c.height);
+  const load=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=src;});
+  const svgImg=await load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.outerHTML));
+  ctx.filter=svg.style.filter.replace(/drop-shadow\([^)]*\)\)?/,'')||'none';
+  ctx.drawImage(svgImg,0,0,S,S*1.1); ctx.filter='none';
+  const art=gar.querySelector('.art');
+  if(art){
+    const a=await load(art.src), w=parseFloat(art.style.width)/100*S, h=w*a.height/a.width;
+    ctx.globalAlpha=parseFloat(art.style.opacity||1);
+    ctx.drawImage(a,parseFloat(art.style.left)/100*S,parseFloat(art.style.top)/100*S*1.1,w,h);
+  }
+  const l=document.createElement('a'); l.download=`spool-design-v${state.active+1}.png`; l.href=c.toDataURL('image/png'); l.click();
+};
+
+/* request sample → email */
+$('#sample').onclick=()=>{
+  const p=buildPayload();
+  const body=[
+    'Hi SPOOL team,','','I would like a sample of this design:',
+    '- Body: '+(p.body.preset?BODIES[p.body.preset].name:p.body.mode)+(p.body.note?' ('+p.body.note+')':''),
+    '- Graphic: '+(p.graphic.image?p.graphic.use:'none')+(p.graphic.note?' ('+p.graphic.note+')':''),
+    '- Finish: '+p.finish.wash+(p.finish.note?' ('+p.finish.note+')':''),
+    '- Color: '+(COLORS.find(c=>c[0]===p.color)||['','custom'])[1],
+    '- Placement: '+p.placement,
+    '- Variation: '+(state.active+1),
+    p.direction?'- Direction: '+p.direction:'',
+    '','(Downloaded design image attached)'
+  ].filter(Boolean).join('\n');
+  location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent('SPOOL sample request')+'&body='+encodeURIComponent(body);
+};
+
+/* deep link: studio.html?body=hoodie&color=1c1c1c (for "Start designing" on a blank) */
+(()=>{
+  const q=new URLSearchParams(location.search);
+  const b=q.get('body'); if(b&&BODIES[b]) presetsEl.querySelector(`[data-v=${b}]`).click();
+  const c=q.get('color'); if(c){const el=[...colorsEl.children].find(s=>s.style.background&&COLORS[[...colorsEl.children].indexOf(s)][0]==='#'+c); el&&el.click();}
+})();
+</script>
+</body>
+</html>
