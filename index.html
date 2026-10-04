@@ -1113,7 +1113,10 @@ body.home-mode .studio-nav{padding-top:100px;margin-bottom:0}
     },
     design:function(code){
       var it=find(code); window.spc.close();
-      if(typeof window.startStudioDesign==='function') window.startStudioDesign(it.base);
+      var BODY={tee:'tee',hoodie:'hoodie',sweatshirt:'crew',sweatpants:'sweatpant'};
+      var HEX={cream:'f2efe6',natural:'f2efe6',white:'ffffff',black:'1c1c1c',wblack:'1c1c1c',heather:'8f8f8a',grey:'8f8f8a',gray:'8f8f8a',navy:'2f3a4f',olive:'5a6146',brown:'7a5338',sky:'b4c2cf'};
+      var q='?body='+(BODY[it.base]||'tee'), c=HEX[cur(it)]; if(c) q+='&color='+c;
+      location.href='studio.html'+q;
     }
   };
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && S.open) window.spc.close(); });
