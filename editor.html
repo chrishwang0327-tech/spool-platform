@@ -142,7 +142,9 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
   <section class="center">
     <div class="bar">
       <div class="seg" id="sideSeg"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
-      <div class="seg" id="viewSeg"><button class="on" data-v="spec">Spec</button><button data-v="final">Final</button></div>
+      <button class="btn sm" id="hideBtn" title="Show the design without boxes">Hide boxes</button>
+      <button class="btn sm" id="undoBtn" title="Undo (Cmd/Ctrl + Z)" aria-label="Undo">↶</button>
+      <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
       <span class="sp"></span>
       <button class="btn sm" id="measBtn" title="Set the chest line and HPS used for inch sizes">Measure</button>
       <button class="btn sm" id="detBtn" title="AI finds the graphics and draws the boxes for you">Auto-detect</button>
@@ -301,6 +303,12 @@ const blankBody=()=>({fabric:'',gsm:'',color:'',pantone:'',fit:'',neck:'',sleeve
 const blankLabels=()=>({neck:'Printed',care:'Side seam',hangtag:'Yes',stitch:'',hardware:'',notes:''});
 const newProject=()=>({v:3,id:'p'+Date.now(),name:'Untitled design',created:Date.now(),updated:Date.now(),body:'tee',chestIn:21,email:'',provider:'',spec:null,bodySpec:blankBody(),labels:blankLabels(),sides:{front:blankSide(),back:blankSide()}});
 let P=null, side='front', sel=null, view='spec', tool=null, tab='graphic', imgCache=new Map();
+/* undo / redo: per-side snapshots (images are shared strings, so this is cheap) */
+let undoStack={front:[],back:[]}, redoStack={front:[],back:[]};
+const cloneSide=s=>({...s,cal:{...s.cal},bodyHist:[...(s.bodyHist||[])],parts:s.parts.map(p=>({...p,b:[...p.b],orig:p.orig?[...p.orig]:p.orig,opts:{...p.opts},hist:[...(p.hist||[])]}))});
+function snap(){ if(!P) return; const st=undoStack[side]; st.push(cloneSide(S())); if(st.length>40) st.shift(); redoStack[side]=[]; renderTop(); }
+function undo(){ const st=undoStack[side]; if(!st.length) return toast('Nothing to undo'); redoStack[side].push(cloneSide(S())); P.sides[side]=st.pop(); sel=null; save(); render(); }
+function redo(){ const st=redoStack[side]; if(!st.length) return toast('Nothing to redo'); undoStack[side].push(cloneSide(S())); P.sides[side]=st.pop(); sel=null; save(); render(); }
 const kindOf=p=>p.kind||(DT.includes(p.tech)?'detail':'graphic');
 const curKind=()=>tab==='details'?'detail':'graphic';
 const visParts=()=>tab==='body'||!P?[]:S().parts.filter(p=>kindOf(p)===curKind());
@@ -344,7 +352,7 @@ function renderMeas(){
    <span class="knob" data-k="x1" style="left:${pct(c.x1)};top:${pct(c.y)}"></span>
    <span class="knob" data-k="x2" style="left:${pct(c.x2)};top:${pct(c.y)}"></span>
    <span class="knob" data-k="hps" style="left:${pct(c.x1-60)};top:${pct(c.hps)}"></span>`;
-  m.querySelectorAll('.knob').forEach(kn=>kn.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); const key=kn.dataset.k;
+  m.querySelectorAll('.knob').forEach(kn=>kn.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); const key=kn.dataset.k; snap();
     const mv=ev=>{const [x,y]=toU(ev); if(key==='hps') c.hps=Math.max(0,Math.min(U,y)); else { c[key]=Math.max(0,Math.min(U,x)); c.y=Math.max(0,Math.min(U,y)); } renderMeas(); renderList(); };
     const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);renderDetail();save();};
     addEventListener('pointermove',mv); addEventListener('pointerup',up); }));
@@ -354,6 +362,8 @@ function renderTop(){
   const has=!!(P&&S().base);
   $('#empty').classList.toggle('hidden',has);
   stage.classList.toggle('final',view==='final'); stage.classList.toggle('draw',tool==='draw');
+  $('#hideBtn').textContent=view==='final'?'Show boxes':'Hide boxes'; $('#hideBtn').classList.toggle('on',view==='final');
+  $('#undoBtn').disabled=!(P&&(undoStack[side]||[]).length); $('#redoBtn').disabled=!(P&&(redoStack[side]||[]).length);
   $('#drawBtn').classList.toggle('on',tool==='draw'); $('#measBtn').classList.toggle('on',tool==='measure');
   const sep=has&&S().separated; $('#sepBtn').classList.toggle('hidden',sep); $('#unsepBtn').classList.toggle('hidden',!sep);
   ['#detBtn','#drawBtn','#measBtn','#sepBtn','#polishBtn','#dlBtn','#tpBtn','#sampleBtn','#resetBtn'].forEach(s=>$(s).disabled=!has);
@@ -395,12 +405,12 @@ function renderDetail(){
      <button class="btn" id="fxUndo" ${p.hist?.length?'':'disabled'}>Undo preview</button>
    </div>
    <div class="note">Preview redraws only this area with AI. Everything outside the box stays the same.</div>`;
-  d.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{p.tech=b.dataset.t; save(); render();});
-  d.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{p.opts[p.tech+'|'+b.dataset.o]=b.dataset.v; save(); renderDetail();});
+  d.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ if(p.tech===b.dataset.t) return; snap(); const q=S().parts.find(x=>x.id===p.id); q.tech=b.dataset.t; sel=q; save(); render();});
+  d.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{ snap(); const q=S().parts.find(x=>x.id===p.id); q.opts[q.tech+'|'+b.dataset.o]=b.dataset.v; sel=q; save(); render();});
   $('#pName').oninput=e=>{p.name=e.target.value; renderList(); save();};
   $('#pNote').oninput=e=>{p.note=e.target.value; save();};
-  $('#pDel').onclick=()=>{ if(S().separated&&p.layer&&!confirm('Delete this part? Its separated artwork will be removed from the image.')) return; const s=S(); s.parts=s.parts.filter(q=>q!==p); renumber(s); sel=null; save(); render(); };
-  $('#wIn').onchange=e=>{ const v=+e.target.value; if(!(v>0)) return;
+  $('#pDel').onclick=()=>{ if(S().separated&&p.layer&&!confirm('Delete this part? Its separated artwork will be removed from the image.')) return; snap(); const s=S(); s.parts=s.parts.filter(q=>q.id!==p.id); renumber(s); sel=null; save(); render(); };
+  $('#wIn').onchange=e=>{ const v=+e.target.value; if(!(v>0)) return; snap(); p=S().parts.find(x=>x.id===p.id); sel=p;
     if(S().separated&&p.layer){ const nw=v/ipu(), r=p.b[3]/p.b[2], c0=[p.b[0]+p.b[2]/2,p.b[1]+p.b[3]/2]; p.b=clampB([c0[0]-nw/2,c0[1]-nw*r/2,nw,nw*r]); p.specW=null; }
     else p.specW=v;
     save(); render(); };
@@ -455,7 +465,7 @@ function renderLabels(){
 }
 const bodyPrompt=B=>`BODY COLOR EDIT: Edit this garment product photo. Change ONLY the color of the garment fabric to ${B.color}${B.pantone?' (Pantone '+B.pantone+')':''}. Keep every print, graphic, text, patch, trim, label, wash, distressing, fold, seam, the framing and the background exactly the same.`;
 async function previewBody(){
-  const s=S(), B=P.bodySpec; if(isBusy()) return; if(!B.color) return toast('Enter a color name first');
+  const B=P.bodySpec; if(isBusy()) return; if(!B.color) return toast('Enter a color name first'); snap(); const s=S();
   busy(true,'Recoloring the body','One AI pass on the '+side+' photo');
   try{
     if(s.separated){ const out=await squareURL(await ai(bodyPrompt(B),[s.hole])); (s.bodyHist=s.bodyHist||[]).push({hole:s.hole,clean:s.clean}); s.hole=out; s.clean=out; }
@@ -471,8 +481,8 @@ function boxDown(e,p,resize){
   if(view==='final'||tool==='draw') return;
   e.stopPropagation(); e.preventDefault();
   if(sel!==p){ sel=p; render(); return; }
-  const [sx,sy]=toU(e), b0=[...p.b], r=b0[3]/b0[2], movesArt=S().separated&&!!p.layer;
-  const mv=ev=>{const [x,y]=toU(ev); const dx=x-sx, dy=y-sy;
+  const [sx,sy]=toU(e), b0=[...p.b], r=b0[3]/b0[2], movesArt=S().separated&&!!p.layer; let moved=false;
+  const mv=ev=>{const [x,y]=toU(ev); const dx=x-sx, dy=y-sy; if(!moved){ if(Math.abs(dx)+Math.abs(dy)<3) return; moved=true; const keep=S().parts.indexOf(p); snap(); /* snapshot holds copies; keep editing live objects */ }
     if(resize){ if(movesArt){ const nw=Math.max(10,b0[2]+dx); p.b=[b0[0],b0[1],nw,nw*r]; } else p.b=[b0[0],b0[1],Math.max(10,b0[2]+dx),Math.max(10,b0[3]+dy)]; }
     else p.b=[b0[0]+dx,b0[1]+dy,b0[2],b0[3]];
     p.b=clampB(p.b); if(movesArt) p.specW=null;
@@ -488,7 +498,7 @@ stage.addEventListener('pointerdown',e=>{
   const mv=ev=>{const [x,y]=toU(ev); place(d,rect(x,y));};
   const up=ev=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up); d.remove(); const [x,y]=toU(ev); const b=rect(x,y); tool=null;
     if(b[2]<12||b[3]<12){ render(); return toast('Drag a bigger area'); }
-    const s=S(), kind=curKind(), n=s.parts.filter(q=>kindOf(q)===kind).length+1;
+    snap(); const s=S(), kind=curKind(), n=s.parts.filter(q=>kindOf(q)===kind).length+1;
     const p={id:'a'+Date.now(),kind,num:n,name:(kind==='detail'?'Detail ':'Graphic ')+n,b:clampB(b),tech:kind==='detail'?'rhine':'print',opts:{},note:'',layer:null,hist:[]};
     s.parts.push(p); renumber(s); sel=p;
     if(s.separated&&kind==='graphic') extractInto(p).then(()=>{save();render();}); else { save(); render(); } };
@@ -496,10 +506,13 @@ stage.addEventListener('pointerdown',e=>{
 });
 $('#drawBtn').onclick=()=>{tool=tool==='draw'?null:'draw'; render();};
 $('#measBtn').onclick=()=>{tool=tool==='measure'?null:'measure'; render();};
-$('#viewSeg').onclick=e=>{const b=e.target.closest('button'); if(!b) return; view=b.dataset.v; $$('#viewSeg button').forEach(x=>x.classList.toggle('on',x===b)); if(view==='final'){tool=null;} render();};
+$('#undoBtn').onclick=undo; $('#redoBtn').onclick=redo;
+$('#hideBtn').onclick=()=>{ view=view==='final'?'spec':'final'; if(view==='final') tool=null; render(); };
 $('#sideSeg').onclick=e=>{const b=e.target.closest('button'); if(!b||!P) return; side=b.dataset.v; sel=null; tool=null; render(); if(!S().base) toast(`No ${side} image in this project`);};
 $('#chest').oninput=e=>{ if(!P) return; P.chestIn=+e.target.value||21; renderList(); renderDetail(); renderMeas(); save(); };
 document.addEventListener('keydown',e=>{ if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); return; }
   if((e.key==='Delete'||e.key==='Backspace')&&sel){ $('#pDel')?.click(); }
   if(e.key==='Escape'){ tool=null; render(); $$('.modal').forEach(m=>m.classList.add('hidden')); } });
 
@@ -537,7 +550,7 @@ async function detectAPI(dataUrl){
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'Detect failed'); return d.parts||[];
 }
 const iou=(a,b)=>{const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])), y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])); const i=x*y; return i/(a[2]*a[3]+b[2]*b[3]-i);};
-$('#detBtn').onclick=async()=>{
+$('#detBtn').onclick=async()=>{ if(isBusy()) return; snap();
   if(isBusy()) return; const s=S(); busy(true,'Finding the graphics','AI looks at the image and draws the boxes');
   try{
     const c=canvas(768); c.getContext('2d').drawImage(await (async()=>{const f=canvas(PX); await composite(f,s); return f;})(),0,0,768,768);
@@ -552,7 +565,7 @@ $('#detBtn').onclick=async()=>{
 };
 
 /* ================= separate ================= */
-$('#sepBtn').onclick=async()=>{
+$('#sepBtn').onclick=async()=>{ if(isBusy()) return; snap();
   const s=S(); if(isBusy()) return; if(!s.parts.some(p=>kindOf(p)==='graphic')) return toast('Mark the graphics first with “Auto-detect” or “＋ Select area”');
   busy(true,'Separating body and graphics','One AI pass for the blank body, then each selected area becomes its own layer');
   try{
@@ -562,7 +575,7 @@ $('#sepBtn').onclick=async()=>{
   }catch(e){ console.error(e); toast('Separation failed: '+e.message); }
   busy(false); save(); render();
 };
-$('#unsepBtn').onclick=async()=>{
+$('#unsepBtn').onclick=async()=>{ snap();
   if(!confirm('Undo separation? Moves and resizes go back to the original layout.')) return;
   const s=S(); s.separated=false; s.parts.forEach(p=>{ if(p.orig) p.b=[...p.orig]; p.layer=null; }); s.hole=null; save(); render();
 };
@@ -570,7 +583,7 @@ async function flatten(s){ const c=canvas(PX); await composite(c,s); return c.to
 
 /* ================= local preview ================= */
 async function preview(p){
-  if(isBusy()) return; const s=S();
+  if(isBusy()) return; snap(); p=S().parts.find(x=>x.id===p.id)||p; sel=p; const s=S();
   busy(true,`Previewing ${TECH[p.tech].toLowerCase()}`,'AI redraws only this area');
   try{
     const full=canvas(PX); await composite(full,s);
@@ -612,7 +625,7 @@ async function finalURL(s){ return s.polished||await flatten(s); }
 const dl=(url,name)=>{const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();};
 $('#dlBtn').onclick=async()=>{ for(const sd of ['front','back']){ const s=P.sides[sd]; if(s.base) dl(await finalURL(s),`${slug()}-${sd}.jpg`); } };
 const slug=()=>(P.name||'spool-design').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'spool-design';
-$('#resetBtn').onclick=()=>{ const s=S(); if(!s.original||!confirm(`Restore the original ${side} image? Previews and separation on this side are removed; your parts and specs stay.`)) return;
+$('#resetBtn').onclick=()=>{ if(!S().original||!confirm(`Restore the original ${side} image? Previews and separation on this side are removed; your parts and specs stay.`)) return; snap(); const s=S();
   s.base=s.original; s.separated=false; s.hole=null; s.clean=null; s.polished=null; s.parts.forEach(p=>{p.layer=null;p.hist=[]; if(p.orig) p.b=[...p.orig];}); save(); render(); };
 
 /* tech pack: printable page */
@@ -676,7 +689,7 @@ function upgrade(p){ // older editor projects → v3
   ['front','back'].forEach(sd=>{ const o=p.sides?.[sd]; const src=o?.original||o?.base||null; q.sides[sd].original=src; q.sides[sd].base=src; });
   return q;
 }
-async function openProject(p){ P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); ['front','back'].forEach(sd=>renumber(P.sides[sd])); side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
+async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); ['front','back'].forEach(sd=>renumber(P.sides[sd])); side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
   $('#pname').value=P.name; $('#chest').value=P.chestIn; render(); }
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
 $('#projBtn').onclick=openProjects;
