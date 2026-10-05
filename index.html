@@ -4734,15 +4734,16 @@ body.ts-mode .ts-dlg:hover{background:var(--y2)!important}
     const h=await readHandoff(); if(!h) return;
     const key=PRODUCTS[h.key]?h.key:'tee';
     startStudioDesign(key);
-    if(!h.graphic) return;
-    const [iw,ih]=await imgSize(h.graphic);
-    (h.zones&&h.zones.length?h.zones:['Front']).forEach((zone,i)=>{
+    const items=h.items||(h.graphic?(h.zones&&h.zones.length?h.zones:['Front']).map(z=>({zone:z,graphic:h.graphic})):[]);
+    for(let i=0;i<items.length;i++){
+      const it=items[i]; if(!it.graphic) continue; const zone=it.zone||'Front';
+      const [iw,ih]=await imgSize(it.graphic);
       state.activeZone=zone;
       let w=zone==='Back'?60:48, hh=w*ih/iw; if(hh>80){hh=80;w=hh*iw/ih;}
-      insertArtworkInPlacementOrder({id:`art-${Date.now()}-ref${i}`,src:h.graphic,x:100-w/2,y:zone==='Back'?64:72,w,h:hh,
-        baseW:w,baseH:hh,scale:100,rotation:0,technique:'Screen Print',locked:false,zone,fileFormat:'PNG',pixelWidth:iw,pixelHeight:ih,originalFileName:'reference-studio-graphic.png'},false);
-    });
-    state.activeZone=h.zones&&h.zones[0]||'Front'; state.garmentView=state.activeZone==='Back'?'Back':'Front';
+      insertArtworkInPlacementOrder({id:`art-${Date.now()}-ref${i}`,src:it.graphic,x:100-w/2,y:zone==='Back'?64:72,w,h:hh,
+        baseW:w,baseH:hh,scale:100,rotation:0,technique:'Screen Print',locked:false,zone,fileFormat:'PNG',pixelWidth:iw,pixelHeight:ih,originalFileName:'reference-studio-'+zone.toLowerCase()+'.png'},false);
+    }
+    state.activeZone=(items[0]&&items[0].zone)||'Front'; state.garmentView=state.activeZone==='Back'?'Back':'Front';
     state.selectedGraphic[key]=null; render();
   });
 })();

@@ -4,7 +4,7 @@
  * Keeps your API keys secret. The studio page sends references + prompt here.
  *  task "design"  (default): body.n images (1–4, default 2), split evenly between OpenAI and
  *                  Gemini when both keys exist. body.quality = "low" | "medium" | "high" (OpenAI).
- *                  body.wide = true → landscape 3:2 (used for front + back side by side).
+ *                  body.wide = true → landscape 3:2. body.provider = "openai" | "gemini" forces one model.
  *  task "extract": 1 image — the print graphic alone, transparent background when supported.
  *
  * Secrets (set in Cloudflare → Worker → Settings → Variables and Secrets):
@@ -58,7 +58,10 @@ export default {
       const n = Math.max(1, Math.min(4, parseInt(body.n, 10) || 2));
       const quality = ['low', 'medium', 'high'].includes(body.quality) ? body.quality : undefined;
       const both = env.OPENAI_API_KEY && env.GEMINI_API_KEY;
-      const nOpenai = !env.OPENAI_API_KEY ? 0 : both ? Math.ceil(n / 2) : n;
+      // body.provider = "openai" | "gemini" forces one model (used to keep front/back from the same AI)
+      let nOpenai = !env.OPENAI_API_KEY ? 0 : both ? Math.ceil(n / 2) : n;
+      if (body.provider === 'openai' && env.OPENAI_API_KEY) nOpenai = n;
+      if (body.provider === 'gemini' && env.GEMINI_API_KEY) nOpenai = 0;
       const nGemini = !env.GEMINI_API_KEY ? 0 : n - nOpenai;
       const wide = body.wide === true;
       if (nOpenai) jobs.push(openai(env, prompt, images, { n: nOpenai, quality, size: wide ? '1536x1024' : '1024x1024' }));
