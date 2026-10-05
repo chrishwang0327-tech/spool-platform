@@ -38,18 +38,13 @@ section.block{margin-top:72px}
 .head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:24px}
 .head h2{font:600 clamp(28px,3.4vw,40px)/1 Outfit,sans-serif;letter-spacing:-.03em}
 .head p{color:var(--muted);font-size:14px;max-width:460px}
-.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.stepc{background:var(--soft);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:10px;min-height:220px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.stepc{background:var(--soft);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.ill{height:96px;margin-bottom:6px}.ill svg{height:100%;width:auto;display:block}
 .stepc .n{width:34px;height:34px;border-radius:50%;background:var(--y);display:grid;place-items:center;font-weight:600;font-size:13px}
 .stepc h3{font-size:19px;font-weight:600;letter-spacing:-.01em}
 .stepc p{color:var(--muted);font-size:13.5px}
 .stepc.k{background:var(--k);color:#FDFDF9}.stepc.k p{color:#cfcabb}
-
-.layers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.layer{border:1px solid var(--line);border-radius:18px;padding:18px;background:#FDFDF9}
-.layer b{display:block;font-size:15px;margin-bottom:4px}
-.layer span{font-size:13px;color:var(--muted)}
-.layer i{display:inline-block;font-style:normal;font-size:10.5px;font-weight:600;letter-spacing:.12em;background:var(--y2);border-radius:99px;padding:2px 9px;margin-bottom:10px}
 
 .prod{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:stretch}
 .prod .card{background:var(--y2);border-radius:24px;padding:32px}
@@ -65,12 +60,12 @@ footer{margin-top:80px;padding:28px 0 40px;border-top:1px solid var(--line);disp
 footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{text-decoration:underline}
 :focus-visible{outline:2px solid var(--k);outline-offset:3px}
 
-@media(max-width:960px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.layers{grid-template-columns:repeat(2,minmax(0,1fr))}.prod{grid-template-columns:1fr}}
+@media(max-width:960px){.prod{grid-template-columns:1fr}}
 @media(max-width:640px){
   header{padding:18px 16px;flex-wrap:wrap}.wrap{padding:0 16px}
   .sp-hero{min-height:400px;padding:32px 24px;border-radius:22px}
   .sp-hero svg.sp-mark{height:100%;top:0;left:-20%;opacity:.55}
-  .sp-arrow{display:none}.steps,.layers{grid-template-columns:1fr}
+  .sp-arrow{display:none}.steps{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -101,23 +96,20 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
   </section>
 
   <section class="block" id="how">
-    <div class="head"><h2>From reference to sample.</h2><p>Four steps. Front and back are designed together.</p></div>
+    <div class="head"><h2>How it works.</h2><p>Three steps from reference to sample.</p></div>
     <div class="steps">
-      <div class="stepc"><span class="n">01</span><h3>Upload references</h3><p>Graphic, body, wash and distress — a slot for each, front and back, with a note for each.</p></div>
-      <div class="stepc"><span class="n">02</span><h3>Create</h3><p>Two designs per Create, each with a front and a back. Draft for cheap ideas, Final for sharper images.</p></div>
-      <div class="stepc"><span class="n">03</span><h3>Edit each part</h3><p>AI isn't perfect. Fix the graphic, body, wash, distress or details separately — the rest stays as is.</p></div>
-      <div class="stepc k"><span class="n">04</span><h3>Tech pack → sample</h3><p>Download a tech pack with placement, sizes, techniques and colors, and request a sample from SPOOL.</p></div>
-    </div>
-  </section>
-
-  <section class="block">
-    <div class="head"><h2>Every part is its own layer.</h2><p>The editor keeps the parts apart, so one fix never breaks the rest.</p></div>
-    <div class="layers">
-      <div class="layer"><i>01</i><b>Graphic</b><span>Move, resize in inches, recolor, regenerate just the art.</span></div>
-      <div class="layer"><i>02</i><b>Body</b><span>Color, fit and construction.</span></div>
-      <div class="layer"><i>03</i><b>Wash</b><span>Garment dye, pigment, vintage fade, acid.</span></div>
-      <div class="layer"><i>04</i><b>Distress</b><span>Light or heavy, exactly where you want it.</span></div>
-      <div class="layer"><i>05</i><b>Details</b><span>Embroidery, rhinestones, patches, labels, trims.</span></div>
+      <div class="stepc">
+        <div class="ill" aria-hidden="true"><svg viewBox="0 0 120 90"><rect x="18" y="14" width="56" height="62" rx="8" fill="#FDFDF9" stroke="#201D18" stroke-width="3"/><circle cx="36" cy="34" r="7" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><path d="M24 66l16-16 10 10 8-8 12 14" fill="none" stroke="#201D18" stroke-width="3" stroke-linejoin="round"/><circle cx="90" cy="58" r="16" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><path d="M90 50v16M82 58h16" stroke="#201D18" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <span class="n">01</span><h3>Upload your references</h3><p>Graphic, body and wash — front and back.</p>
+      </div>
+      <div class="stepc">
+        <div class="ill" aria-hidden="true"><svg viewBox="0 0 120 90"><path d="M14 26l12-8h10q4 6 9 0h10l12 8-6 10-6-4v40H26V32l-6 4z" fill="#FDFDF9" stroke="#201D18" stroke-width="3" stroke-linejoin="round"/><rect x="32" y="40" width="16" height="12" rx="2" fill="#FEE32B" stroke="#201D18" stroke-width="2.5"/><path d="M58 26l12-8h10q4 6 9 0h10l12 8-6 10-6-4v40H70V32l-6 4z" fill="#FDFDF9" stroke="#201D18" stroke-width="3" stroke-linejoin="round"/><rect x="72" y="36" width="24" height="22" rx="2" fill="#FEE32B" stroke="#201D18" stroke-width="2.5"/></svg></div>
+        <span class="n">02</span><h3>Get AI designs</h3><p>Two designs, each with a front and a back.</p>
+      </div>
+      <div class="stepc k">
+        <div class="ill" aria-hidden="true"><svg viewBox="0 0 120 90"><rect x="30" y="10" width="60" height="72" rx="6" fill="#FDFDF9" stroke="#FDFDF9" stroke-width="3"/><path d="M40 26h30M40 36h40M40 46h34M40 56h22" stroke="#201D18" stroke-width="3" stroke-linecap="round"/><circle cx="84" cy="66" r="14" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><path d="M78 66l4 4 8-8" fill="none" stroke="#201D18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span class="n">03</span><h3>Request a sample</h3><p>Fine-tune in the editor, then send the tech pack to SPOOL.</p>
+      </div>
     </div>
   </section>
 
