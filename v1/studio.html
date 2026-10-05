@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference Studio — SPOOL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDFDF9; --ink:#201D18; --muted:#7a7566; --line:#201D1814; --card:#FDFDF9; --soft:#F3F1E8;
+  --accent:#877928; --y:#FEE32B; --y2:#FBEF9C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit}
+.hidden{display:none!important}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;position:sticky;top:0;z-index:8;background:rgba(253,253,249,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header > *{flex:1}
+.back{font-size:13px;font-weight:500;text-decoration:none;opacity:.7}.back:hover{opacity:1}
+.brand{flex:0 0 auto;text-align:center;text-decoration:none}
+.brand img{height:22px;display:block;margin:0 auto}
+.brand span{display:block;font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-top:6px}
+.hdr-cta{display:flex;justify-content:flex-end}
+.hdr-cta a{font-weight:500;font-size:13px;text-decoration:none;background:var(--ink);color:#FDFDF9;border-radius:99px;padding:9px 18px}
+.hdr-cta a:hover{background:var(--accent)}
+
+main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:32px;align-items:start}
+
+/* intro */
+.intro{position:relative;overflow:hidden;background:var(--y);border-radius:24px;padding:30px 30px 28px;margin-bottom:18px;isolation:isolate}
+.intro::after{content:"";position:absolute;right:-60px;top:-70px;width:260px;height:260px;border:12px solid #FDFDF9;border-radius:50%;z-index:-1}
+.intro h1{font-size:clamp(30px,3.4vw,44px);font-weight:600;line-height:.98;letter-spacing:-.035em;text-transform:uppercase}
+.intro p{opacity:.75;margin-top:12px;max-width:460px}
+
+/* steps */
+.step{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 1px 2px rgba(32,29,24,.04);display:grid;grid-template-columns:96px 1fr;gap:20px;align-items:start}
+.plus{display:flex;justify-content:center;height:22px;align-items:center;opacity:.5}
+.step-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.num{background:var(--y);border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:600}
+.step-title{font-weight:600;font-size:16px;letter-spacing:-.01em}
+.opt{font-size:11px;color:var(--muted);background:var(--soft);border-radius:99px;padding:1px 8px}
+.slots{display:flex;flex-direction:column;gap:12px;align-items:center}
+.slot{display:flex;flex-direction:column;align-items:center}
+.slot-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:6px;font-weight:600}
+.slot.cur .slot-label{color:var(--ink)}
+.slot.cur .drop{box-shadow:0 0 0 3px var(--y2)}
+
+/* upload circle */
+.drop{width:88px;height:88px;border-radius:50%;border:1.5px dashed #c9c3ad;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;background:var(--soft);transition:.15s}
+.drop:hover,.drop.over{background:var(--y2);border-color:var(--accent)}
+.drop b{font-size:13px;font-weight:600;line-height:1}
+.drop small{font-size:9.5px;letter-spacing:.12em;color:var(--muted);margin-top:3px}
+.drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop.filled{border:2px solid var(--ink);cursor:zoom-in}
+.drop.filled input{pointer-events:none}
+.drop::before{content:"";position:absolute;inset:0;background:rgba(32,29,24,0);transition:.15s;z-index:1;pointer-events:none}
+.drop.filled:hover::before{background:rgba(32,29,24,.25)}
+.drop .zoom{position:absolute;top:32%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:var(--y);font-size:20px;line-height:30px;text-align:center;opacity:0;transition:.15s;z-index:2;pointer-events:none}
+.drop .x{position:absolute;top:70%;left:50%;transform:translate(-50%,-50%);background:rgba(26,26,26,.85);color:#fff;border-radius:99px;font-size:10.5px;padding:2px 9px;opacity:0;transition:.15s;z-index:2}
+.drop.filled:hover .zoom,.drop.filled:hover .x{opacity:1}
+@media (hover:none){.drop.filled .zoom,.drop.filled .x{opacity:1}}
+
+/* fields & chips */
+.field{width:100%;border:1px solid transparent;border-radius:14px;padding:12px 14px;background:var(--soft);outline:none;resize:none}
+.field:focus{background:#FDFDF9;border-color:var(--ink);box-shadow:0 0 0 4px var(--y2)}
+.field.small{padding:9px 12px;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{border:1px solid var(--line);border-radius:99px;padding:6px 13px;font-size:12.5px;background:#FDFDF9;transition:.12s}
+.chip:hover{background:var(--y2);border-color:transparent}
+.chip.on{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:6px}
+.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.seg{display:inline-flex;background:var(--soft);border-radius:99px;padding:3px}
+.seg button{padding:5px 13px;border-radius:99px;font-size:12.5px;color:var(--muted)}
+.seg button.on{background:#FDFDF9;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.sidetabs{margin-bottom:10px}
+.sidetabs button.on{background:var(--ink);color:#FDFDF9}
+.sidetabs button .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--y);margin-left:6px;vertical-align:middle}
+.subhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;flex-wrap:wrap}
+
+/* body */
+.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.preset{border:1px solid var(--line);border-radius:14px;padding:8px 4px 6px;background:#FDFDF9;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;transition:.12s}
+.preset svg{width:32px;height:32px}
+.preset:hover{background:var(--y2);border-color:transparent}
+.preset.on{background:var(--y2);border-color:var(--ink)}
+.colorRow{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.swatches{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sw{width:26px;height:26px;border-radius:50%;border:1px solid rgba(0,0,0,.15);position:relative}
+.sw.on::after{content:"";position:absolute;inset:-4px;border:1.5px solid var(--ink);border-radius:50%}
+.sw-pill{border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;background:#FDFDF9}
+.sw-pill.on{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
+.sw-custom{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:3px 11px 3px 4px;font-size:12px;background:#FDFDF9;cursor:pointer}
+.sw-custom input{width:20px;height:20px;border:0;border-radius:50%;padding:0;background:none;cursor:pointer}
+.sw-custom input::-webkit-color-swatch-wrapper{padding:0}.sw-custom input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.sw-custom.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+
+/* distress */
+.step.nodrop{grid-template-columns:1fr}
+.dis-off .dis-more{opacity:.4;pointer-events:none}
+
+/* global */
+.global{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px}
+.global h3{font-size:16px;font-weight:600;margin-bottom:10px}
+.qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}
+.create{margin-top:14px;width:100%;background:var(--y);color:var(--ink);border-radius:99px;padding:17px;font-weight:600;letter-spacing:.16em;font-size:14px;transition:.15s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(254,227,43,.35)}
+.create:hover{background:var(--ink);color:var(--y)}
+.create:disabled{opacity:.5;cursor:not-allowed}
+.create small{font-weight:400;letter-spacing:0;opacity:.65;font-size:11.5px}
+
+/* output */
+.output{position:sticky;top:96px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:26px;padding:24px;min-height:640px;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(32,29,24,.04),0 20px 50px -30px rgba(32,29,24,.25)}
+.out-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.out-head h2{font-size:13px;font-weight:600;letter-spacing:.2em}
+.recipe{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.recipe span{font-size:11px;background:var(--soft);border-radius:99px;padding:4px 11px}
+.empty{flex:1;background:var(--soft);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}
+.empty .eq{font-size:13px;color:var(--ink);font-weight:500;margin:14px 0 6px;letter-spacing:.06em}
+.hero{flex:1;background:var(--soft);border-radius:20px;position:relative;display:flex;align-items:center;justify-content:center;min-height:420px;overflow:hidden}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.thumb{background:var(--soft);border-radius:14px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:2px solid transparent;overflow:hidden;position:relative}
+.thumb:hover{background:var(--y2)}
+.thumb.on{border-color:var(--ink);background:var(--y2)}
+.thumb .tag{position:absolute;left:6px;bottom:6px;font-size:9.5px;font-weight:600;letter-spacing:.06em;background:#FDFDF9;border-radius:99px;padding:1px 7px;text-transform:uppercase;z-index:2}
+.gen{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.gen img{width:100%;height:100%;object-fit:contain;display:block}
+.hero .gen{position:absolute;inset:0;cursor:zoom-in}
+.thumb .gen img{object-fit:cover}
+.gar{position:relative}
+.thumb .gar{width:78%}
+.hero .gar{width:min(74%,420px)}
+.gar svg{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 18px rgba(0,0,0,.10))}
+.gar .art{position:absolute;object-fit:contain}
+.vlabel{position:absolute;top:12px;left:12px;font-size:11px;background:var(--card);border-radius:99px;padding:3px 10px;z-index:2}
+.noside{color:var(--muted);font-size:13px;padding:24px;text-align:center;max-width:280px}
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.actions.primary{margin-top:10px}
+.actions.primary .btn{flex:1;padding:13px 16px;font-size:14px}
+.btn{border:1px solid var(--line);background:#FDFDF9;border-radius:99px;padding:9px 16px;font-size:13px;font-weight:500;text-align:center}
+.btn:hover{background:var(--y2);border-color:transparent}
+.btn.dark{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
+.btn.dark:hover{background:var(--accent);border-color:var(--accent)}
+.btn.y{background:var(--y);border-color:var(--y);font-weight:600}
+.btn.y:hover{background:var(--ink);color:var(--y);border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+#saveV.on{background:var(--ink);color:var(--y);border-color:var(--ink)}
+
+/* spool loader */
+.spin{flex:1;min-height:460px;background:var(--y);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;overflow:hidden}
+.spool-art{width:min(320px,80%);height:auto;margin-bottom:18px}
+.spool-rot{transform-origin:110px 100px;animation:spoolTurn 1.6s linear infinite}
+.wind{animation:windDrift 1.6s linear infinite}
+.thread{stroke-dasharray:6 6;animation:threadRun .6s linear infinite}
+.stitch{animation:stitchRun 1.2s linear infinite}
+.needle{animation:needleUp .6s ease-in-out infinite}
+@keyframes spoolTurn{50%{transform:scaleX(.92)}}
+@keyframes windDrift{to{transform:translateY(12px)}}
+@keyframes threadRun{to{stroke-dashoffset:-12}}
+@keyframes stitchRun{to{stroke-dashoffset:-42}}
+@keyframes needleUp{50%{transform:translateY(-14px)}}
+.spin-k{font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;opacity:.65}
+.spin-h{font-size:clamp(26px,3vw,36px);font-weight:600;letter-spacing:-.03em;text-transform:uppercase;line-height:1;margin:8px 0 12px}
+.spin-step{font-size:15px;min-height:22px}
+.spin-bar{width:min(280px,80%);height:4px;border-radius:99px;background:rgba(32,29,24,.15);margin:18px auto 10px;overflow:hidden}
+.spin-bar i{display:block;height:100%;width:0;background:var(--ink);border-radius:99px;transition:width 1s linear}
+.spin-t{font-size:12px;opacity:.7}
+.fail{flex:1;min-height:320px;background:var(--soft);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:30px}
+.fail p{color:var(--muted);max-width:320px}
+@media (prefers-reduced-motion:reduce){.spool-rot,.wind,.thread,.stitch,.needle{animation:none}}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:50;background:rgba(32,29,24,.82);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s}
+.lb.open{opacity:1;pointer-events:auto}
+.lb img{max-width:min(92vw,1100px);max-height:80vh;object-fit:contain;border-radius:16px;background:#FDFDF9;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.lb-cap{color:#FDFDF9;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+.lb-x{position:absolute;top:18px;right:18px;width:42px;height:42px;border-radius:50%;background:#FDFDF9;font-size:20px}
+.lb-x:hover{background:var(--y)}
+
+/* saved / recent */
+.mine{max-width:1360px;margin:0 auto;padding:0 32px 72px}
+.mine-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:32px;margin-bottom:18px}
+.mine-head h2{font-size:26px;font-weight:600;letter-spacing:-.02em}
+.mine-head p{color:var(--muted);font-size:13px;margin-top:4px}
+.mine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.mine-card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;cursor:pointer;transition:.15s;position:relative}
+.mine-card:hover{border-color:var(--ink);transform:translateY(-2px)}
+.mine-card.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.mine-thumb{aspect-ratio:1;background:var(--soft);display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+.mine-thumb.one{grid-template-columns:1fr}
+.mine-thumb img{width:100%;height:100%;object-fit:cover}
+.mine-thumb .gen,.mine-thumb .gar{align-self:center;justify-self:center}
+.mine-thumb .gar{width:70%}
+.mine-meta{padding:10px 12px 12px}
+.mine-meta b{display:block;font-size:13px;font-weight:600}
+.mine-meta small{color:var(--muted);font-size:11.5px}
+.mine-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(253,253,249,.92);font-size:13px;opacity:0;transition:.15s}
+.mine-card:hover .mine-del{opacity:1}
+.mine-del:hover{background:var(--y)}
+.mine-empty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:28px;border:1.5px dashed var(--line);border-radius:18px;text-align:center}
+@media (hover:none){.mine-del{opacity:1}}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#FDFDF9;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:960px){
+  header{padding:14px 16px}
+  main{grid-template-columns:1fr;padding:20px 16px 48px}
+  .output{position:static;min-height:0}
+  .hero{min-height:320px}
+  .mine{padding:0 16px 60px}
+}
+@media (max-width:520px){
+  .hdr-cta{display:none}
+  .intro{padding:24px 20px}
+  .step{grid-template-columns:1fr}
+  .slots{flex-direction:row;justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">← Back to blanks</a>
+  <a class="brand" href="index.html"><img src="../assets/spool-logo-1.png" alt="SPOOL"><span>Reference Studio</span></a>
+  <div class="hdr-cta"><a href="index.html#spool-blanks">Shop blanks</a></div>
+</header>
+
+<main>
+  <section>
+    <div class="intro">
+      <h1>Build from references.</h1>
+      <p>Front and back are designed together. Add a reference and a note for each side — every slot is optional.</p>
+    </div>
+
+    <!-- 01 GRAPHIC -->
+    <div class="step" data-step="graphic">
+      <div class="slots">
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="graphic-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="graphic-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+      </div>
+      <div>
+        <div class="step-head"><span class="num">01</span><span class="step-title">Graphic</span><span class="opt">Optional</span></div>
+        <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
+        <input class="field" data-note="graphic" placeholder="e.g. keep the logo, make it distressed, 2 colors max">
+        <div class="chips" data-pick="graphicUse">
+          <button class="chip on" data-v="full">Full artwork</button>
+          <button class="chip" data-v="logo">Logo only</button>
+          <button class="chip" data-v="style">Style only</button>
+          <button class="chip" data-v="colors">Colors only</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="plus">+</div>
+
+    <!-- 02 BODY -->
+    <div class="step" data-step="body">
+      <div class="slots">
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="body-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="body-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+      </div>
+      <div>
+        <div class="step-head"><span class="num">02</span><span class="step-title">Body</span></div>
+        <div class="seg" id="bodyMode"><button class="on" data-v="preset">SPOOL blank</button><button data-v="upload">My reference</button><button data-v="describe">Describe</button></div>
+        <div class="presets" id="presets"></div>
+        <div class="subhead"><div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div></div>
+        <input class="field" data-note="body" placeholder="Front: e.g. cut & sew color-block yoke, boxy fit, drop shoulder">
+        <div class="hint" id="bodyHint">Upload front and back body photos for cut & sew panels. Empty back = same construction as the front.</div>
+        <div class="colorRow">
+          <span class="lbl">Color</span>
+          <div class="swatches" id="colors"></div>
+          <div class="swatches">
+            <button class="sw-pill" id="colorMatch" title="Keep the color of your body reference">Match my reference</button>
+            <label class="sw-custom" title="Pick any color"><input type="color" id="colorPick" value="#c8102e"><span>Custom</span></label>
+          </div>
+          <input class="field small hidden" id="colorName" placeholder="Color name or Pantone, e.g. Forest green / PMS 19-4052">
+        </div>
+      </div>
+    </div>
+
+    <div class="plus">+</div>
+
+    <!-- 03 WASH -->
+    <div class="step" data-step="wash">
+      <div class="slots">
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="wash-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="wash-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+      </div>
+      <div>
+        <div class="step-head"><span class="num">03</span><span class="step-title">Wash</span><span class="opt">Optional</span></div>
+        <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
+        <input class="field" data-note="wash" placeholder="e.g. heavy sun fade, tonal overdye">
+        <div class="chips" data-pick="washType">
+          <button class="chip on" data-v="none">Clean</button>
+          <button class="chip" data-v="garment">Garment dye</button>
+          <button class="chip" data-v="pigment">Pigment dye</button>
+          <button class="chip" data-v="vintage">Vintage fade</button>
+          <button class="chip" data-v="acid">Acid wash</button>
+          <button class="chip" data-v="same">Same as front</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="plus">+</div>
+
+    <!-- 04 DISTRESS -->
+    <div class="step nodrop dis-off" data-step="distress" id="distressStep">
+      <div>
+        <div class="step-head"><span class="num">04</span><span class="step-title">Distress</span><span class="opt">Optional</span></div>
+        <div class="seg" id="disLevel"><button class="on" data-v="none">None</button><button data-v="light">Light</button><button data-v="heavy">Heavy</button></div>
+        <div class="dis-more">
+          <div class="chips" id="disWhere">
+            <button class="chip" data-v="neckline">Neckline</button>
+            <button class="chip" data-v="cuffs">Cuffs</button>
+            <button class="chip" data-v="hem">Hem</button>
+            <button class="chip" data-v="holes and rips">Holes &amp; rips</button>
+            <button class="chip" data-v="cracked print">Cracked print</button>
+            <button class="chip" data-v="frayed raw edges">Frayed edges</button>
+          </div>
+          <div class="subhead"><span class="lbl">Where</span><div class="seg" id="disSide"><button data-v="front">Front</button><button data-v="back">Back</button><button class="on" data-v="both">Both</button></div></div>
+          <input class="field" id="disNote" style="margin-top:10px" placeholder="e.g. small hole at left chest, shredded hem at back">
+          <div class="hint">Exact positions are marked later on the tech pack.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="global">
+      <h3>Overall direction</h3>
+      <textarea class="field" id="p-global" rows="2" placeholder="e.g. 90s skate, heavyweight, minimal, for a NYC streetwear drop"></textarea>
+    </div>
+
+    <div class="qrow"><span class="lbl">Quality</span>
+      <div class="seg" id="qualitySeg"><button class="on" data-v="low">Draft · cheaper</button><button data-v="medium">Final · sharper</button></div>
+    </div>
+    <button class="create" id="create">CREATE <small>2 designs · front + back</small></button>
+  </section>
+
+  <!-- RIGHT: output -->
+  <section class="output" id="output">
+    <div class="out-head">
+      <h2>FINAL DESIGN</h2>
+      <div class="seg hidden" id="viewSeg"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
+    </div>
+    <div class="recipe" id="recipe"></div>
+
+    <div class="empty" id="empty">
+      <svg width="64" height="64" viewBox="0 0 200 220" fill="none" stroke="#877928" stroke-width="5"><path d="M60 20 L85 12 Q100 24 115 12 L140 20 L180 50 L162 78 L145 68 L145 205 L55 205 L55 68 L38 78 L20 50 Z"/></svg>
+      <div class="eq">FRONT + BACK</div>
+      <div>Add your references and hit Create.<br>You'll get 2 designs, each with a front and a back.</div>
+    </div>
+
+    <div class="spin hidden" id="spin" role="status" aria-live="polite">
+      <svg class="spool-art" viewBox="0 0 320 200" aria-hidden="true">
+        <g class="spool-rot">
+          <rect x="70" y="40" width="80" height="12" rx="6" fill="#201D18"/>
+          <rect x="70" y="148" width="80" height="12" rx="6" fill="#201D18"/>
+          <rect x="82" y="52" width="56" height="96" fill="#FDFDF9"/>
+          <g stroke="#201D18" stroke-width="3" class="wind">
+            <line x1="82" y1="62" x2="138" y2="70"/><line x1="82" y1="74" x2="138" y2="82"/><line x1="82" y1="86" x2="138" y2="94"/>
+            <line x1="82" y1="98" x2="138" y2="106"/><line x1="82" y1="110" x2="138" y2="118"/><line x1="82" y1="122" x2="138" y2="130"/><line x1="82" y1="134" x2="138" y2="142"/>
+          </g>
+        </g>
+        <path class="thread" d="M138 96 C 180 96, 190 150, 230 150 L 300 150" fill="none" stroke="#201D18" stroke-width="3"/>
+        <path class="stitch" d="M150 178 L 304 178" fill="none" stroke="#201D18" stroke-width="4" stroke-dasharray="12 9"/>
+        <g class="needle"><line x1="300" y1="118" x2="300" y2="178" stroke="#201D18" stroke-width="3"/><circle cx="300" cy="124" r="3" fill="#FDFDF9" stroke="#201D18" stroke-width="2"/></g>
+      </svg>
+      <div class="spin-k">SPOOL is working</div>
+      <div class="spin-h">Spinning your design</div>
+      <div class="spin-step" id="spinStep">Reading your references</div>
+      <div class="spin-bar"><i id="spinBar"></i></div>
+      <div class="spin-t"><span id="spinTime">0:00</span> · front + back, about 1–2 min</div>
+    </div>
+
+    <div class="fail hidden" id="fail">
+      <div class="spin-h" style="font-size:22px">Thread snapped.</div>
+      <p>The AI couldn't finish this one. Nothing was saved — try again.</p>
+      <button class="btn dark" id="retry">Try again</button>
+    </div>
+
+    <div class="hidden" id="result" style="display:flex;flex-direction:column;flex:1">
+      <div class="hero" id="hero"><span class="vlabel" id="vlabel">Design 1</span></div>
+      <div class="thumbs" id="thumbs"></div>
+      <div class="actions">
+        <button class="btn" id="saveV">☆ Save</button>
+        <button class="btn" id="download">Download</button>
+        <button class="btn" id="regen">↻ Regenerate</button>
+      </div>
+      <div class="actions primary">
+        <button class="btn y" id="editDesign" title="Open this design (front + back) in the SPOOL design editor">Edit design →</button>
+        <button class="btn dark" id="sample">Request sample →</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="mine" id="saved">
+  <div class="mine-head">
+    <div><h2>Saved</h2><p>Designs you starred. Click one to open it again.</p></div>
+  </div>
+  <div class="mine-grid" id="savedGrid"></div>
+</section>
+
+<section class="mine" id="mine">
+  <div class="mine-head">
+    <div><h2>Recent</h2><p>Every Create is kept automatically (last 40), in this browser only.</p></div>
+    <button class="btn" id="newDesign">+ New design</button>
+  </div>
+  <div class="mine-grid" id="mineGrid"></div>
+</section>
+
+<div class="toast" id="toast"></div>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image preview"><button class="lb-x" id="lbX" aria-label="Close">✕</button><img id="lbImg" alt=""><div class="lb-cap" id="lbCap"></div></div>
+
+<script>
+/* ============================================================
+   SPOOL Reference Studio — front + back design from references
+   ============================================================ */
+const AI_ENDPOINT = 'https://spool-studio-ai.chrishwang0327.workers.dev';
+
+const BODIES = {
+  tee:{name:'Tee',top:true,path:'M60 20 L85 12 Q100 24 115 12 L140 20 L180 50 L162 78 L145 68 L145 205 L55 205 L55 68 L38 78 L20 50 Z',detail:'M85 12 Q100 30 115 12'},
+  hoodie:{name:'Hoodie',top:true,path:'M68 44 Q66 8 100 6 Q134 8 132 44 L150 50 L178 160 L158 166 L146 100 L146 205 L54 205 L54 100 L42 166 L22 160 L50 50 Z',detail:'M80 44 Q100 62 120 44 M72 150 L128 150 L136 185 L64 185 Z'},
+  zip:{name:'Zip hood',top:true,path:'M68 44 Q66 8 100 6 Q134 8 132 44 L150 50 L178 160 L158 166 L146 100 L146 205 L54 205 L54 100 L42 166 L22 160 L50 50 Z',detail:'M80 44 Q100 62 120 44 M100 56 L100 205'},
+  crew:{name:'Crewneck',top:true,path:'M60 22 L85 14 Q100 26 115 14 L140 22 L176 158 L156 164 L145 82 L145 205 L55 205 L55 82 L44 164 L24 158 Z',detail:'M85 14 Q100 32 115 14 M55 195 L145 195'},
+  trucker:{name:'Trucker',top:true,path:'M60 22 L82 12 L100 30 L118 12 L140 22 L176 160 L156 166 L146 84 L146 200 L54 200 L54 84 L44 166 L24 160 Z',detail:'M82 12 L92 44 L100 30 L108 44 L118 12 M100 30 L100 200'},
+  sweatpant:{name:'Sweatpant',top:false,path:'M58 12 L142 12 L152 196 Q150 206 140 206 L112 206 L100 72 L88 206 L60 206 Q50 206 48 196 Z',detail:'M58 24 L142 24'},
+  denim:{name:'5-Pocket',top:false,path:'M62 12 L138 12 L148 206 L112 206 L100 70 L88 206 L52 206 Z',detail:'M62 24 L138 24 M100 24 L100 62'},
+  shorts:{name:'Shorts',top:false,path:'M56 30 L144 30 L156 138 L110 142 L100 84 L90 142 L44 138 Z',detail:'M56 42 L144 42'}
+};
+const COLORS=[['#f2efe6','Natural'],['#ffffff','White'],['#1c1c1c','Black'],['#8f8f8a','Heather grey'],['#2f3a4f','Navy'],['#5a6146','Olive'],['#7a5338','Brown'],['#b4c2cf','Sky blue']];
+const GARMENT_WORDS={tee:'short-sleeve crewneck t-shirt',hoodie:'pullover hoodie with kangaroo pocket',zip:'full-zip hoodie',crew:'crewneck sweatshirt',trucker:'trucker jacket',sweatpant:'sweatpants',denim:'5-pocket jeans',shorts:'shorts'};
+const USE_WORDS={full:'reproduce the full printed artwork faithfully',logo:'use only the logo / wordmark from it',style:'use only its illustration style and mood — create new artwork',colors:'use only its color palette — create new artwork'};
+const WASH_WORDS={none:'clean, new',garment:'garment-dyed',pigment:'pigment-dyed with soft uneven color',vintage:'vintage sun-faded',acid:'acid-washed'};
+const SIDES=['front','back'];
+
+const blankSide=()=>({graphicUse:'full',washType:'none',note:{graphic:'',body:'',wash:''}});
+const state={
+  refs:{},                                  // 'graphic-front', 'body-back', ...
+  tab:{graphic:'front',body:'front',wash:'front'},
+  front:blankSide(), back:{...blankSide(),washType:'same'},
+  bodyMode:'preset', body:'hoodie', color:COLORS[0][0], colorName:'',
+  distress:{level:'none',where:[],side:'both',note:''},
+  direction:'', quality:'low',
+  variations:[], active:0, view:'front'
+};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400)};
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+function shade(hex,amt){let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;const f=v=>Math.max(0,Math.min(255,Math.round(v+amt)));return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join('');}
+const lum=hex=>{let n=parseInt(hex.slice(1),16);return (.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255};
+const isHex=c=>/^#[0-9a-f]{6}$/i.test(c||'');
+function garmentSVG(key,fill,small){
+  const b=BODIES[key]||BODIES.tee; fill=isHex(fill)?fill:'#f2efe6'; const stroke=lum(fill)<.35?shade(fill,55):shade(fill,-55);
+  return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg"><path d="${b.path}" fill="${fill}" stroke="${stroke}" stroke-width="${small?2.5:1.6}" stroke-linejoin="round"/><path d="${b.detail}" fill="none" stroke="${stroke}" stroke-width="${small?2:1.2}" opacity=".8"/></svg>`;
+}
+function shrink(dataUrl,max=1024){return new Promise(res=>{const i=new Image();i.onload=()=>{const s=Math.min(1,max/Math.max(i.width,i.height));const c=document.createElement('canvas');c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.88));};i.onerror=()=>res(null);i.src=dataUrl;});}
+function presetPNG(key,color){return shrink('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(garmentSVG(key,color,false).replace('<svg ','<svg width="800" height="880" ')),900);}
+function colorText(){ if(state.color==='match') return 'keep the exact color of the body reference';
+  const c=COLORS.find(x=>x[0]===state.color); return c?c[1]:(state.colorName?`${state.colorName} (${state.color})`:state.color); }
+function bodyName(){ return state.bodyMode==='preset'?BODIES[state.body].name:state.bodyMode==='upload'?'Custom body':'Described body'; }
+
+/* ---------- presets & color ---------- */
+const presetsEl=$('#presets');
+Object.entries(BODIES).forEach(([k,b])=>{
+  const el=document.createElement('button'); el.className='preset'+(k===state.body?' on':''); el.dataset.v=k;
+  el.innerHTML=garmentSVG(k,'#f2efe6',true)+b.name;
+  el.onclick=()=>{state.body=k;$$('.preset').forEach(p=>p.classList.toggle('on',p===el));saveDraft();};
+  presetsEl.appendChild(el);
+});
+const colorsEl=$('#colors');
+COLORS.forEach(([c,n])=>{const el=document.createElement('button');el.className='sw';el.style.background=c;el.title=n;el.onclick=()=>setColor(c);colorsEl.appendChild(el);});
+function setColor(c){
+  state.color=c;
+  colorsEl.querySelectorAll('.sw').forEach((s,i)=>s.classList.toggle('on',COLORS[i][0]===c));
+  $('#colorMatch').classList.toggle('on',c==='match');
+  const custom=c!=='match'&&!COLORS.some(x=>x[0]===c);
+  $('.sw-custom').classList.toggle('on',custom); $('#colorName').classList.toggle('hidden',!custom);
+  if(custom) $('#colorPick').value=c;
+}
+$('#colorMatch').onclick=()=>setColor('match');
+$('#colorPick').addEventListener('input',e=>setColor(e.target.value));
+$('#colorPick').addEventListener('click',()=>setColor($('#colorPick').value));
+$('#colorName').addEventListener('input',e=>state.colorName=e.target.value);
+setColor(state.color);
+
+/* ---------- per-step Front/Back tabs ---------- */
+function stepEl(step){return document.querySelector(`.step[data-step=${step}]`);}
+function syncStep(step){
+  const el=stepEl(step), side=state.tab[step], S=state[side];
+  el.querySelectorAll('.sidetabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===side));
+  el.querySelectorAll('.slot').forEach(s=>s.classList.toggle('cur',s.dataset.side===side));
+  const note=el.querySelector('[data-note]');
+  if(note){ note.value=S.note[step]||''; note.placeholder=NOTE_PH[step][side]; }
+  const chips=el.querySelector('[data-pick]');
+  if(chips){ const key=chips.dataset.pick;
+    chips.querySelectorAll('.chip').forEach(c=>{ c.classList.toggle('on',c.dataset.v===S[key]); if(c.dataset.v==='same') c.classList.toggle('hidden',side==='front'); }); }
+  // dot = this side has content
+  el.querySelectorAll('.sidetabs button').forEach(b=>{ const s=b.dataset.v; const has=!!(state.refs[`${step}-${s}`]||state[s].note[step]);
+    b.querySelector('.dot')?.remove(); if(has&&s!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>'); });
+}
+const NOTE_PH={
+  graphic:{front:'Front: e.g. keep the logo, distressed, 2 colors max',back:'Back: e.g. big logo across the upper back'},
+  body:{front:'Front: e.g. cut & sew color-block yoke, boxy fit, drop shoulder',back:'Back: e.g. contrast back panel, no seam — or leave empty'},
+  wash:{front:'Front: e.g. heavy sun fade, tonal overdye',back:'Back: e.g. different dye than the front — or Same as front'}
+};
+['graphic','body','wash'].forEach(step=>{
+  const el=stepEl(step);
+  el.querySelectorAll('.sidetabs').forEach(seg=>seg.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.tab[step]=b.dataset.v; syncStep(step);}));
+  el.querySelector('[data-note]').addEventListener('input',e=>{state[state.tab[step]].note[step]=e.target.value; saveDraft();});
+  const chips=el.querySelector('[data-pick]');
+  if(chips) chips.addEventListener('click',e=>{const c=e.target.closest('.chip'); if(!c) return; state[state.tab[step]][chips.dataset.pick]=c.dataset.v; syncStep(step); saveDraft();});
+  syncStep(step);
+});
+
+/* ---------- body mode ---------- */
+const bodyHints={
+  preset:'Start from a SPOOL blank. Upload front/back body photos for cut & sew panels. Empty back = same construction as the front.',
+  upload:'Upload the front (and back) of the body you want. Notes say what to change.',
+  describe:'Describe the body from scratch in the notes: garment type, fit, length, panels.'
+};
+function setBodyMode(m){ state.bodyMode=m; $$('#bodyMode button').forEach(x=>x.classList.toggle('on',x.dataset.v===m));
+  presetsEl.classList.toggle('hidden',m!=='preset'); $('#bodyHint').textContent=bodyHints[m]; }
+$('#bodyMode').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; setBodyMode(b.dataset.v); saveDraft();});
+
+/* ---------- distress ---------- */
+function syncDistress(){
+  const d=state.distress;
+  $$('#disLevel button').forEach(b=>b.classList.toggle('on',b.dataset.v===d.level));
+  $$('#disSide button').forEach(b=>b.classList.toggle('on',b.dataset.v===d.side));
+  $$('#disWhere .chip').forEach(c=>c.classList.toggle('on',d.where.includes(c.dataset.v)));
+  $('#disNote').value=d.note||''; $('#distressStep').classList.toggle('dis-off',d.level==='none');
+}
+$('#disLevel').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.distress.level=b.dataset.v; syncDistress(); saveDraft();});
+$('#disSide').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.distress.side=b.dataset.v; syncDistress(); saveDraft();});
+$('#disWhere').addEventListener('click',e=>{const c=e.target.closest('.chip'); if(!c) return; const w=state.distress.where, v=c.dataset.v; const i=w.indexOf(v); i<0?w.push(v):w.splice(i,1); syncDistress(); saveDraft();});
+$('#disNote').addEventListener('input',e=>{state.distress.note=e.target.value; saveDraft();});
+
+$('#p-global').addEventListener('input',e=>{state.direction=e.target.value; saveDraft();});
+$('#qualitySeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.quality=b.dataset.v; $$('#qualitySeg button').forEach(x=>x.classList.toggle('on',x===b)); saveDraft();});
+
+/* ---------- uploads ---------- */
+function applyRef(slot,url){
+  const d=document.querySelector(`.drop[data-slot="${slot}"]`); if(!d) return; state.refs[slot]=url||null;
+  d.querySelector('img')?.remove(); d.classList.toggle('filled',!!url);
+  if(url){ const img=new Image(); img.src=url; d.prepend(img); }
+}
+$$('.drop').forEach(d=>{
+  const slot=d.dataset.slot, [step,side]=slot.split('-'), input=d.querySelector('input');
+  const z=document.createElement('span'); z.className='zoom'; z.textContent='+'; d.appendChild(z);
+  const load=file=>{
+    if(!file||!file.type.startsWith('image/')) return toast('Please use an image file');
+    const r=new FileReader();
+    r.onload=()=>{ applyRef(slot,r.result); state.tab[step]=side; syncStep(step);
+      if(step==='body'&&side==='front'&&state.bodyMode==='preset') setBodyMode('upload');
+      saveDraft(); };
+    r.readAsDataURL(file);
+  };
+  input.onchange=()=>load(input.files[0]);
+  ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over')}));
+  ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('over')}));
+  d.addEventListener('drop',e=>load(e.dataTransfer.files[0]));
+  d.addEventListener('click',e=>{
+    if(!d.classList.contains('filled')){ state.tab[step]=side; syncStep(step); return; }
+    e.preventDefault();
+    if(e.target.closest('.x')){ applyRef(slot,null); input.value=''; syncStep(step); saveDraft(); return; }
+    openLB(state.refs[slot],`${cap(step)} · ${side}`);
+  });
+});
+
+/* ---------- lightbox ---------- */
+const lb=$('#lb');
+function openLB(src,c){ if(!src) return; $('#lbImg').src=src; $('#lbCap').textContent=c||''; lb.classList.add('open'); }
+lb.addEventListener('click',e=>{ if(e.target!==$('#lbImg')) lb.classList.remove('open'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') lb.classList.remove('open'); });
+
+/* ---------- prompts ---------- */
+function frontJob(){
+  const images=[], L=[], add=(url,line)=>{ images.push(url); L.push(`Reference image ${images.length} ${line}`); };
+  const garment=state.bodyMode==='preset'?GARMENT_WORDS[state.body]:'garment';
+  L.push(`Create a professional e-commerce product photo of ONE ${garment}, FRONT view, laid flat / ghost-mannequin style, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.`);
+  const F=state.front;
+  return (async()=>{
+    if(state.refs['graphic-front']) add(await shrink(state.refs['graphic-front']),`is the FRONT GRAPHIC: ${USE_WORDS[F.graphicUse]}. If it shows a person or a garment, extract ONLY the printed artwork and ignore the person and that garment. Place it on the front (chest / center front) unless the notes say otherwise.`);
+    if(state.refs['body-front']) add(await shrink(state.refs['body-front']),'is the BODY reference (front): match its garment type, silhouette, fit, panels and cut & sew construction.');
+    else if(state.bodyMode==='preset') add(await presetPNG(state.body,state.color),'is a simple flat sketch of the garment type — render it as a real garment.');
+    if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH reference: copy its wash, dye and fabric finish only.');
+    if(state.bodyMode==='describe'&&F.note.body) L.push(`Garment: ${F.note.body}.`); else if(F.note.body) L.push(`Front construction: ${F.note.body}.`);
+    if(F.note.graphic) L.push(`Front graphic notes: ${F.note.graphic}.`);
+    if(!state.refs['graphic-front']&&!F.note.graphic) L.push('No print on the front.');
+    L.push(`Garment base color: ${colorText()}.`);
+    L.push(`Wash: ${WASH_WORDS[F.washType]||'clean'}${F.note.wash?', '+F.note.wash:''}.`);
+    const d=state.distress; if(d.level!=='none'&&d.side!=='back') L.push(`Distressing (${d.level})${d.where.length?' at '+d.where.join(', '):''}${d.note?' — '+d.note:''}.`);
+    if(state.direction) L.push(`Overall direction: ${state.direction}.`);
+    L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
+    return {prompt:L.join('\n'),images:images.filter(Boolean)};
+  })();
+}
+async function backJob(frontUrl){
+  const images=[await shrink(frontUrl,1024)], L=[], add=(url,line)=>{ if(!url) return; images.push(url); L.push(`Reference image ${images.length} ${line}`); };
+  const B=state.back, F=state.front;
+  L.push('Reference image 1 shows the FRONT of a garment. Create a professional e-commerce product photo of the BACK view of this exact same garment — same garment type, base color, fabric, fit and proportions — laid flat / ghost-mannequin style, back facing the camera, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.');
+  if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK GRAPHIC: ${USE_WORDS[B.graphicUse]}. Extract only the printed artwork, ignore any person or garment in it. Print it large across the upper back unless the notes say otherwise.`);
+  if(state.refs['body-back']) add(await shrink(state.refs['body-back']),'is the BACK BODY reference: match its back panels, seams and cut & sew construction.');
+  const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?state.refs['wash-front']:state.refs['wash-back'];
+  if(washRef) add(await shrink(washRef),'is the WASH reference for the back: copy its wash, dye and finish only.');
+  if(B.note.body) L.push(`Back construction: ${B.note.body}.`); else if(!state.refs['body-back']) L.push('Back construction: same as the front, no extra panels.');
+  if(B.note.graphic) L.push(`Back graphic notes: ${B.note.graphic}.`);
+  if(!state.refs['graphic-back']&&!B.note.graphic) L.push('Plain back — no print.');
+  L.push(`Back wash: ${WASH_WORDS[washType]||'clean'}${B.note.wash?', '+B.note.wash:(B.washType==='same'&&F.note.wash?', '+F.note.wash:'')}.`);
+  const d=state.distress; if(d.level!=='none'&&d.side!=='front') L.push(`Distressing (${d.level})${d.where.length?' at '+d.where.join(', '):''}${d.note?' — '+d.note:''}.`);
+  if(state.direction) L.push(`Overall direction: ${state.direction}.`);
+  L.push('Realistic fabric, sharp print detail, square image.');
+  return {prompt:L.join('\n'),images};
+}
+async function callAI(body){
+  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quality:state.quality,...body,images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
+  const d=await r.json(); if(!r.ok||!d.images?.length) throw new Error(d.error||'No images'); if(d.errors?.length) console.warn('AI partial errors',d.errors); return d.images;
+}
+async function generate(){
+  if(!AI_ENDPOINT){ await new Promise(r=>setTimeout(r,1200)); return mockVariations(); }
+  const fronts=await callAI({...(await frontJob()),n:2});
+  setSpinPhase('Front done — now the back');
+  const backs=await Promise.all(fronts.slice(0,2).map(async f=>{
+    try{ const job=await backJob(f.src); return (await callAI({...job,n:1,provider:f.provider==='Gemini'?'gemini':'openai'}))[0]?.src||null; }
+    catch(e){ console.warn('back failed',e); return null; }
+  }));
+  return fronts.slice(0,2).map((f,i)=>({front:f.src,back:backs[i],provider:f.provider}));
+}
+function mockVariations(){ return [0,1].map(i=>({mock:true,body:state.bodyMode==='preset'?state.body:'tee',color:isHex(state.color)?shade(state.color,[0,-22][i]):'#f2efe6'})); }
+
+/* ---------- render ---------- */
+function viewEl(v,side,big){
+  const w=document.createElement('div');
+  if(v.mock){ w.className='gar'; w.innerHTML=garmentSVG(v.body,v.color,!big);
+    const art=state.refs[`graphic-${side}`]; if(art&&BODIES[v.body].top){ const i=new Image(); i.src=art; i.className='art'; Object.assign(i.style,{width:(side==='back'?40:28)+'%',left:(side==='back'?30:36)+'%',top:(side==='back'?28:30)+'%'}); w.appendChild(i);} return w; }
+  w.className='gen'; const src=v[side];
+  if(src){ const i=new Image(); i.src=src; i.alt=`${cap(side)} view`; w.appendChild(i); }
+  else w.innerHTML=`<div class="noside">The ${side} didn’t come through. Hit Regenerate.</div>`;
+  return w;
+}
+function render(){
+  const v=state.variations[state.active]; if(!v) return;
+  const hero=$('#hero'); hero.querySelector('.gen,.gar')?.remove(); hero.appendChild(viewEl(v,state.view,true));
+  $('#vlabel').textContent=`Design ${state.active+1}${v.provider?' · '+v.provider:''} · ${cap(state.view)}`;
+  $('#viewSeg').classList.remove('hidden'); $$('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.view));
+  const th=$('#thumbs'); th.innerHTML='';
+  state.variations.forEach((x,i)=>SIDES.forEach(side=>{
+    const t=document.createElement('button'); t.className='thumb'+(i===state.active&&side===state.view?' on':'');
+    t.appendChild(viewEl(x,side,false)); t.insertAdjacentHTML('beforeend',`<span class="tag">${i+1} · ${side}</span>`);
+    t.onclick=()=>{state.active=i;state.view=side;render();rememberActive();}; th.appendChild(t);
+  }));
+  updateSaveBtn();
+}
+$('#viewSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.view=b.dataset.v; render();});
+$('#hero').addEventListener('click',e=>{ const v=state.variations[state.active]; if(e.target.closest('.gen')&&v?.[state.view]) openLB(v[state.view],$('#vlabel').textContent); });
+function renderRecipe(){
+  const parts=[];
+  SIDES.forEach(s=>{ if(state.refs[`graphic-${s}`]||state[s].note.graphic) parts.push(`${cap(s)} graphic`); });
+  parts.push('Body: '+bodyName()); parts.push('Color: '+(state.color==='match'?'from reference':(COLORS.find(c=>c[0]===state.color)||[])[1]||state.colorName||state.color));
+  if(state.distress.level!=='none') parts.push('Distress: '+state.distress.level);
+  $('#recipe').innerHTML=parts.map(x=>`<span>${x.replace(/</g,'&lt;')}</span>`).join('');
+}
+
+/* ---------- create ---------- */
+const SPIN_STEPS=['Reading your references','Winding the thread','Cutting the pattern','Printing the front','Washing & finishing','Final stitch…'];
+let spinTimer=null, spinPhase=null;
+function setSpinPhase(t){ spinPhase=t; $('#spinStep').textContent=t; }
+function showSpin(on){
+  $('#spin').classList.toggle('hidden',!on); clearInterval(spinTimer); if(!on) return;
+  spinPhase=null; const t0=Date.now(); $('#spinStep').textContent=SPIN_STEPS[0]; $('#spinBar').style.width='2%';
+  spinTimer=setInterval(()=>{const s=(Date.now()-t0)/1000;
+    $('#spinTime').textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+    if(!spinPhase) $('#spinStep').textContent=SPIN_STEPS[Math.min(SPIN_STEPS.length-1,Math.floor(s/8))];
+    $('#spinBar').style.width=Math.min(95,2+s*0.9)+'%';},1000);
+}
+async function create(){
+  if(state.bodyMode==='upload'&&!state.refs['body-front']) return toast('Upload a front body reference, or pick a SPOOL blank');
+  if(state.bodyMode==='describe'&&!state.front.note.body) return toast('Describe the body in the front notes');
+  const btn=$('#create'); btn.disabled=true; btn.firstChild.textContent='SPINNING… ';
+  const prev=state.variations, prevRecipe=$('#recipe').innerHTML;
+  ['#empty','#result','#fail'].forEach(s=>$(s).classList.add('hidden')); $('#viewSeg').classList.add('hidden');
+  renderRecipe(); showSpin(true);
+  if(window.innerWidth<960) $('#output').scrollIntoView({behavior:'smooth'});
+  let out=null; try{ out=await generate(); }catch(e){ console.error(e); }
+  showSpin(false); btn.disabled=false; btn.firstChild.textContent='CREATE ';
+  if(!out){
+    if(prev.length){ state.variations=prev; $('#recipe').innerHTML=prevRecipe; $('#result').classList.remove('hidden'); render(); toast('The AI couldn’t finish — your last design is still here'); }
+    else $('#fail').classList.remove('hidden');
+    return;
+  }
+  state.variations=out; state.active=0; state.view='front';
+  $('#result').classList.remove('hidden'); render(); saveHistory();
+}
+$('#create').onclick=create; $('#regen').onclick=create; $('#retry').onclick=create;
+
+/* ---------- download / tech pack / sample ---------- */
+$('#download').onclick=()=>{
+  const v=state.variations[state.active]; if(!v) return;
+  if(v.mock) return toast('Connect the AI to download images');
+  const src=v[state.view]; if(!src) return toast(`No ${state.view} image`);
+  const a=document.createElement('a'); a.download=`spool-design-${state.active+1}-${state.view}.png`; a.href=src; a.click();
+};
+function specSummary(){
+  const s=k=>state[k], d=state.distress;
+  return {
+    body:bodyName(), garment:state.bodyMode==='preset'?state.body:'custom', color:state.color==='match'?'Match body reference':((COLORS.find(c=>c[0]===state.color)||[])[1]||state.colorName||state.color), colorHex:isHex(state.color)?state.color:null,
+    front:{graphic:s('front').note.graphic, graphicUse:s('front').graphicUse, body:s('front').note.body, wash:WASH_WORDS[s('front').washType], washNote:s('front').note.wash},
+    back:{graphic:s('back').note.graphic, graphicUse:s('back').graphicUse, body:s('back').note.body, wash:s('back').washType==='same'?'Same as front':WASH_WORDS[s('back').washType], washNote:s('back').note.wash},
+    distress:d.level==='none'?null:{level:d.level,where:d.where.slice(),side:d.side,note:d.note},
+    direction:state.direction
+  };
+}
+const EDITOR_BODY={tee:'tee',hoodie:'hoodie',zip:'fullzip',crew:'sweatshirt',trucker:'sweatshirt',sweatpant:'sweatpants',denim:'denim',shorts:'sweatpants'};
+$('#editDesign').onclick=async()=>{
+  const v=state.variations[state.active]; if(!v) return toast('Create a design first');
+  if(v.mock) return toast('Connect the AI first — the editor uses the real front/back images');
+  const key=state.bodyMode==='preset'?(EDITOR_BODY[state.body]||'tee'):'tee';
+  await DB.set('handoff',{key,ai:{front:v.front,back:v.back,provider:v.provider||''},items:[],spec:specSummary(),from:'reference-studio',at:Date.now()});
+  location.href='index.html?edit=reference';
+};
+$('#sample').onclick=()=>{
+  const sp=specSummary(), v=state.variations[state.active];
+  const body=['Hi SPOOL team,','','I would like a sample of this design:',
+    `- Body: ${sp.body}`,`- Color: ${sp.color}`,
+    `- Front: ${[sp.front.graphic,sp.front.body,sp.front.wash].filter(Boolean).join(' / ')||'—'}`,
+    `- Back: ${[sp.back.graphic,sp.back.body,sp.back.wash].filter(Boolean).join(' / ')||'—'}`,
+    sp.distress?`- Distress: ${sp.distress.level} ${sp.distress.where.join(', ')} (${sp.distress.side}) ${sp.distress.note||''}`:'',
+    sp.direction?`- Direction: ${sp.direction}`:'',`- Design: ${state.active+1}${v?.provider?' ('+v.provider+')':''}`,
+    '','(Downloaded front and back images attached)'].filter(Boolean).join('\n');
+  location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent('SPOOL sample request')+'&body='+encodeURIComponent(body);
+};
+
+/* ---------- browser saving (IndexedDB) ---------- */
+const DB=(()=>{let dbp;const open=()=>dbp||(dbp=new Promise((res,rej)=>{if(!window.indexedDB)return rej('no idb');const r=indexedDB.open('spool-ref-studio',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('designs',{keyPath:'id'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));
+  const tx=async(store,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(store,mode);const out=fn(t.objectStore(store));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn('save failed',e);return null;}};
+  return{get:k=>tx('kv','readonly',s=>s.get(k)),set:(k,v)=>tx('kv','readwrite',s=>s.put(v,k)),all:()=>tx('designs','readonly',s=>s.getAll()),put:v=>tx('designs','readwrite',s=>s.put(v)),del:id=>tx('designs','readwrite',s=>s.delete(id))};})();
+
+function snapshot(){ return JSON.parse(JSON.stringify({v:2,refs:state.refs,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,color:state.color,colorName:state.colorName,distress:state.distress,direction:state.direction,quality:state.quality,variations:state.variations,active:state.active,view:state.view,recipe:$('#recipe').innerHTML})); }
+let restoring=false, curId=null;
+function restore(s){
+  if(!s) return; restoring=true;
+  if(s.v!==2){ // older studio versions → keep what maps cleanly
+    s={v:2,refs:{'graphic-front':s.refs?.graphic||null,'body-front':s.refs?.body||null,'wash-front':s.refs?.wash||null},bodyMode:s.bodyMode,body:s.body,color:s.color,colorName:s.colorName,direction:s.notes?.global||'',
+      variations:(s.variations||[]).filter(v=>v.url).map(v=>({front:(v.side||'front')==='front'?v.url:v.other,back:(v.side||'front')==='back'?v.url:v.other,provider:v.provider})),active:0};
+  }
+  Object.keys(state.refs).forEach(k=>applyRef(k,null)); Object.entries(s.refs||{}).forEach(([k,u])=>applyRef(k,u));
+  state.front=Object.assign(blankSide(),s.front||{}); state.back=Object.assign({...blankSide(),washType:'same'},s.back||{});
+  state.front.note=Object.assign({graphic:'',body:'',wash:''},state.front.note); state.back.note=Object.assign({graphic:'',body:'',wash:''},state.back.note);
+  setBodyMode(s.bodyMode||'preset'); if(BODIES[s.body]){ state.body=s.body; $$('.preset').forEach(p=>p.classList.toggle('on',p.dataset.v===s.body)); }
+  setColor(s.color||COLORS[0][0]); state.colorName=s.colorName||''; $('#colorName').value=state.colorName;
+  state.distress=Object.assign({level:'none',where:[],side:'both',note:''},s.distress||{}); syncDistress();
+  state.direction=s.direction||''; $('#p-global').value=state.direction;
+  if(s.quality){ state.quality=s.quality; $$('#qualitySeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.quality)); }
+  ['graphic','body','wash'].forEach(syncStep);
+  state.variations=s.variations||[]; state.active=Math.min(s.active||0,Math.max(0,state.variations.length-1)); state.view=s.view||'front';
+  ['#fail','#spin'].forEach(x=>$(x).classList.add('hidden'));
+  if(state.variations.length){ $('#empty').classList.add('hidden'); $('#result').classList.remove('hidden'); $('#recipe').innerHTML=s.recipe||''; render(); }
+  else { $('#empty').classList.remove('hidden'); $('#result').classList.add('hidden'); $('#recipe').innerHTML=''; $('#viewSeg').classList.add('hidden'); }
+  restoring=false;
+}
+let draftT; function saveDraft(){ if(restoring) return; clearTimeout(draftT); draftT=setTimeout(()=>DB.set('draft2',{...snapshot(),curId}),400); }
+document.addEventListener('change',()=>setTimeout(saveDraft,200));
+async function saveHistory(){
+  const id=curId=Date.now();
+  await DB.put({id,name:bodyName(),date:id,...snapshot()});
+  const all=((await DB.all())||[]).filter(d=>d.type!=='saved').sort((a,b)=>b.id-a.id); for(const old of all.slice(40)) await DB.del(old.id);
+  saveDraft(); renderLists();
+}
+async function rememberActive(){ saveDraft(); if(!curId) return; const d=((await DB.all())||[]).find(x=>x.id===curId); if(d){ d.active=state.active; d.view=state.view; DB.put(d); } }
+
+/* ---------- Saved ★ ---------- */
+function updateSaveBtn(){ const v=state.variations[state.active]; const on=!!v?.savedId; $('#saveV').classList.toggle('on',on); $('#saveV').textContent=on?'★ Saved':'☆ Save'; }
+$('#saveV').onclick=async()=>{
+  const v=state.variations[state.active]; if(!v) return;
+  if(v.savedId){ await DB.del(v.savedId); v.savedId=null; toast('Removed from Saved'); }
+  else{ const id='s'+Date.now(); v.savedId=id; const snap=snapshot(); snap.variations=[{...v}]; snap.active=0;
+    await DB.put({id,type:'saved',name:bodyName(),date:Date.now(),...snap}); toast('Saved'); }
+  updateSaveBtn(); saveDraft(); if(curId){ const d=((await DB.all())||[]).find(x=>x.id===curId); if(d){ d.variations=state.variations; DB.put(d);} } renderLists();
+};
+
+function card(d,onOpen){
+  const c=document.createElement('div'); c.className='mine-card'+(d.id===curId?' on':''); c.tabIndex=0;
+  const v=(d.variations||[])[d.active||0];
+  const th=document.createElement('div'); th.className='mine-thumb'+(v&&!v.mock&&v.back?'':' one');
+  if(v){ if(v.mock) th.appendChild(viewEl(v,'front',false)); else SIDES.forEach(s=>{ if(v[s]){ const i=new Image(); i.src=v[s]; i.alt=s; th.appendChild(i);} }); }
+  const meta=document.createElement('div'); meta.className='mine-meta';
+  meta.innerHTML=`<b></b><small>${new Date(d.date).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${d.type==='saved'?'':' · '+(d.variations||[]).length+' designs'}</small>`;
+  meta.querySelector('b').textContent=d.name||'Design';
+  const del=document.createElement('button'); del.className='mine-del'; del.textContent='✕'; del.title='Delete';
+  del.onclick=async e=>{ e.stopPropagation(); if(!confirm(d.type==='saved'?'Remove from Saved?':'Delete this design?')) return; await DB.del(d.id);
+    if(curId===d.id) curId=null; state.variations.forEach(x=>{ if(x.savedId===d.id) x.savedId=null; }); updateSaveBtn(); renderLists(); };
+  c.onclick=onOpen; c.append(th,meta,del); return c;
+}
+async function renderLists(){
+  const all=(await DB.all())||[];
+  const saved=all.filter(d=>d.type==='saved').sort((a,b)=>b.date-a.date), recent=all.filter(d=>d.type!=='saved').sort((a,b)=>b.id-a.id);
+  const sg=$('#savedGrid'); sg.innerHTML=saved.length?'':'<div class="mine-empty">Tap ☆ Save under a design you like.</div>';
+  saved.forEach(d=>sg.appendChild(card(d,()=>{ curId=null; restore(d); saveDraft(); renderLists(); window.scrollTo({top:0,behavior:'smooth'}); })));
+  const mg=$('#mineGrid'); mg.innerHTML=recent.length?'':'<div class="mine-empty">Your designs will appear here after you hit Create.</div>';
+  recent.forEach(d=>mg.appendChild(card(d,()=>{ curId=d.id; restore(d); saveDraft(); renderLists(); window.scrollTo({top:0,behavior:'smooth'}); })));
+}
+$('#newDesign').onclick=()=>{ curId=null; restore({v:2,refs:{},variations:[]}); saveDraft(); renderLists(); window.scrollTo({top:0,behavior:'smooth'}); };
+
+/* ---------- start ---------- */
+(async()=>{
+  const q=new URLSearchParams(location.search);
+  const b=q.get('body'); const c=q.get('color');
+  const d=await DB.get('draft2');
+  if(d && !b){ curId=d.curId||null; restore(d); }
+  else if(!d && !b){ const old=await DB.get('draft'); if(old) restore(old); }
+  if(b&&BODIES[b]) presetsEl.querySelector(`[data-v=${b}]`).click();
+  if(c){ const hit=COLORS.find(x=>x[0]==='#'+c); if(hit) setColor(hit[0]); }
+  renderLists();
+})();
+</script>
+</body>
+</html>
