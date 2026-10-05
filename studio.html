@@ -289,26 +289,25 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       </div>
       <div>
         <div class="step-head"><span class="num">02</span><span class="step-title">Body</span></div>
-        <div class="seg" id="bodyMode"><button class="on" data-v="preset">SPOOL blank</button><button data-v="upload">My reference</button><button data-v="describe">Describe</button></div>
-        <div class="presets" id="presets"></div>
+        <div class="seg" id="bodyMode"><button class="on" data-v="upload">My reference</button><button data-v="describe">Describe</button></div>
         <div class="subhead"><div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div></div>
         <input class="field" data-note="body" placeholder="Front: e.g. forest green, cut & sew color-block yoke, boxy fit">
-        <div class="hint" id="bodyHint">Upload front and back body photos for cut & sew panels. Empty back = same construction as the front.</div>
+        <div class="hint" id="bodyHint">Upload the front (and back) of the body you want. Notes say what to change. Empty back = same construction as the front.</div>
       </div>
     </div>
 
     <div class="plus">+</div>
 
-    <!-- 03 WASH -->
+    <!-- 03 WASH & DISTRESS -->
     <div class="step" data-step="wash">
       <div class="slots">
         <div class="slot cur" data-side="front"><label class="drop" data-slot="wash-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
         <div class="slot" data-side="back"><label class="drop" data-slot="wash-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
-        <div class="step-head"><span class="num">03</span><span class="step-title">Wash</span><span class="opt">Optional</span></div>
+        <div class="step-head"><span class="num">03</span><span class="step-title">Wash &amp; Distress</span><span class="opt">Optional</span></div>
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
-        <input class="field" data-note="wash" placeholder="e.g. heavy sun fade, tonal overdye">
+        <div class="lbl" style="margin-top:4px">Wash</div>
         <div class="chips" data-pick="washType">
           <button class="chip on" data-v="none">Clean</button>
           <button class="chip" data-v="garment">Garment dye</button>
@@ -317,33 +316,46 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
           <button class="chip" data-v="acid">Acid wash</button>
           <button class="chip" data-v="same">Same as front</button>
         </div>
+        <div id="distressStep" class="dis-off">
+          <div class="lbl" style="margin-top:14px">Distress</div>
+          <div class="seg" id="disLevel" style="margin-top:8px"><button class="on" data-v="none">None</button><button data-v="light">Light</button><button data-v="heavy">Heavy</button></div>
+          <div class="dis-more">
+            <div class="chips" id="disWhere">
+              <button class="chip" data-v="neckline">Neckline</button>
+              <button class="chip" data-v="cuffs">Cuffs</button>
+              <button class="chip" data-v="hem">Hem</button>
+              <button class="chip" data-v="holes and rips">Holes &amp; rips</button>
+              <button class="chip" data-v="cracked print">Cracked print</button>
+              <button class="chip" data-v="frayed raw edges">Frayed edges</button>
+            </div>
+          </div>
+        </div>
+        <input class="field" data-note="wash" style="margin-top:12px" placeholder="Front: e.g. heavy sun fade, small hole at left chest">
+        <div class="hint">One photo can show both — e.g. a vintage tee with fading and holes.</div>
       </div>
     </div>
 
     <div class="plus">+</div>
 
-    <!-- 04 DISTRESS -->
-    <div class="step" data-step="distress" id="distressStep">
+    <!-- 04 TRIMS -->
+    <div class="step" data-step="trim">
       <div class="slots">
-        <div class="slot cur" data-side="front"><label class="drop" data-slot="distress-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
-        <div class="slot" data-side="back"><label class="drop" data-slot="distress-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="trim-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="trim-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
-        <div class="step-head"><span class="num">04</span><span class="step-title">Distress</span><span class="opt">Optional</span></div>
+        <div class="step-head"><span class="num">04</span><span class="step-title">Trims</span><span class="opt">Optional</span></div>
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
-        <div class="seg" id="disLevel"><button class="on" data-v="none">None</button><button data-v="light">Light</button><button data-v="heavy">Heavy</button></div>
-        <div class="dis-more">
-          <div class="chips" id="disWhere">
-            <button class="chip" data-v="neckline">Neckline</button>
-            <button class="chip" data-v="cuffs">Cuffs</button>
-            <button class="chip" data-v="hem">Hem</button>
-            <button class="chip" data-v="holes and rips">Holes &amp; rips</button>
-            <button class="chip" data-v="cracked print">Cracked print</button>
-            <button class="chip" data-v="frayed raw edges">Frayed edges</button>
-          </div>
-          <input class="field" id="disNote" style="margin-top:10px" placeholder="Front: e.g. small hole at left chest">
+        <div class="chips" data-pick="trimType">
+          <button class="chip on" data-v="none">None</button>
+          <button class="chip" data-v="studs">Studs</button>
+          <button class="chip" data-v="rhinestones">Rhinestones</button>
+          <button class="chip" data-v="patches">Patches</button>
+          <button class="chip" data-v="grommets">Grommets</button>
+          <button class="chip" data-v="chains">Chains</button>
         </div>
-        <div class="hint">Upload a photo of the distressing you want. Exact positions are marked later on the tech pack.</div>
+        <input class="field" data-note="trim" style="margin-top:12px" placeholder="Front: e.g. silver pyramid studs around the heart">
+        <div class="hint">Upload a photo of the trim you want. Exact count and size are set in the editor.</div>
       </div>
     </div>
 
@@ -468,16 +480,18 @@ const BODIES = {
 const COLORS=[['#f2efe6','Natural'],['#ffffff','White'],['#1c1c1c','Black'],['#8f8f8a','Heather grey'],['#2f3a4f','Navy'],['#5a6146','Olive'],['#7a5338','Brown'],['#b4c2cf','Sky blue']];
 const GARMENT_WORDS={tee:'short-sleeve crewneck t-shirt',hoodie:'pullover hoodie with kangaroo pocket',zip:'full-zip hoodie',crew:'crewneck sweatshirt',trucker:'trucker jacket',sweatpant:'sweatpants',denim:'5-pocket jeans',shorts:'shorts'};
 const USE_WORDS={full:'reproduce the full printed artwork faithfully',logo:'use only the logo / wordmark from it',style:'use only its illustration style and mood — create new artwork',colors:'use only its color palette — create new artwork'};
+const TRIM_WORDS={studs:'metal studs',rhinestones:'rhinestones',patches:'sewn-on patches',grommets:'metal grommets',chains:'metal chains'};
 const WASH_WORDS={none:'clean, new',garment:'garment-dyed',pigment:'pigment-dyed with soft uneven color',vintage:'vintage sun-faded',acid:'acid-washed'};
 const SIDES=['front','back'];
 
 const blankDis=()=>({level:'none',where:[],note:''});
-const blankSide=()=>({graphicUse:'full',washType:'none',note:{graphic:'',body:'',wash:''},dis:blankDis()});
+const blankNote=()=>({graphic:'',body:'',wash:'',trim:''});
+const blankSide=()=>({graphicUse:'full',washType:'none',trimType:'none',note:blankNote(),dis:blankDis()});
 const state={
   refs:{},                                  // 'graphic-front', 'body-back', ...
-  tab:{graphic:'front',body:'front',wash:'front',distress:'front'},
+  tab:{graphic:'front',body:'front',wash:'front',trim:'front'},
   front:blankSide(), back:{...blankSide(),washType:'same'},
-  bodyMode:'preset', body:'hoodie',
+  bodyMode:'upload', body:'tee',
   direction:'', quality:'low',
   variations:[], active:0, view:'front'
 };
@@ -493,18 +507,11 @@ function garmentSVG(key,fill,small){
   const b=BODIES[key]||BODIES.tee; fill=isHex(fill)?fill:'#f2efe6'; const stroke=lum(fill)<.35?shade(fill,55):shade(fill,-55);
   return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg"><path d="${b.path}" fill="${fill}" stroke="${stroke}" stroke-width="${small?2.5:1.6}" stroke-linejoin="round"/><path d="${b.detail}" fill="none" stroke="${stroke}" stroke-width="${small?2:1.2}" opacity=".8"/></svg>`;
 }
-function shrink(dataUrl,max=1024){return new Promise(res=>{const i=new Image();i.onload=()=>{const s=Math.min(1,max/Math.max(i.width,i.height));const c=document.createElement('canvas');c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.88));};i.onerror=()=>res(null);i.src=dataUrl;});}
+function shrink(dataUrl,max=768){return new Promise(res=>{const i=new Image();i.onload=()=>{const s=Math.min(1,max/Math.max(i.width,i.height));const c=document.createElement('canvas');c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.88));};i.onerror=()=>res(null);i.src=dataUrl;});}
 function presetPNG(key,color){return shrink('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(garmentSVG(key,color,false).replace('<svg ','<svg width="800" height="880" ')),900);}
 function bodyName(){ return state.bodyMode==='preset'?BODIES[state.body].name:state.bodyMode==='upload'?'Custom body':'Described body'; }
 
 /* ---------- presets ---------- */
-const presetsEl=$('#presets');
-Object.entries(BODIES).forEach(([k,b])=>{
-  const el=document.createElement('button'); el.className='preset'+(k===state.body?' on':''); el.dataset.v=k;
-  el.innerHTML=garmentSVG(k,'#f2efe6',true)+b.name;
-  el.onclick=()=>{state.body=k;$$('.preset').forEach(p=>p.classList.toggle('on',p===el));saveDraft();};
-  presetsEl.appendChild(el);
-});
 
 /* ---------- per-step Front/Back tabs ---------- */
 function stepEl(step){return document.querySelector(`.step[data-step=${step}]`);}
@@ -518,16 +525,17 @@ function syncStep(step){
   if(chips){ const key=chips.dataset.pick;
     chips.querySelectorAll('.chip').forEach(c=>{ c.classList.toggle('on',c.dataset.v===S[key]); if(c.dataset.v==='same') c.classList.toggle('hidden',side==='front'); }); }
   // dot = this side has content
-  el.querySelectorAll('.sidetabs button').forEach(b=>{ const s=b.dataset.v; const has=!!(state.refs[`${step}-${s}`]||state[s].note[step]||(step==='distress'&&state[s].dis.level!=='none'));
+  el.querySelectorAll('.sidetabs button').forEach(b=>{ const s=b.dataset.v; const has=!!(state.refs[`${step}-${s}`]||state[s].note[step]||(step==='wash'&&state[s].dis.level!=='none')||(step==='trim'&&state[s].trimType!=='none'));
     b.querySelector('.dot')?.remove(); if(has&&s!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>'); });
-  if(step==='distress') syncDistress();
+  if(step==='wash') syncDistress();
 }
 const NOTE_PH={
   graphic:{front:'Front: e.g. keep the logo, distressed, 2 colors max',back:'Back: e.g. big logo across the upper back'},
   body:{front:'Front: e.g. forest green, cut & sew color-block yoke, boxy fit',back:'Back: e.g. contrast back panel, no seam — or leave empty'},
-  wash:{front:'Front: e.g. heavy sun fade, tonal overdye',back:'Back: e.g. different dye than the front — or Same as front'}
+  wash:{front:'Front: e.g. heavy sun fade, small hole at left chest',back:'Back: e.g. shredded hem — or Same as front'},
+  trim:{front:'Front: e.g. silver pyramid studs around the heart',back:'Back: e.g. rhinestones on the back logo'}
 };
-['graphic','body','wash'].forEach(step=>{
+['graphic','body','wash','trim'].forEach(step=>{
   const el=stepEl(step);
   el.querySelectorAll('.sidetabs').forEach(seg=>seg.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.tab[step]=b.dataset.v; syncStep(step);}));
   el.querySelector('[data-note]').addEventListener('input',e=>{state[state.tab[step]].note[step]=e.target.value; saveDraft();});
@@ -538,27 +546,23 @@ const NOTE_PH={
 
 /* ---------- body mode ---------- */
 const bodyHints={
-  preset:'Start from a SPOOL blank. Upload front/back body photos for cut & sew panels. Empty back = same construction as the front.',
-  upload:'Upload the front (and back) of the body you want. Notes say what to change.',
+  upload:'Upload the front (and back) of the body you want. Notes say what to change. Empty back = same construction as the front.',
   describe:'Describe the body from scratch in the notes: garment type, fit, length, panels.'
 };
 function setBodyMode(m){ state.bodyMode=m; $$('#bodyMode button').forEach(x=>x.classList.toggle('on',x.dataset.v===m));
-  presetsEl.classList.toggle('hidden',m!=='preset'); $('#bodyHint').textContent=bodyHints[m]; }
+  $('#bodyHint').textContent=bodyHints[m]; }
 $('#bodyMode').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; setBodyMode(b.dataset.v); saveDraft();});
 
 /* ---------- distress (per side) ---------- */
-const DIS_PH={front:'Front: e.g. small hole at left chest, frayed hem',back:'Back: e.g. shredded hem, cracked back print'};
-const curDis=()=>state[state.tab.distress].dis;
+function curDis(){ return state[state.tab.wash].dis; }
 function syncDistress(){
-  const d=curDis(), side=state.tab.distress;
+  const d=curDis();
   $$('#disLevel button').forEach(b=>b.classList.toggle('on',b.dataset.v===d.level));
   $$('#disWhere .chip').forEach(c=>c.classList.toggle('on',d.where.includes(c.dataset.v)));
-  $('#disNote').value=d.note||''; $('#disNote').placeholder=DIS_PH[side]; $('#distressStep').classList.toggle('dis-off',d.level==='none');
+  $('#distressStep').classList.toggle('dis-off',d.level==='none');
 }
-stepEl('distress').querySelector('.sidetabs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.tab.distress=b.dataset.v; syncStep('distress');});
-$('#disLevel').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; curDis().level=b.dataset.v; syncStep('distress'); saveDraft();});
+$('#disLevel').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; curDis().level=b.dataset.v; syncStep('wash'); saveDraft();});
 $('#disWhere').addEventListener('click',e=>{const c=e.target.closest('.chip'); if(!c) return; const w=curDis().where, v=c.dataset.v; const i=w.indexOf(v); i<0?w.push(v):w.splice(i,1); syncDistress(); saveDraft();});
-$('#disNote').addEventListener('input',e=>{curDis().note=e.target.value; syncStep('distress'); saveDraft();});
 const disOn=side=>state[side].dis.level!=='none';
 function disText(side){ const d=state[side].dis; return `${d.level}${d.where.length?' at '+d.where.join(', '):''}${d.note?' — '+d.note:''}`; }
 
@@ -577,7 +581,7 @@ $$('.drop').forEach(d=>{
   const load=file=>{
     if(!file||!file.type.startsWith('image/')) return toast('Please use an image file');
     const r=new FileReader();
-    r.onload=()=>{ applyRef(slot,r.result); state.tab[step]=side; if(step==='distress'&&state[side].dis.level==='none') state[side].dis.level='light'; syncStep(step);
+    r.onload=()=>{ applyRef(slot,r.result); state.tab[step]=side; if(step==='trim'&&state[side].trimType==='none') state[side].trimType='studs'; syncStep(step);
       if(step==='body'&&side==='front'&&state.bodyMode==='preset') setBodyMode('upload');
       saveDraft(); };
     r.readAsDataURL(file);
@@ -610,14 +614,15 @@ function frontJob(){
     if(state.refs['graphic-front']) add(await shrink(state.refs['graphic-front']),`is the FRONT GRAPHIC: ${USE_WORDS[F.graphicUse]}. If it shows a person or a garment, extract ONLY the printed artwork and ignore the person and that garment. Place it on the front (chest / center front) unless the notes say otherwise.`);
     if(state.refs['body-front']) add(await shrink(state.refs['body-front']),'is the BODY reference (front): match its garment type, silhouette, fit, panels and cut & sew construction.');
     else if(state.bodyMode==='preset') add(await presetPNG(state.body,'#f2efe6'),'is a simple flat sketch of the garment type only — render it as a real garment.');
-    if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH reference: copy its wash, dye and fabric finish only.');
+    if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH & DISTRESS reference: copy only its wash, dye, fading and distressing — ignore its color, graphic and garment type.');
+    if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color, graphic and garment type.`);
     if(state.bodyMode==='describe'&&F.note.body) L.push(`Garment: ${F.note.body}.`); else if(F.note.body) L.push(`Front construction: ${F.note.body}.`);
     if(F.note.graphic) L.push(`Front graphic notes: ${F.note.graphic}.`);
     if(!state.refs['graphic-front']&&!F.note.graphic) L.push('No print on the front.');
-    if(disOn('front')&&state.refs['distress-front']) add(await shrink(state.refs['distress-front']),'is the DISTRESS reference: copy only its distressing (rips, holes, fraying, cracking, fading) and apply it to this garment — ignore its color, graphic and garment type.');
     L.push(state.refs['body-front']?'Garment color: keep the color of the body reference unless the notes say otherwise.':'Garment color: as given in the notes; otherwise natural off-white.');
     L.push(`Wash: ${WASH_WORDS[F.washType]||'clean'}${F.note.wash?', '+F.note.wash:''}.`);
     L.push(disOn('front')?`Distressing on the front: ${disText('front')}.`:'No distressing — the garment is clean and intact.');
+    if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
     if(state.direction) L.push(`Overall direction: ${state.direction}.`);
     L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
     return {prompt:L.join('\n'),images:images.filter(Boolean)};
@@ -629,14 +634,15 @@ async function backJob(frontUrl){
   L.push('Reference image 1 shows the FRONT of a garment. Create a professional e-commerce product photo of the BACK view of this exact same garment — same garment type, base color, fabric, fit and proportions — laid flat / ghost-mannequin style, back facing the camera, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.');
   if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK GRAPHIC: ${USE_WORDS[B.graphicUse]}. Extract only the printed artwork, ignore any person or garment in it. Print it large across the upper back unless the notes say otherwise.`);
   if(state.refs['body-back']) add(await shrink(state.refs['body-back']),'is the BACK BODY reference: match its back panels, seams and cut & sew construction.');
-  if(disOn('back')&&state.refs['distress-back']) add(await shrink(state.refs['distress-back']),'is the DISTRESS reference for the back: copy only its distressing (rips, holes, fraying, cracking, fading) — ignore its color, graphic and garment type.');
-  const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?state.refs['wash-front']:state.refs['wash-back'];
-  if(washRef) add(await shrink(washRef),'is the WASH reference for the back: copy its wash, dye and finish only.');
+  if(state.refs['trim-back']&&B.trimType!=='none') add(await shrink(state.refs['trim-back']),`is the TRIM reference for the back: add ${TRIM_WORDS[B.trimType]} in the same style — ignore its color, graphic and garment type.`);
+  const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?null:state.refs['wash-back'];
+  if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing.');
   if(B.note.body) L.push(`Back construction: ${B.note.body}.`); else if(!state.refs['body-back']) L.push('Back construction: same as the front, no extra panels.');
   if(B.note.graphic) L.push(`Back graphic notes: ${B.note.graphic}.`);
   if(!state.refs['graphic-back']&&!B.note.graphic) L.push('Plain back — no print.');
   L.push(`Back wash: ${WASH_WORDS[washType]||'clean'}${B.note.wash?', '+B.note.wash:(B.washType==='same'&&F.note.wash?', '+F.note.wash:'')}.`);
   L.push(disOn('back')?`Distressing on the back: ${disText('back')}.`:'No distressing on the back.');
+  L.push(B.trimType!=='none'?`Trims on the back: ${TRIM_WORDS[B.trimType]}${B.note.trim?' — '+B.note.trim:''}.`:'No trims on the back.');
   if(state.direction) L.push(`Overall direction: ${state.direction}.`);
   L.push('Realistic fabric, sharp print detail, square image.');
   return {prompt:L.join('\n'),images};
@@ -701,6 +707,7 @@ function renderRecipe(){
   SIDES.forEach(s=>{ if(state.refs[`graphic-${s}`]||state[s].note.graphic) parts.push(`${cap(s)} graphic`); });
   parts.push('Body: '+bodyName());
   SIDES.forEach(s=>{ if(disOn(s)) parts.push(`${cap(s)} distress: ${state[s].dis.level}`); });
+  SIDES.forEach(s=>{ if(state[s].trimType!=='none') parts.push(`${cap(s)} trims: ${state[s].trimType}`); });
   $('#recipe').innerHTML=parts.map(x=>`<span>${x.replace(/</g,'&lt;')}</span>`).join('');
 }
 
@@ -729,7 +736,7 @@ function askEmail(){
 }
 async function create(){
   if(!getEmail() && !(await askEmail())) return;
-  if(state.bodyMode==='upload'&&!state.refs['body-front']) return toast('Upload a front body reference, or pick a SPOOL blank');
+  if(state.bodyMode==='upload'&&!state.refs['body-front']) return toast('Upload a front body reference, or switch to Describe');
   if(state.bodyMode==='describe'&&!state.front.note.body) return toast('Describe the body in the front notes');
   const btn=$('#create'); btn.disabled=true; btn.firstChild.textContent='SPINNING… ';
   const prev=state.variations, prevRecipe=$('#recipe').innerHTML;
@@ -759,8 +766,8 @@ function specSummary(){
   const s=k=>state[k], dF=state.front.dis, dB=state.back.dis, anyDis=disOn('front')||disOn('back');
   return {
     body:bodyName(), garment:state.bodyMode==='preset'?state.body:'custom', color:'From references / notes', colorHex:null,
-    front:{graphic:s('front').note.graphic, graphicUse:s('front').graphicUse, body:s('front').note.body, wash:WASH_WORDS[s('front').washType], washNote:s('front').note.wash},
-    back:{graphic:s('back').note.graphic, graphicUse:s('back').graphicUse, body:s('back').note.body, wash:s('back').washType==='same'?'Same as front':WASH_WORDS[s('back').washType], washNote:s('back').note.wash},
+    front:{graphic:s('front').note.graphic, graphicUse:s('front').graphicUse, body:s('front').note.body, wash:WASH_WORDS[s('front').washType], washNote:s('front').note.wash, trim:s('front').trimType==='none'?null:s('front').trimType, trimNote:s('front').note.trim},
+    back:{graphic:s('back').note.graphic, graphicUse:s('back').graphicUse, body:s('back').note.body, wash:s('back').washType==='same'?'Same as front':WASH_WORDS[s('back').washType], washNote:s('back').note.wash, trim:s('back').trimType==='none'?null:s('back').trimType, trimNote:s('back').note.trim},
     distress:anyDis?{level:SIDES.filter(disOn).map(x=>`${cap(x)} ${state[x].dis.level}`).join(' / '),where:[...new Set([...(disOn('front')?dF.where:[]),...(disOn('back')?dB.where:[])])],side:disOn('front')&&disOn('back')?'both':disOn('front')?'front':'back',note:SIDES.filter(disOn).map(x=>state[x].dis.note?`${cap(x)}: ${state[x].dis.note}`:'').filter(Boolean).join(' / '),front:disOn('front')?disText('front'):null,back:disOn('back')?disText('back'):null}:null,
     direction:state.direction
   };
@@ -770,15 +777,15 @@ $('#editDesign').onclick=async()=>{
   const v=state.variations[state.active]; if(!v) return toast('Create a design first');
   
   const key=state.bodyMode==='preset'?(EDITOR_BODY[state.body]||'tee'):'tee';
-  await DB.set('handoff',{key,body:state.bodyMode==='preset'?state.body:'tee',ai:{front:v.front,back:v.back,provider:v.provider||''},spec:specSummary(),refs:{...state.refs},notes:{front:state.front.note,back:state.back.note},washType:{front:state.front.washType,back:state.back.washType},distress:{front:state.front.dis,back:state.back.dis},color:'',colorName:'',direction:state.direction,email:getEmail(),from:'reference-studio',at:Date.now()});
+  await DB.set('handoff',{key,body:state.bodyMode==='preset'?state.body:'tee',ai:{front:v.front,back:v.back,provider:v.provider||''},spec:specSummary(),refs:{...state.refs},notes:{front:state.front.note,back:state.back.note},washType:{front:state.front.washType,back:state.back.washType},distress:{front:state.front.dis,back:state.back.dis},trims:{front:{type:state.front.trimType,note:state.front.note.trim},back:{type:state.back.trimType,note:state.back.note.trim}},color:'',colorName:'',direction:state.direction,email:getEmail(),from:'reference-studio',at:Date.now()});
   location.href='editor.html?from=studio';
 };
 $('#sample').onclick=()=>{
   const sp=specSummary(), v=state.variations[state.active];
   const body=['Hi SPOOL team,','','I would like a sample of this design:',
     `- Body: ${sp.body}`,`- Color: ${sp.color}`,
-    `- Front: ${[sp.front.graphic,sp.front.body,sp.front.wash].filter(Boolean).join(' / ')||'—'}`,
-    `- Back: ${[sp.back.graphic,sp.back.body,sp.back.wash].filter(Boolean).join(' / ')||'—'}`,
+    `- Front: ${[sp.front.graphic,sp.front.body,sp.front.wash,sp.front.trim&&('Trims: '+sp.front.trim+(sp.front.trimNote?' '+sp.front.trimNote:''))].filter(Boolean).join(' / ')||'—'}`,
+    `- Back: ${[sp.back.graphic,sp.back.body,sp.back.wash,sp.back.trim&&('Trims: '+sp.back.trim+(sp.back.trimNote?' '+sp.back.trimNote:''))].filter(Boolean).join(' / ')||'—'}`,
     sp.distress?`- Distress: ${[sp.distress.front?'Front '+sp.distress.front:'',sp.distress.back?'Back '+sp.distress.back:''].filter(Boolean).join(' / ')}`:'',
     sp.direction?`- Direction: ${sp.direction}`:'',`- Design: ${state.active+1}${v?.provider?' ('+v.provider+')':''}`,
     getEmail()?`- Contact: ${getEmail()}`:'','','(Downloaded front and back images attached)'].filter(Boolean).join('\n');
@@ -798,16 +805,18 @@ function restore(s){
     s={v:2,refs:{'graphic-front':s.refs?.graphic||null,'body-front':s.refs?.body||null,'wash-front':s.refs?.wash||null},bodyMode:s.bodyMode,body:s.body,color:s.color,colorName:s.colorName,direction:s.notes?.global||'',
       variations:(s.variations||[]).filter(v=>v.url).map(v=>({front:(v.side||'front')==='front'?v.url:v.other,back:(v.side||'front')==='back'?v.url:v.other,provider:v.provider})),active:0};
   }
-  Object.keys(state.refs).forEach(k=>applyRef(k,null)); Object.entries(s.refs||{}).forEach(([k,u])=>applyRef(k,u));
+  Object.keys(state.refs).forEach(k=>applyRef(k,null));
+  const rf={...(s.refs||{})}; SIDES.forEach(x=>{ if(rf['distress-'+x]&&!rf['wash-'+x]) rf['wash-'+x]=rf['distress-'+x]; delete rf['distress-'+x]; }); // old distress slot → wash & distress
+  Object.entries(rf).forEach(([k,u])=>applyRef(k,u));
   state.front=Object.assign(blankSide(),s.front||{}); state.back=Object.assign({...blankSide(),washType:'same'},s.back||{});
-  state.front.note=Object.assign({graphic:'',body:'',wash:''},state.front.note); state.back.note=Object.assign({graphic:'',body:'',wash:''},state.back.note);
-  setBodyMode(s.bodyMode||'preset'); if(BODIES[s.body]){ state.body=s.body; $$('.preset').forEach(p=>p.classList.toggle('on',p.dataset.v===s.body)); }
+  state.front.note=Object.assign(blankNote(),state.front.note); state.back.note=Object.assign(blankNote(),state.back.note);
+  setBodyMode(s.bodyMode==='describe'?'describe':'upload'); state.body='tee';
   SIDES.forEach(x=>{ const d=state[x].dis; state[x].dis=Object.assign(blankDis(),d||{}); state[x].dis.where=[...(state[x].dis.where||[])]; });
   if(s.distress&&s.distress.level&&s.distress.level!=='none'){ // older single distress setting → per side
     SIDES.forEach(x=>{ if(!s[x]?.dis && (s.distress.side==='both'||s.distress.side===x)) state[x].dis={level:s.distress.level,where:[...(s.distress.where||[])],note:s.distress.note||''}; }); }
   state.direction=s.direction||''; $('#p-global').value=state.direction;
   if(s.quality){ state.quality=s.quality; $$('#qualitySeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.quality)); }
-  ['graphic','body','wash','distress'].forEach(syncStep);
+  ['graphic','body','wash','trim'].forEach(syncStep);
   state.variations=s.variations||[]; state.active=Math.min(s.active||0,Math.max(0,state.variations.length-1)); state.view=s.view||'front';
   ['#fail','#spin'].forEach(x=>$(x).classList.add('hidden'));
   if(state.variations.length){ $('#empty').classList.add('hidden'); $('#result').classList.remove('hidden'); $('#recipe').innerHTML=s.recipe||''; render(); }
@@ -865,7 +874,6 @@ if(MOCK) $('#mockbar').classList.remove('hidden');
   const d=await DB.get('draft2');
   if(d && !b){ curId=d.curId||null; restore(d); }
   else if(!d && !b){ const old=await DB.get('draft'); if(old) restore(old); }
-  if(b&&BODIES[b]) presetsEl.querySelector(`[data-v=${b}]`).click();
   renderLists();
 })();
 </script>
