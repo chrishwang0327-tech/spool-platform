@@ -276,14 +276,18 @@ main{padding:32px 32px 72px;gap:32px}
 .sw-custom input::-webkit-color-swatch-wrapper{padding:0}.sw-custom input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
 .sw-custom.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .field.small{padding:9px 12px;font-size:13px}
-.otherSide{margin-top:16px;background:var(--y2);border-radius:18px;padding:16px}
-.os-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.os-head b{font-size:15px;font-weight:600}
-.os-head .opt{background:#FDFDF9}
-.os-body{display:flex;gap:14px;align-items:flex-start}
-.drop.sm{width:76px;height:76px;flex:none}
-.drop.sm b{font-size:12px}
 .noside{color:var(--muted);font-size:13px;padding:24px;text-align:center;max-width:280px}
+
+.actions.primary{margin-top:10px}
+.actions.primary .btn{flex:1;padding:13px 16px;font-size:14px}
+#saveV.on{background:var(--ink);color:var(--y);border-color:var(--ink)}
+.combine{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.combine span{font-size:13px;color:var(--muted)}
+.mine-side{position:absolute;top:8px;left:8px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--card);border-radius:99px;padding:3px 9px}
+.mine-card.picked{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.mine-card.picked .mine-side{background:var(--y)}
+.mine-pick{position:absolute;bottom:62px;right:8px;width:26px;height:26px;border-radius:50%;background:var(--card);border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px}
+.mine-card.picked .mine-pick{background:var(--ink);color:var(--y);border-color:var(--ink)}
 </style>
 </head>
 <body>
@@ -454,34 +458,30 @@ main{padding:32px 32px 72px;gap:32px}
       <div class="hero" id="hero"><span class="vlabel" id="vlabel">Variation 1</span></div>
       <div class="thumbs" id="thumbs"></div>
       <div class="actions">
-        <button class="btn" id="regen">↻ Regenerate</button>
+        <button class="btn" id="saveV" title="Save this variation to Saved">☆ Save</button>
         <button class="btn" id="download">Download</button>
+        <button class="btn" id="regen">↻ Regenerate</button>
+      </div>
+      <div class="actions primary">
         <button class="btn y" id="editDesign" title="Open the editor with your graphic so you can size and place it">Edit design →</button>
-        <button class="btn" disabled>Tech pack<span class="soon">soon</span></button>
-        <button class="btn dark" id="sample" style="margin-left:auto">Request sample →</button>
+        <button class="btn dark" id="sample">Request sample →</button>
       </div>
-      <div class="otherSide hidden" id="otherSide">
-        <div class="os-head"><b id="osTitle">Add back design</b><span class="opt">1 image</span></div>
-        <div class="os-body">
-          <label class="drop sm" data-slot="other">
-            <b>REF.</b><small>UPLOAD</small>
-            <input type="file" accept="image/*">
-            <span class="x">Remove</span>
-          </label>
-          <div style="flex:1;min-width:0">
-            <input class="field" id="p-other" placeholder="Optional graphic + note, e.g. big logo across the upper back">
-            <div class="hint" id="osHint">Matches this exact garment. Leave empty for a plain back.</div>
-            <button class="btn y" id="osGo" style="margin-top:10px">Create back →</button>
-          </div>
-        </div>
-      </div>
+
     </div>
   </section>
 </main>
 
+<section class="mine" id="saved">
+  <div class="mine-head">
+    <div><h2>Saved</h2><p>Pick one <b>Front</b> and one <b>Back</b>, then edit them together on one blank. The editor uses your original uploaded graphics — the AI images are concepts.</p></div>
+    <div class="combine"><span id="pickInfo">Nothing picked</span><button class="btn y" id="editTogether" disabled>Edit together →</button></div>
+  </div>
+  <div class="mine-grid" id="savedGrid"></div>
+</section>
+
 <section class="mine" id="mine">
   <div class="mine-head">
-    <div><h2>My designs</h2><p>Saved automatically in this browser. Clearing browser data will erase them.</p></div>
+    <div><h2>Recent</h2><p>Every Create is kept automatically (last 40). Stored in this browser — clearing browser data erases it.</p></div>
     <button class="btn" id="newDesign">+ New design</button>
   </div>
   <div class="mine-grid" id="mineGrid"></div>
@@ -508,7 +508,7 @@ const COLORS = [
 ];
 
 const state = {
-  refs:{graphic:null, body:null, wash:null, other:null},
+  refs:{graphic:null, body:null, wash:null},
   graphicUse:'full', wash:'none', placement:'front',
   bodyMode:'preset', body:'hoodie', color:COLORS[0][0],
   variations:[], active:0, side:'front'
@@ -766,11 +766,8 @@ function render(){
   const two=!!(cur.url&&cur.other);
   $('#vlabel').textContent='Variation '+(state.active+1)+(cur.provider?' · '+cur.provider:'')+(cur.url&&(two||cur.side==='back')?' · '+(state.side==='back'?'Back':'Front'):'');
   $('#sideSeg').classList.toggle('hidden',!!cur.url && !cur.split && !two);
-  const need=cur.url && !cur.other && !cur.split;
-  $('#otherSide').classList.toggle('hidden',!need);
-  if(need){ const o=cur.side==='back'?'front':'back'; $('#osTitle').textContent=`Add ${o} design`; if(!osBusy) $('#osGo').textContent=`Create ${o} →`;
-    $('#osHint').textContent=`Matches this exact garment. Leave empty for a plain ${o}.`; $('#p-other').placeholder=o==='back'?'Optional graphic + note, e.g. big logo across the upper back':'Optional graphic + note, e.g. small logo on the left chest'; }
   $('#sideSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===state.side));
+  updateSaveBtn();
   thumbs.innerHTML='';
   state.variations.forEach((v,i)=>{
     const t=document.createElement('button'); t.className='thumb'+(i===state.active?' on':'');
@@ -856,27 +853,6 @@ $('#download').onclick=async()=>{
   const l=document.createElement('a'); l.download=`spool-design-v${state.active+1}.png`; l.href=c.toDataURL('image/png'); l.click();
 };
 
-/* add the other side (front ↔ back) of the selected design */
-$('#osGo').onclick=async()=>{
-  const v=state.variations[state.active]; if(!v?.url||osBusy) return;
-  if(!AI_ENDPOINT) return toast('AI is not connected');
-  const from=v.side||'front', to=from==='front'?'back':'front';
-  osBusy=true; const b=$('#osGo'); b.disabled=true; b.textContent=`Creating ${to}… ~30 sec`;
-  try{
-    const imgs=[{dataUrl:await shrink(v.url,1024)}]; const g=state.refs.other;
-    if(g) imgs.push({dataUrl:await shrink(g)});
-    const note=$('#p-other').value.trim();
-    const L=[`Reference image 1 shows the ${from.toUpperCase()} of a garment. Create a professional e-commerce product photo of the ${to.toUpperCase()} view of this exact same garment — identical garment type, color, fabric, fit, wash, trims and proportions — laid flat / ghost-mannequin style, ${to} facing the camera, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.`];
-    if(g) L.push(`Reference image 2 is the GRAPHIC for the ${to}: print it ${to==='back'?'large across the upper back':'on the front chest'}. Extract only the printed artwork and ignore any person or garment in that image.`);
-    else if(!note) L.push(`Keep the ${to} plain — no print.`);
-    if(note) L.push(`Notes: ${note}.`);
-    L.push('Realistic fabric, sharp print detail, square image.');
-    const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:L.join('\n'),images:imgs,n:1,quality:state.quality||'low',provider:v.provider==='Gemini'?'gemini':'openai'})});
-    const d=await r.json(); if(!r.ok||!d.images?.length) throw new Error(d.error||'No image');
-    v.other=d.images[0].src; v.otherRef=g||null; state.side=to; render(); updateHistory();
-  }catch(e){ console.error(e); toast(`Couldn’t create the ${to} — try again`); }
-  osBusy=false; b.disabled=false; render();
-};
 
 /* edit design → hand off to the SPOOL Design Studio editor */
 const EDITOR_BODY={tee:'tee',hoodie:'hoodie',zip:'fullzip',crew:'sweatshirt',trucker:'sweatshirt',sweatpant:'sweatpants',denim:'denim',shorts:'sweatpants'};
@@ -931,7 +907,7 @@ function snapshot(){
 let restoring=false, curId=null;
 function restore(s){
   if(!s) return; restoring=true;
-  ['graphic','body','wash','other'].forEach(k=>applyRef(k,s.refs?.[k]));
+  ['graphic','body','wash'].forEach(k=>applyRef(k,s.refs?.[k]));
   [['graphicUse',s.graphicUse],['wash',s.wash]].forEach(([g,v])=>{const c=document.querySelector(`.chips[data-group=${g}] [data-v="${v}"]`); c&&c.click();});
   if(s.body&&BODIES[s.body]) presetsEl.querySelector(`[data-v=${s.body}]`).click();
   const m=$(`#bodyMode [data-v=${s.bodyMode||'preset'}]`); if(m && !(s.bodyMode==='upload'&&!s.refs?.body)) m.click();
@@ -952,12 +928,69 @@ async function saveHistory(p){
   const id=curId=Date.now(); const snap=snapshot();
   const name=(p.body.mode==='preset'?BODIES[p.body.preset].name:p.body.mode==='upload'?'Custom body':'Described body')+(p.graphic.image?' + graphic':'');
   await DB.put({id,name,date:id,...snap});
-  const all=(await DB.all())||[]; all.sort((a,b)=>b.id-a.id); for(const old of all.slice(40)) await DB.del(old.id);
+  const all=((await DB.all())||[]).filter(d=>d.type!=='saved'); all.sort((a,b)=>b.id-a.id); for(const old of all.slice(40)) await DB.del(old.id);
   saveDraft(); renderMine();
 }
 async function updateHistory(){ if(!curId) return; const a=(await DB.all())||[]; const d=a.find(x=>x.id===curId); if(d){ Object.assign(d,snapshot()); await DB.put(d); } saveDraft(); renderMine(); }
+/* ---------- Saved ★ + edit front & back together ---------- */
+const pick={front:null,back:null};
+function bodyKeyOf(s){ return EDITOR_BODY[s.bodyMode==='preset'?s.body:'tee']||'tee'; }
+async function toggleSave(){
+  const v=state.variations[state.active]; if(!v) return;
+  if(v.savedId){ await DB.del(v.savedId); ['front','back'].forEach(k=>{if(pick[k]===v.savedId) pick[k]=null;}); v.savedId=null; toast('Removed from Saved'); }
+  else{
+    const side=(v.url&&v.side)||(state.placement==='back'?'back':'front');
+    const id='s'+Date.now();
+    const name=(state.bodyMode==='preset'?BODIES[state.body].name:state.bodyMode==='upload'?'Custom body':'Described body');
+    await DB.put({id,type:'saved',date:Date.now(),name,side,variation:{...v,savedId:id},graphic:state.refs.graphic||null,
+      bodyMode:state.bodyMode,body:state.body,color:state.color,snapshot:snapshot()});
+    v.savedId=id; toast(`Saved as ${side}`);
+  }
+  updateSaveBtn(); updateHistory(); renderSaved();
+}
+function updateSaveBtn(){ const v=state.variations[state.active]; const on=!!v?.savedId; $('#saveV').classList.toggle('on',on); $('#saveV').textContent=on?'★ Saved':'☆ Save'; }
+$('#saveV').onclick=toggleSave;
+async function renderSaved(){
+  const g=$('#savedGrid'); const all=((await DB.all())||[]).filter(d=>d.type==='saved').sort((a,b)=>b.date-a.date);
+  ['front','back'].forEach(k=>{ if(pick[k]&&!all.some(d=>d.id===pick[k])) pick[k]=null; });
+  const f=all.find(d=>d.id===pick.front), b=all.find(d=>d.id===pick.back);
+  $('#pickInfo').textContent=f&&b?`Front: ${f.name} · Back: ${b.name}`:f?`Front: ${f.name} — pick a back (optional)`:b?`Back: ${b.name} — pick a front (optional)`:'Nothing picked';
+  $('#editTogether').disabled=!(f||b);
+  if(!all.length){ g.innerHTML='<div class="mine-empty">Tap ☆ Save under a design you like. Save fronts and backs, then edit them together.</div>'; return; }
+  g.innerHTML='';
+  all.forEach(d=>{
+    const picked=pick[d.side]===d.id;
+    const c=document.createElement('div'); c.className='mine-card'+(picked?' picked':''); c.tabIndex=0; c.title=picked?'Unpick':`Pick as ${d.side}`;
+    const th=document.createElement('div'); th.className='mine-thumb';
+    const saveSide=state.side; state.side=d.side; th.appendChild(garmentEl(d.variation,false)); state.side=saveSide;
+    const tag=document.createElement('span'); tag.className='mine-side'; tag.textContent=d.side;
+    const pk=document.createElement('span'); pk.className='mine-pick'; pk.textContent=picked?'✓':'';
+    const meta=document.createElement('div'); meta.className='mine-meta';
+    meta.innerHTML=`<b></b><small>${new Date(d.date).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${d.graphic?' · graphic':' · no graphic'}</small>`;
+    meta.querySelector('b').textContent=d.name;
+    const del=document.createElement('button'); del.className='mine-del'; del.textContent='✕'; del.title='Remove from Saved';
+    del.onclick=async e=>{e.stopPropagation(); if(!confirm('Remove from Saved?')) return; await DB.del(d.id);
+      state.variations.forEach(v=>{if(v.savedId===d.id) v.savedId=null;}); updateSaveBtn(); renderSaved(); };
+    c.onclick=()=>{ pick[d.side]=picked?null:d.id; renderSaved(); };
+    c.append(th,tag,pk,meta,del); g.appendChild(c);
+  });
+}
+$('#editTogether').onclick=async()=>{
+  const all=(await DB.all())||[]; const f=all.find(d=>d.id===pick.front), b=all.find(d=>d.id===pick.back);
+  if(!f&&!b) return;
+  let key=bodyKeyOf(f||b);
+  if(f&&b&&bodyKeyOf(f)!==bodyKeyOf(b)){
+    const kf=bodyKeyOf(f), kb=bodyKeyOf(b);
+    const useFront=confirm(`Your front (${f.name}) and back (${b.name}) are different garments.\n\nOK = use the ${f.name} blank\nCancel = use the ${b.name} blank`);
+    key=useFront?kf:kb;
+  }
+  const items=[]; if(f) items.push({zone:'Front',graphic:f.graphic}); if(b) items.push({zone:'Back',graphic:b.graphic});
+  await DB.set('handoff',{key,items,color:(f||b).color,from:'reference-studio',at:Date.now()});
+  location.href='/?edit=reference';
+};
+
 async function renderMine(){
-  const g=$('#mineGrid'); const all=((await DB.all())||[]).sort((a,b)=>b.id-a.id);
+  renderSaved(); const g=$('#mineGrid'); const all=((await DB.all())||[]).filter(d=>d.type!=='saved').sort((a,b)=>b.id-a.id);
   if(!all.length){ g.innerHTML='<div class="mine-empty">Your designs will appear here after you hit Create.</div>'; return; }
   g.innerHTML='';
   all.forEach(d=>{
