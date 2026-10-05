@@ -300,6 +300,7 @@ const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'
 const defCal=()=>({x1:270,x2:730,y:430,hps:120});
 const blankSide=()=>({original:null,base:null,hole:null,separated:false,cal:defCal(),parts:[]});
 const blankBody=()=>({fabric:'',gsm:'',color:'',pantone:'',fit:'',neck:'',sleeve:'',hem:'',notes:''});
+const blankStyle=()=>({no:'',season:'',brand:'',designer:'',size:'M',category:''});
 const blankLabels=()=>({neck:'Printed',care:'Side seam',hangtag:'Yes',stitch:'',hardware:'',notes:''});
 const newProject=()=>({v:3,id:'p'+Date.now(),name:'Untitled design',created:Date.now(),updated:Date.now(),body:'tee',chestIn:21,email:'',provider:'',spec:null,bodySpec:blankBody(),labels:blankLabels(),sides:{front:blankSide(),back:blankSide()}});
 let P=null, side='front', sel=null, view='spec', tool=null, tab='graphic', imgCache=new Map();
@@ -436,7 +437,12 @@ function bindForm(root,obj){
 function renderBody(){
   const B=P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); const s=S();
   const el=$('#bodyPane');
-  el.innerHTML=`<div class="lbl">Fabric</div>
+  const St=P.style;
+  el.innerHTML=`<div class="lbl">Style info (tech pack header)</div>
+   <div class="kv"><label>Style no.<input class="field" data-s="no" value="${esc(St.no)}"></label><label>Season<input class="field" data-s="season" value="${esc(St.season)}" placeholder="e.g. SS27"></label>
+   <label>Brand<input class="field" data-s="brand" value="${esc(St.brand)}" placeholder="Your brand"></label><label>Designer<input class="field" data-s="designer" value="${esc(St.designer)}" placeholder="Name"></label>
+   <label>Sample size<input class="field" data-s="size" value="${esc(St.size)}" placeholder="e.g. M"></label><label>Category<input class="field" data-s="category" value="${esc(St.category)}" placeholder="Top / Bottom"></label></div>
+   <div class="lbl" style="margin-top:16px">Fabric</div>
    ${chipRow('fabric',['Cotton jersey','Heavyweight jersey','French terry','Fleece','Twill','Oxford','Denim','Nylon'],B.fabric)}
    <div class="kv"><label>Weight (GSM / oz)<input class="field" data-f="gsm" value="${esc(B.gsm)}" placeholder="e.g. 240 GSM"></label><label>Other fabric<input class="field" data-f="fabricNote" value="${esc(B.fabricNote||'')}" placeholder="e.g. 100% cotton slub"></label></div>
    <div class="lbl" style="margin-top:14px">Color</div>
@@ -450,7 +456,7 @@ function renderBody(){
    <label>Hem<input class="field" data-f="hem" value="${esc(B.hem)}" placeholder="e.g. double needle"></label><label>Sample size<input class="field" value="Chest ${f1(+P.chestIn)}&quot;" disabled></label></div>
    <label class="lbl" style="display:block;margin-top:14px">Body notes</label>
    <textarea class="field" data-f="notes" rows="3" style="margin-top:6px" placeholder="e.g. side-seam pockets, contrast back yoke">${esc(B.notes)}</textarea>`;
-  bindForm(el,B);
+  bindForm(el,B); el.querySelectorAll('[data-s]').forEach(i=>i.oninput=()=>{ P.style[i.dataset.s]=i.value; save(); });
   $('#bodyFx').onclick=previewBody; $('#bodyUndo').onclick=()=>{ const h=s.bodyHist?.pop(); if(!h) return; Object.assign(s,h); save(); render(); };
 }
 function renderLabels(){
@@ -628,50 +634,129 @@ const slug=()=>(P.name||'spool-design').toLowerCase().replace(/[^a-z0-9]+/g,'-')
 $('#resetBtn').onclick=()=>{ if(!S().original||!confirm(`Restore the original ${side} image? Previews and separation on this side are removed; your parts and specs stay.`)) return; snap(); const s=S();
   s.base=s.original; s.separated=false; s.hole=null; s.clean=null; s.polished=null; s.parts.forEach(p=>{p.layer=null;p.hist=[]; if(p.orig) p.b=[...p.orig];}); save(); render(); };
 
-/* tech pack: printable page */
-async function calloutImage(s){
-  const c=canvas(PX), x=c.getContext('2d'); x.drawImage(await img(await finalURL(s)),0,0,PX,PX);
-  x.lineWidth=4; x.font='700 26px Outfit, Arial'; x.textAlign='center'; x.textBaseline='middle';
-  s.parts.forEach(p=>{ const b=p.b.map(v=>v*k); x.strokeStyle='#201D18'; x.setLineDash([12,8]); x.strokeRect(b[0],b[1],b[2],b[3]); x.setLineDash([]);
-    const det=kindOf(p)==='detail'; x.fillStyle=det?'#FFFFFF':'#FEE32B'; x.beginPath(); x.arc(b[0],b[1],det?24:20,0,Math.PI*2); x.fill(); x.stroke(); x.fillStyle='#201D18'; x.font=det?'700 22px Outfit, Arial':'700 26px Outfit, Arial'; x.fillText(lab(p),b[0],b[1]+1); });
+/* tech pack: industry-style printable pages (landscape) */
+const RED='#D0312D';
+const placeTxt=(s,p)=>{ const ip=(+P.chestIn||21)/Math.max(40,s.cal.x2-s.cal.x1); const fh=(p.b[1]-s.cal.hps)*ip, fc=(p.b[0]+p.b[2]/2-(s.cal.x1+s.cal.x2)/2)*ip;
+  return [`${f1(fh)} in down from HPS`, Math.abs(fc)<0.15?'Centered':`${f1(Math.abs(fc))} in ${fc>0?'right':'left'} of center`]; };
+const sizeTxt=(s,p)=>{ const sv=side; side=s===P.sides.back?'back':'front'; const t=`${f1(widthIn(p))} × ${f1(heightIn(p))} in`; side=sv; return t; };
+function bodyColorOf(c,s){ // most common color on the torso (the fabric)
+  const t=canvas(64,64), tx=t.getContext('2d'), x0=s.cal.x1*k, y0=s.cal.hps*k, w=(s.cal.x2-s.cal.x1)*k, h=Math.min(PX-y0,(s.cal.y-s.cal.hps)*k*2.2);
+  tx.drawImage(c,x0,y0,w,h,0,0,64,64); const d=tx.getImageData(0,0,64,64).data, bins=new Map();
+  for(let i=0;i<d.length;i+=4){ const key=(d[i]>>4)+'-'+(d[i+1]>>4)+'-'+(d[i+2]>>4); const o=bins.get(key)||{n:0,r:0,g:0,b:0}; o.n++;o.r+=d[i];o.g+=d[i+1];o.b+=d[i+2]; bins.set(key,o); }
+  const o=[...bins.values()].sort((a,b)=>b.n-a.n)[0]; return [o.r/o.n,o.g/o.n,o.b/o.n].map(Math.round); }
+const hex=c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+function artColors(c,p,body){ // up to 4 dominant ink colors inside a box (approx.)
+  const w=48,h=48,t=canvas(w,h); t.getContext('2d').drawImage(c,p.b[0]*k,p.b[1]*k,p.b[2]*k,p.b[3]*k,0,0,w,h);
+  const d=t.getContext('2d').getImageData(0,0,w,h).data, bins=new Map();
+  for(let i=0;i<d.length;i+=4){ if(Math.abs(d[i]-body[0])+Math.abs(d[i+1]-body[1])+Math.abs(d[i+2]-body[2])<110) continue;
+    const key=(d[i]>>6)+'-'+(d[i+1]>>6)+'-'+(d[i+2]>>6); const o=bins.get(key)||{n:0,r:0,g:0,b:0}; o.n++;o.r+=d[i];o.g+=d[i+1];o.b+=d[i+2]; bins.set(key,o); }
+  const out=[]; [...bins.values()].filter(o=>o.n>w*h*.03).sort((a,b)=>b.n-a.n).forEach(o=>{ const c=[o.r/o.n,o.g/o.n,o.b/o.n].map(Math.round); if(out.length<4&&!out.some(q=>Math.abs(q[0]-c[0])+Math.abs(q[1]-c[1])+Math.abs(q[2]-c[2])<90)) out.push(c); });
+  return out.map(hex); }
+async function annotated(s,sd){ // garment with red leader-line callouts in the side margins
+  const midU=(s.cal.x1+s.cal.x2)/2, nL=s.parts.filter(p=>(p.b[0]+p.b[2]/2)<midU).length, nR=s.parts.length-nL;
+  const ML=nL?340:0, MR=nR?340:0, M=ML, W=PX+ML+MR, H=PX, c=canvas(W,H), x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  x.drawImage(await img(await finalURL(s)),M,0,PX,PX);
+  const cxp=M+(s.cal.x1+s.cal.x2)/2*k; x.strokeStyle=RED; x.lineWidth=2; x.setLineDash([14,10]); x.beginPath(); x.moveTo(cxp,40); x.lineTo(cxp,H-10); x.stroke(); x.setLineDash([]);
+  x.fillStyle=RED; x.font='700 26px Helvetica, Arial'; x.textAlign='center'; x.fillText(sd==='front'?'CF':'CB',cxp,30);
+  const L=[], R=[];
+  s.parts.forEach(p=>{ x.strokeStyle=RED; x.lineWidth=3; if(kindOf(p)==='detail') x.setLineDash([10,7]); x.strokeRect(M+p.b[0]*k,p.b[1]*k,p.b[2]*k,p.b[3]*k); x.setLineDash([]); ((p.b[0]+p.b[2]/2)<(s.cal.x1+s.cal.x2)/2?L:R).push(p); });
+  const lay=arr=>{ arr.sort((a,b)=>(a.b[1]+a.b[3]/2)-(b.b[1]+b.b[3]/2)); let y=70; return arr.map(p=>{ const want=(p.b[1]+p.b[3]/2)*k; y=Math.max(y,Math.min(want,H-140)); const at=y; y+=165; return [p,at]; }); };
+  const draw1=(p,ly,left)=>{ const tx=left?16:W-16, bx=left?M+p.b[0]*k:M+(p.b[0]+p.b[2])*k, by=(p.b[1]+p.b[3]/2)*k, ex=left?M-10:W-MR+10;
+    x.strokeStyle=RED; x.lineWidth=2; x.beginPath(); x.moveTo(left?tx+310:tx-310,ly+8); x.lineTo(ex,ly+8); x.lineTo(bx,by); x.stroke();
+    x.fillStyle=RED; x.beginPath(); x.arc(bx,by,6,0,Math.PI*2); x.fill();
+    x.textAlign=left?'left':'right'; x.fillStyle='#111'; x.font='700 28px Helvetica, Arial'; x.fillText(`${lab(p)}  ${p.name.toUpperCase()}`.slice(0,20),tx,ly);
+    x.font='600 22px Helvetica, Arial'; x.fillText((TECH[p.tech]+' · '+(OPTS[p.tech][0]?optOf(p,OPTS[p.tech][0][0]):'')).toUpperCase(),tx,ly+34);
+    x.fillStyle=RED; x.font='22px Helvetica, Arial'; const pl=placeTxt(s,p); x.fillText(sizeTxt(s,p),tx,ly+64); x.fillText(pl[0],tx,ly+92); x.fillText(pl[1],tx,ly+120); };
+  lay(L).forEach(([p,y])=>draw1(p,y,true)); lay(R).forEach(([p,y])=>draw1(p,y,false));
+  return {src:c.toDataURL('image/jpeg',.9),w:W};
+}
+async function artDetail(full,s,p){ // artwork crop with red dimension lines
+  const pad=70, aw=p.b[2]*k, ah=p.b[3]*k, sc=Math.min(520/aw,520/ah,2.2), dw=aw*sc, dh=ah*sc, W=Math.round(dw)+pad*2+40, H=Math.round(dh)+pad*2;
+  const c=canvas(W,H), x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  if(p.layer&&s.separated) x.drawImage(await img(p.layer),pad,pad,dw,dh); else x.drawImage(full,p.b[0]*k,p.b[1]*k,aw,ah,pad,pad,dw,dh);
+  x.strokeStyle=RED; x.fillStyle=RED; x.lineWidth=2; x.font='600 22px Helvetica, Arial'; x.textAlign='center';
+  const line=(x1,y1,x2,y2)=>{ x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2); x.stroke(); };
+  line(pad,pad-30,pad+dw,pad-30); line(pad,pad-42,pad,pad-18); line(pad+dw,pad-42,pad+dw,pad-18);
+  const sv=side; side=s===P.sides.back?'back':'front'; const wI=widthIn(p), hI=heightIn(p); side=sv;
+  x.fillText(`${f1(wI)} in`,pad+dw/2,pad-40);
+  line(pad+dw+30,pad,pad+dw+30,pad+dh); line(pad+dw+18,pad,pad+dw+42,pad); line(pad+dw+18,pad+dh,pad+dw+42,pad+dh);
+  x.save(); x.translate(pad+dw+58,pad+dh/2); x.rotate(-Math.PI/2); x.fillText(`${f1(hI)} in`,0,0); x.restore();
   return c.toDataURL('image/jpeg',.9);
 }
 $('#tpBtn').onclick=async()=>{
   const w=window.open('','_blank'); if(!w) return toast('Allow pop-ups to open the tech pack');
   w.document.write('<p style="font-family:sans-serif;padding:20px">Building tech pack…</p>');
-  const sp=P.spec||{}, rows=[];
-  const sideBlock=async sd=>{ const s=P.sides[sd]; if(!s.base) return ''; const saveSide=side; side=sd;
-    const row=p=>{ const fh=(p.b[1]-s.cal.hps)*ipu(), fc=(p.b[0]+p.b[2]/2-(s.cal.x1+s.cal.x2)/2)*ipu();
-      return `<tr><td><b>${lab(p)}</b></td><td>${esc(p.name)}</td><td>${TECH[p.tech]}</td><td>${f1(widthIn(p))}" × ${f1(heightIn(p))}"</td><td>${f1(fh)}" below HPS<br>${Math.abs(fc)<0.15?'Centered':(fc>0?'Right ':'Left ')+f1(Math.abs(fc))+'"'}</td><td>${OPTS[p.tech].map(([kk])=>`${kk}: ${esc(optOf(p,kk))}`).join('<br>')}${p.note?'<br><i>'+esc(p.note)+'</i>':''}</td></tr>`; };
-    const tbl=(kind,title)=>{ const rs=s.parts.filter(p=>kindOf(p)===kind).map(row).join(''); return rs?`<h3>${title}</h3><table><thead><tr><th>#</th><th>Part</th><th>Technique</th><th>Size</th><th>Placement</th><th>Details</th></tr></thead><tbody>${rs}</tbody></table>`:''; };
-    const tr=tbl('graphic','Graphics')+tbl('detail','Details');
-    const imgs=[await finalURL(s),await calloutImage(s)]; side=saveSide;
-    return `<section><h2>${sd.toUpperCase()}</h2><div class="imgs"><figure><img src="${imgs[0]}"><figcaption>Final</figcaption></figure><figure><img src="${imgs[1]}"><figcaption>Callouts</figcaption></figure></div>
-      ${tr||'<p class="m">No parts marked on this side.</p>'}</section>`; };
-  const f=sp.front||{}, b=sp.back||{};
-  const kv=[['Style',P.name],['Date',new Date().toLocaleDateString()],['Contact',P.email||'—'],['Body',sp.body||P.body],['Sample size','Chest ≈ '+f1(+P.chestIn)+'"'],
-    ['Wash front',[f.wash,f.washNote].filter(Boolean).join(', ')||'—'],['Wash back',[b.wash,b.washNote].filter(Boolean).join(', ')||'—'],
-    ['Distress',sp.distress?[sp.distress.front&&'Front: '+sp.distress.front,sp.distress.back&&'Back: '+sp.distress.back].filter(Boolean).join(' / '):'—'],
-    ['Trims',[f.trim&&'Front: '+f.trim+(f.trimNote?' ('+f.trimNote+')':''),b.trim&&'Back: '+b.trim+(b.trimNote?' ('+b.trimNote+')':'')].filter(Boolean).join(' / ')||'—'],
-    ['Body notes',[f.body&&'Front: '+f.body,b.body&&'Back: '+b.body].filter(Boolean).join(' / ')||'—'],['Direction',sp.direction||'—']];
-  const B=Object.assign(blankBody(),P.bodySpec||{}), Lb=Object.assign(blankLabels(),P.labels||{});
-  const bodyKv=[['Fabric',[B.fabric,B.fabricNote,B.gsm].filter(Boolean).join(', ')||'—'],['Color',[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' · ')||'—'],['Fit',B.fit||'—'],['Neck / collar',B.neck||'—'],['Sleeve / cuff',B.sleeve||'—'],['Hem',B.hem||'—'],['Body notes',B.notes||'—']];
-  const labKv=[['Neck label',Lb.neck||'—'],['Care label',Lb.care||'—'],['Hang tag',Lb.hangtag||'—'],['Stitch color',Lb.stitch||'—'],['Hardware',Lb.hardware||'—'],['Notes',Lb.notes||'—']];
-  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tech pack — ${esc(P.name)}</title><style>
-    body{font-family:Helvetica,Arial,sans-serif;color:#201D18;margin:28px;font-size:12px}h1{font-size:22px;letter-spacing:.2em;margin:0}h2{font-size:14px;letter-spacing:.2em;margin:26px 0 10px;border-bottom:2px solid #201D18;padding-bottom:4px}
-    .top{display:flex;justify-content:space-between;align-items:flex-end}.m{color:#7a7566}
-    .kv{display:grid;grid-template-columns:140px 1fr;gap:4px 12px;margin-top:14px}.kv b{color:#7a7566;font-weight:600}
-    .imgs{display:grid;grid-template-columns:1fr 1fr;gap:14px}figure{margin:0}img{width:100%;border:1px solid #ddd}figcaption{text-align:center;color:#7a7566;margin-top:4px}
-    table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;padding:6px;border-bottom:1px solid #ddd;vertical-align:top}th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7a7566}
-    h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:16px 0 0}section{page-break-inside:avoid}.pb{margin-top:18px}button{padding:8px 16px;border-radius:99px;border:0;background:#FEE32B;font-weight:600;cursor:pointer}@media print{.pb{display:none}}</style></head><body>
-    <div class="top"><div><h1>SPOOL</h1><div class="m">TECH PACK</div></div><div class="m">Sizes are estimates from the image; confirmed on the sample.</div></div>
-    <div class="kv">${kv.map(([a,v])=>`<b>${a}</b><span>${esc(v)}</span>`).join('')}</div>
-    <h2>BODY</h2><div class="kv">${bodyKv.map(([a,v])=>`<b>${a}</b><span>${esc(v)}</span>`).join('')}</div>
-    <h2>LABELS &amp; TRIMS</h2><div class="kv">${labKv.map(([a,v])=>`<b>${a}</b><span>${esc(v)}</span>`).join('')}</div>
-    ${await sideBlock('front')}${await sideBlock('back')}
-    <div class="pb"><button onclick="print()">Save as PDF / Print</button></div></body></html>`;
+  const sp=P.spec||{}, f=sp.front||{}, bk=sp.back||{}, B=Object.assign(blankBody(),P.bodySpec||{}), Lb=Object.assign(blankLabels(),P.labels||{}), St=Object.assign(blankStyle(),P.style||{});
+  const sides=['front','back'].filter(sd=>P.sides[sd].base);
+  const fulls={}, bodyRGB={}, ann={};
+  for(const sd of sides){ const s=P.sides[sd]; const c=canvas(PX); c.getContext('2d').drawImage(await img(await finalURL(s)),0,0,PX,PX); fulls[sd]=c; bodyRGB[sd]=bodyColorOf(c,s); ann[sd]=await annotated(s,sd); }
+  const today=new Date().toLocaleDateString('en-US');
+  const head=[['STYLE NO.',St.no],['SEASON',St.season||'—'],['STYLE NAME',P.name],['BRAND',St.brand||'—'],['DESIGNER',St.designer||P.email||'—']];
+  const head2=[['DATE CREATED',new Date(P.created||Date.now()).toLocaleDateString('en-US')],['DATE MODIFIED',today],['SAMPLE SIZE',`${St.size||'M'} · chest ${f1(+P.chestIn)} in`],['CATEGORY',St.category||'—'],['MAIN TECHNIQUE',[...new Set(sides.flatMap(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='graphic').map(p=>TECH[p.tech])))].join(', ')||'—']];
+  const cells=a=>a.map(([k2,v])=>`<div class="hk">${k2}</div><div class="hv">${esc(v)}</div>`).join('');
+  const header=`<div class="hdr"><div class="logo"><b>SPOOL</b><span>TECH PACK</span></div><div class="ht">${cells(head)}</div><div class="ht">${cells(head2)}</div></div>`;
+  const sw=[]; const addSw=(h,label)=>{ if(!sw.some(o=>o.h===h)&&sw.length<8) sw.push({h,label}); };
+  addSw(hex(bodyRGB[sides[0]]),`BODY${B.pantone?' · PANTONE '+B.pantone:''}${B.color?' · '+B.color:''}`);
+  sides.forEach(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='graphic').forEach(p=>artColors(fulls[sd],p,bodyRGB[sd]).forEach(h=>addSw(h,`ART ${lab(p)} (approx.)`))));
+  const colorway=`<div class="cw">${sw.map(o=>`<div class="sw"><i style="background:${o.h}"></i><div><b>${o.h}</b><small>${esc(o.label)}</small></div></div>`).join('')}</div>`;
+  const fabric=[[B.fabric,B.fabricNote].filter(Boolean).join(', '),B.gsm,B.fit&&B.fit+' fit'].filter(Boolean).join(' · ')||'—';
+  const pages=[];
+  pages.push(`${header}<h1>FRONT &amp; BACK DETAIL</h1>
+    <div class="views">${sides.map(sd=>`<figure style="flex:${ann[sd].w} 1 0"><img src="${ann[sd].src}"><figcaption>${sd.toUpperCase()} VIEW</figcaption></figure>`).join('')}</div>
+    <div class="bottom"><div><h4>COLORWAY</h4>${colorway}</div><div><h4>FABRIC</h4><p>${esc(fabric)}</p><h4>WASH</h4><p>${esc([f.wash&&'Front: '+f.wash,bk.wash&&'Back: '+bk.wash].filter(Boolean).join(' / ')||'—')}</p></div></div>`);
+  const arts=[]; for(const sd of sides){ const s=P.sides[sd]; for(const p of s.parts.filter(q=>kindOf(q)==='graphic')) arts.push({sd,s,p,src:await artDetail(fulls[sd],s,p),cols:artColors(fulls[sd],p,bodyRGB[sd])}); }
+  for(let i=0;i<arts.length;i+=2){
+    pages.push(`<div class="phead"><h1>ARTWORK DETAIL</h1></div><div class="arts">${arts.slice(i,i+2).map(a=>{ const pl=placeTxt(a.s,a.p);
+      const rows=[['Technique',TECH[a.p.tech]],...OPTS[a.p.tech].map(([kk])=>[kk,optOf(a.p,kk)]),['Size',sizeTxt(a.s,a.p)],['Placement',pl.join(' · ')],['Notes',a.p.note||'—']];
+      return `<div class="art"><div class="at"><span class="num">${lab(a.p)}</span><b>${esc(a.p.name.toUpperCase())}</b><em>${a.sd.toUpperCase()}</em></div><img src="${a.src}">
+        <table>${rows.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v)}</td></tr>`).join('')}
+        <tr><th>Ink colors</th><td>${a.cols.map(h=>`<span class="chip"><i style="background:${h}"></i>${h}</span>`).join(' ')||'—'} <small>(approx.)</small></td></tr></table></div>`; }).join('')}</div>`);
+  }
+  const dets=sides.flatMap(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='detail').map(p=>({sd,s:P.sides[sd],p})));
+  const kvT=a=>`<table class="kvt">${a.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v||'—')}</td></tr>`).join('')}</table>`;
+  pages.push(`<div class="phead"><h1>CONSTRUCTION, TRIMS &amp; LABELS</h1></div><div class="cols">
+    <div><h4>BODY</h4>${kvT([['Fabric',fabric],['Color',[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' · ')],['Fit',B.fit],['Neck / collar',B.neck],['Sleeve / cuff',B.sleeve],['Hem',B.hem],['Body notes',B.notes]])}
+      <h4>WASH &amp; DISTRESS</h4>${kvT([['Wash front',[f.wash,f.washNote].filter(Boolean).join(', ')],['Wash back',[bk.wash,bk.washNote].filter(Boolean).join(', ')],['Distress',sp.distress?[sp.distress.front&&'Front: '+sp.distress.front,sp.distress.back&&'Back: '+sp.distress.back].filter(Boolean).join(' / '):'']])}</div>
+    <div><h4>LABELS &amp; TRIMS</h4>${kvT([['Neck label',Lb.neck],['Care label',Lb.care],['Hang tag',Lb.hangtag],['Stitch / thread',Lb.stitch],['Hardware',Lb.hardware],['Notes',Lb.notes]])}
+      <h4>DETAILS</h4>${dets.length?`<table class="grid"><tr><th>#</th><th>Side</th><th>Detail</th><th>Type</th><th>Size</th><th>Placement</th></tr>${dets.map(d=>`<tr><td><b>${lab(d.p)}</b></td><td>${d.sd}</td><td>${esc(d.p.name)}${d.p.note?'<br><small>'+esc(d.p.note)+'</small>':''}</td><td>${TECH[d.p.tech]}<br><small>${OPTS[d.p.tech].map(([kk])=>esc(optOf(d.p,kk))).join(' / ')}</small></td><td>${sizeTxt(d.s,d.p)}</td><td>${placeTxt(d.s,d.p).join('<br>')}</td></tr>`).join('')}</table>`:'<p class="m">No details marked.</p>'}
+      <h4>APPROVAL</h4><div class="sign"><div>Designer</div><div>Factory</div><div>Date</div></div>
+      <p class="m">Sizes and colors are estimated from the design image and confirmed on the first sample.</p></div></div>`);
+  const tot=pages.length, label=i=>i===0?'OVERVIEW':i===tot-1?'CONSTRUCTION':'ARTWORK';
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tech pack — ${esc(St.no)} ${esc(P.name)}</title><style>
+  @page{size:11in 8.5in;margin:0}
+  *{box-sizing:border-box}body{margin:0;background:#e9e7e1;font-family:Helvetica,Arial,sans-serif;color:#111;font-size:11px}
+  .page{width:11in;height:8.5in;background:#fff;margin:18px auto;padding:.35in .4in .5in;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.15);page-break-after:always}
+  .frame{border:2px solid #111;height:100%;padding:0 0 10px;display:flex;flex-direction:column}
+  .hdr{display:grid;grid-template-columns:1.1in 1fr 1fr;border-bottom:2px solid #111}
+  .logo{background:#111;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.logo b{font-size:20px;letter-spacing:.18em}.logo span{font-size:8px;letter-spacing:.3em;color:#FEE32B}
+  .ht{display:grid;grid-template-columns:1.25in 1fr;border-left:1px solid #111}
+  .hk,.hv{padding:4px 8px;border-bottom:1px solid #999;font-size:10.5px}.hk{background:#e4e4e1;font-weight:700;letter-spacing:.04em}.hv{font-style:italic}
+  .ht>div:nth-last-child(-n+2){border-bottom:0}
+  h1{font-size:17px;text-align:center;letter-spacing:.06em;margin:10px 0 4px}
+  .views{flex:1;display:flex;justify-content:center;align-items:center;gap:10px;padding:0 10px;min-height:0}.views figure{flex:1 1 0;min-width:0}
+  figure{margin:0;display:flex;flex-direction:column;align-items:center;min-height:0}figure img{max-width:100%;max-height:4.6in;object-fit:contain}figcaption{font-weight:700;font-size:12px;letter-spacing:.06em;margin-top:2px}
+  .bottom{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;padding:6px 16px 0;border-top:1px solid #ddd}
+  h4{font-size:12px;letter-spacing:.06em;margin:6px 0 4px;border-bottom:2px solid #111;padding-bottom:2px}p{margin:2px 0}
+  .cw{display:flex;flex-wrap:wrap;gap:8px 14px}.sw{display:flex;gap:6px;align-items:center;width:1.9in}.sw i{width:34px;height:26px;border:1px solid #999;flex:none}.sw b{display:block;font-size:10px}.sw small{font-size:8.5px;color:#444;display:block;line-height:1.2}
+  .strip{position:absolute;left:.4in;right:.4in;bottom:.18in;display:flex;justify-content:space-between;font-size:9px;color:#666}.strip b{color:#111;letter-spacing:.15em}
+  .phead{border-bottom:2px solid #111}.phead h1{text-align:left;margin:8px 12px}
+  .arts{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:10px 12px;min-height:0}
+  .art{border:1px solid #ccc;padding:10px;display:flex;flex-direction:column;gap:6px;min-height:0}.art img{max-width:100%;max-height:3.6in;object-fit:contain;align-self:center}
+  .at{display:flex;align-items:center;gap:8px}.at b{font-size:13px}.at em{margin-left:auto;font-style:normal;color:#666;font-size:10px;letter-spacing:.1em}
+  .num{background:#111;color:#FEE32B;border-radius:99px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;padding:0 6px}
+  table{border-collapse:collapse;width:100%}th,td{text-align:left;vertical-align:top;padding:3px 6px;border-bottom:1px solid #e2e2e2;font-size:10.5px}th{width:1.2in;color:#555;font-weight:700}
+  .chip{display:inline-flex;align-items:center;gap:4px;margin-right:6px}.chip i{width:12px;height:12px;border:1px solid #999;display:inline-block}
+  .cols{flex:1;display:grid;grid-template-columns:1fr 1.2fr;gap:22px;padding:6px 14px}.kvt th{width:1.3in}
+  .grid th{width:auto;background:#f1f1ee;font-size:9.5px;letter-spacing:.05em}
+  .sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:6px 0 10px}.sign div{border-bottom:1px solid #111;height:34px;font-size:9px;color:#666;display:flex;align-items:flex-end}
+  .m{color:#666;font-size:9.5px}small{color:#555}
+  .bar{position:sticky;top:0;background:#111;color:#fff;padding:10px;text-align:center;z-index:5}.bar button{padding:8px 18px;border-radius:99px;border:0;background:#FEE32B;font-weight:700;cursor:pointer;margin-left:10px}
+  @media print{body{background:#fff}.page{margin:0;box-shadow:none}.bar{display:none}}
+  </style></head><body><div class="bar">${tot} pages · Letter landscape <button onclick="print()">Save as PDF / Print</button></div>
+  ${pages.map((pg,i)=>`<div class="page"><div class="frame">${pg}</div><div class="strip"><b>SPOOL</b><span>${esc(St.no)} · ${esc(P.name)}</span><span>${label(i)}</span><span>${i+1} / ${tot}</span></div></div>`).join('')}</body></html>`;
   w.document.open(); w.document.write(html); w.document.close();
 };
+
 $('#sampleBtn').onclick=()=>{
   const sp=P.spec||{}, lines=['Hi SPOOL team,','',`I'd like a sample of "${P.name}".`,'',`- Body: ${sp.body||P.body} (chest ≈ ${f1(+P.chestIn)} in)`];
   { const B=Object.assign(blankBody(),P.bodySpec||{}); const bl=[B.fabric,B.gsm,B.color,B.pantone&&'Pantone '+B.pantone,B.fit].filter(Boolean).join(', '); if(bl) lines.push('- Body spec: '+bl); }
@@ -689,7 +774,7 @@ function upgrade(p){ // older editor projects → v3
   ['front','back'].forEach(sd=>{ const o=p.sides?.[sd]; const src=o?.original||o?.base||null; q.sides[sd].original=src; q.sides[sd].base=src; });
   return q;
 }
-async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); ['front','back'].forEach(sd=>renumber(P.sides[sd])); side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
+async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=['sweatpant','denim','shorts'].includes(P.body)?'Bottom':'Top'; ['front','back'].forEach(sd=>renumber(P.sides[sd])); side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
   $('#pname').value=P.name; $('#chest').value=P.chestIn; render(); }
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
 $('#projBtn').onclick=openProjects;
