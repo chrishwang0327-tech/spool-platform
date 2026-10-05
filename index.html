@@ -4647,6 +4647,78 @@ render();
   try{ layout(); }catch(e){}
 })();
 </script>
+<style id="spool-editor-theme">
+/* ===== Editor restyle to match SPOOL site (layout & features unchanged) ===== */
+body.ts-mode{background:#FDFDF9!important}
+body.ts-mode .ts-shell{font-family:'Outfit',Inter,Poppins,sans-serif;--y:#FEE32B;--y2:#FBEF9C;--ol:#877928;--k:#201D18;--soft:#F3F1E8;--line:#201D1814}
+body.ts-mode .ts-top{background:#FDFDF9;color:var(--k);border-bottom:1px solid var(--line);height:68px}
+body.ts-mode .ts-exit{color:var(--k);border-right:1px solid var(--line);height:68px;width:64px}
+body.ts-mode .ts-exit:hover{background:var(--y2)}
+body.ts-mode .ts-title{font-weight:600;letter-spacing:-.01em}
+body.ts-mode .ts-title small{color:#8a8577}
+body.ts-mode .ts-step{color:#a39e8f;font-weight:500}
+body.ts-mode .ts-step i{border-width:1.5px}
+body.ts-mode .ts-step.on,body.ts-mode .ts-step.done{color:var(--k)}
+body.ts-mode .ts-step.on i{background:var(--y);border-color:var(--y);color:var(--k);font-weight:600}
+body.ts-mode .ts-step.done i{background:var(--k);color:#FDFDF9;border-color:var(--k)}
+body.ts-mode .ts-sep{background:#d9d5c8}
+body.ts-mode .ts-btn,body.ts-mode .ts-actions .save-design-wrap>.icon-action{border-radius:99px;font-weight:600;background:var(--soft);color:var(--k);height:40px;padding:0 18px}
+body.ts-mode .ts-btn:hover,body.ts-mode .ts-actions .save-design-wrap>.icon-action:hover{background:var(--y2)}
+body.ts-mode .ts-actions .ts-btn.light{background:var(--y);color:var(--k)}
+body.ts-mode .ts-actions .ts-btn.light:hover{background:var(--k);color:var(--y)}
+body.ts-mode .ts-rail{background:#FDFDF9;border-right:1px solid var(--line);padding:10px 8px;gap:4px;width:92px}
+body.ts-mode .ts-ri{border-radius:14px;color:#5f5a4c;font-size:11px}
+body.ts-mode .ts-ri:hover{background:var(--soft);color:var(--k)}
+body.ts-mode .ts-ri.on{background:var(--y);color:var(--k);font-weight:600}
+body.ts-mode .ts-ri b{background:var(--ol)}
+body.ts-mode .ts-panel{background:#FDFDF9;border-right:1px solid var(--line)}
+body.ts-mode .ts-panel-h,body.ts-mode .ts-attr h3{font-weight:600;letter-spacing:-.02em}
+body.ts-mode .ts-canvas{background:var(--soft)}
+body.ts-mode .ts-tool{border-bottom:1px solid var(--line);background:#FDFDF9}
+body.ts-mode .ts-ib{border-radius:99px}body.ts-mode .ts-ib:hover{background:var(--y2)}
+body.ts-mode .ts-stage .garment-stage,body.ts-mode .ts-stage #garment-viewport{background:var(--soft)!important}
+body.ts-mode .ts-stage .view-tab{border-radius:99px!important;background:#FDFDF9!important;border:1px solid var(--line)!important;font:500 13.5px 'Outfit',sans-serif!important;padding:10px 20px!important}
+body.ts-mode .ts-stage .view-tab:hover{background:var(--y2)!important}
+body.ts-mode .ts-stage .view-tab.active{background:var(--k)!important;color:#FDFDF9!important;border-color:var(--k)!important}
+body.ts-mode .ts-attr{background:#FDFDF9;border-left:1px solid var(--line)}
+body.ts-mode .ts-in input,body.ts-mode .ts-sel{background:var(--soft);border:1px solid transparent;border-radius:12px}
+body.ts-mode .ts-in input:focus{background:#FDFDF9;border-color:var(--k);box-shadow:0 0 0 3px var(--y2)}
+body.ts-mode .ts-row .ts-btn{background:var(--soft)}
+body.ts-mode .ts-row .ts-btn:hover{background:var(--y2)}
+body.ts-mode .ts-layer{border-radius:12px;border-color:var(--line)}
+body.ts-mode .ts-layer.on{border-color:var(--k);background:var(--y2)}
+body.ts-mode .ts-layer img{background:var(--soft)}
+body.ts-mode .ts-panel button.studio-primary,body.ts-mode .ts-panel .upload-btn,body.ts-mode .ts-ai-go{border-radius:99px!important}
+body.ts-mode .ts-chip{background:var(--soft)!important;border-color:transparent!important}
+body.ts-mode .ts-chip.on{background:var(--k)!important}
+body.ts-mode .ts-seg{background:var(--soft);border-radius:99px}
+body.ts-mode .ts-seg button{border-radius:99px!important;font-family:'Outfit',sans-serif}
+body.ts-mode .ts-dlg{background:var(--soft)!important;color:var(--k)!important}
+body.ts-mode .ts-dlg:hover{background:var(--y2)!important}
+</style>
+<script id="spool-editor-download-graphic">
+/* "Download graphic" in the editor top bar — saves the selected artwork (or the first one on this view) as a file. */
+(function(){
+  function current(){
+    try{ const key=state.productKey; const list=(state.uploads&&state.uploads[key])||[];
+      return list[state.selectedGraphic[key]] || list.find(g=>!g.isTechniqueLayer&&(g.zone||'Front')===state.activeZone) || list.find(g=>!g.isTechniqueLayer) || null;
+    }catch(e){ return null; }
+  }
+  function download(){
+    const g=current(); if(!g||!g.src){ alert('Add or select an artwork first.'); return; }
+    const a=document.createElement('a'); a.href=g.src;
+    const ext=(String(g.src).match(/^data:image\/([a-z0-9+]+)/i)||[,'png'])[1].replace('jpeg','jpg').replace('svg+xml','svg');
+    a.download=(g.originalFileName||('spool-graphic.'+ext)); document.body.appendChild(a); a.click(); a.remove();
+  }
+  function inject(){
+    const bar=document.getElementById('ts-actions'); if(!bar||bar.querySelector('.ts-dlg')) return;
+    const b=document.createElement('button'); b.className='ts-btn ts-dlg'; b.type='button'; b.textContent='Download graphic'; b.title='Download the selected artwork file'; b.onclick=download;
+    bar.insertBefore(b,bar.firstChild);
+  }
+  new MutationObserver(inject).observe(document.documentElement,{childList:true,subtree:true});
+  window.addEventListener('load',inject);
+})();
+</script>
 <script id="reference-studio-handoff">
 /* Receives a design from the Reference Studio (studio.html → "Edit design")
    and opens it in this editor with the graphic as an editable layer. */

@@ -4,6 +4,7 @@
  * Keeps your API keys secret. The studio page sends references + prompt here.
  *  task "design"  (default): body.n images (1–4, default 2), split evenly between OpenAI and
  *                  Gemini when both keys exist. body.quality = "low" | "medium" | "high" (OpenAI).
+ *                  body.wide = true → landscape 3:2 (used for front + back side by side).
  *  task "extract": 1 image — the print graphic alone, transparent background when supported.
  *
  * Secrets (set in Cloudflare → Worker → Settings → Variables and Secrets):
@@ -59,8 +60,9 @@ export default {
       const both = env.OPENAI_API_KEY && env.GEMINI_API_KEY;
       const nOpenai = !env.OPENAI_API_KEY ? 0 : both ? Math.ceil(n / 2) : n;
       const nGemini = !env.GEMINI_API_KEY ? 0 : n - nOpenai;
-      if (nOpenai) jobs.push(openai(env, prompt, images, { n: nOpenai, quality }));
-      for (let i = 0; i < nGemini; i++) jobs.push(gemini(env, prompt, images));
+      const wide = body.wide === true;
+      if (nOpenai) jobs.push(openai(env, prompt, images, { n: nOpenai, quality, size: wide ? '1536x1024' : '1024x1024' }));
+      for (let i = 0; i < nGemini; i++) jobs.push(gemini(env, prompt, images, wide ? '3:2' : '1:1'));
     }
     if (!jobs.length) return json({ error: 'No API keys configured on the Worker' }, 500);
 
@@ -78,7 +80,7 @@ export default {
 /* ---------- OpenAI: one call, n images ---------- */
 async function openai(env, prompt, images, opt = {}) {
   const model = env.OPENAI_MODEL || 'gpt-image-2';
-  const common = { model, prompt, n: opt.n || 2, size: '1024x1024', quality: opt.quality || env.OPENAI_QUALITY || 'medium' };
+  const common = { model, prompt, n: opt.n || 2, size: opt.size || '1024x1024', quality: opt.quality || env.OPENAI_QUALITY || 'medium' };
   if (opt.background) common.background = opt.background;
   const url = images.length ? 'https://api.openai.com/v1/images/edits' : 'https://api.openai.com/v1/images/generations';
   const call = async (extra) => {
@@ -104,7 +106,7 @@ async function openai(env, prompt, images, opt = {}) {
 }
 
 /* ---------- Gemini: one image per call ---------- */
-async function gemini(env, prompt, images) {
+async function gemini(env, prompt, images, aspect = '1:1') {
   const model = env.GEMINI_MODEL || 'gemini-3.1-flash-image';
   const parts = [{ text: prompt }];
   for (const i of images) {
@@ -116,7 +118,7 @@ async function gemini(env, prompt, images) {
     headers: { 'x-goog-api-key': env.GEMINI_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ role: 'user', parts }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '1:1' } }
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: aspect } }
     })
   });
   const data = await r.json().catch(() => ({}));
