@@ -68,6 +68,8 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
   .sp-arrow{display:none}.steps{grid-template-columns:1fr}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <header>
@@ -77,6 +79,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
     <a href="editor.html#projects">My projects</a>
     <a href="#production">Production</a>
     <a class="cta" href="studio.html">Reference Studio</a>
+    <span id="acct"></span>
   </nav>
 </header>
 
@@ -136,6 +139,6 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
 
   <footer><span>© <span id="yr"></span> SPOOL NYC</span><span><a href="studio.html">Reference Studio</a><a href="editor.html#projects">My projects</a><a href="mailto:info@noboundaryapparel.com">Contact</a></span></footer>
 </div>
-<script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+<script>document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));</script>
 </body>
 </html>

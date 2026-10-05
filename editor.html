@@ -126,6 +126,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
   .stage{max-width:100%}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -135,6 +137,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
   <div class="hdr-r">
     <input class="pname" id="pname" value="Untitled design" aria-label="Project name">
     <button class="btn sm" id="projBtn">My projects</button>
+    <span id="acct"></span>
   </div>
 </header>
 
@@ -271,9 +274,14 @@ const fileURL=f=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.re
 const clampB=b=>{let [x,y,w,h]=b; w=Math.max(8,Math.min(U,w)); h=Math.max(8,Math.min(U,h)); x=Math.max(-w*.5,Math.min(U-w*.5,x)); y=Math.max(-h*.5,Math.min(U-h*.5,y)); return [x,y,w,h];};
 
 /* ================= AI ================= */
+async function authHeaders(){
+  if(!window.SPOOL_AUTH) return {};
+  const u=await window.SPOOL_AUTH.requireLogin('Sign in to use the AI tools. Your projects are saved to your account.'); if(!u) throw new Error('Sign in to continue');
+  const tk=await window.SPOOL_AUTH.token(); return tk?{Authorization:'Bearer '+tk}:{};
+}
 async function ai(prompt,images){
   if(MOCK) return mockAI(prompt,images);
-  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,n:1,quality:'low',provider:'openai',images:images.map(u=>({dataUrl:u}))})});
+  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({prompt,n:1,quality:'low',provider:'openai',images:images.map(u=>({dataUrl:u}))})});
   const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length) throw new Error(d.error||'The AI returned no image');
   return d.images[0].src;
 }
@@ -552,7 +560,7 @@ async function extractInto(p, fromImg){ // build p.layer from the current image 
 /* ================= auto-detect ================= */
 async function detectAPI(dataUrl){
   if(MOCK){ await wait(700); return [{label:'Main graphic',box:[260,260,440,380]},{label:'Small logo',box:[600,660,160,90]}]; }
-  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:'detect',prompt:'detect',images:[{dataUrl}]})});
+  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({task:'detect',prompt:'detect',images:[{dataUrl}]})});
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'Detect failed'); return d.parts||[];
 }
 const iou=(a,b)=>{const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])), y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])); const i=x*y; return i/(a[2]*a[3]+b[2]*b[3]-i);};
@@ -767,7 +775,10 @@ $('#sampleBtn').onclick=()=>{
 
 /* ================= projects ================= */
 let saveT; function save(){ if(!P) return; P.updated=Date.now(); clearTimeout(saveT); $('#saved').textContent='Saving…';
-  saveT=setTimeout(async()=>{ await edDB.put('projects',JSON.parse(JSON.stringify(P))); await edDB.put('kv',P.id,'last'); $('#saved').textContent='Saved in this browser · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); },400); }
+  saveT=setTimeout(async()=>{ await edDB.put('projects',JSON.parse(JSON.stringify(P))); await edDB.put('kv',P.id,'last'); const t=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); $('#saved').textContent=(window.SPOOL_AUTH?.user?'Saved · syncing… · ':'Saved in this browser · ')+t; cloudSave(); },400); }
+let cloudT; function cloudSave(){ const A=window.SPOOL_AUTH; if(!A?.user||!P) return; clearTimeout(cloudT); const id=P.id;
+  cloudT=setTimeout(async()=>{ if(!P||P.id!==id) return; const ok=await A.cloud.save(P,await thumbOf(P)); $('#saved').textContent=(ok?'Saved to your account · ':'Saved in this browser (sync failed) · ')+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); },4000); }
+async function thumbOf(p){ const sd=p.sides.front.base?p.sides.front:p.sides.back; const src=sd?.polished||sd?.base; if(!src) return null; try{ const i=await loadImg(src); const c=canvas(200); c.getContext('2d').drawImage(i,0,0,200,200); return c.toDataURL('image/jpeg',.7); }catch(e){ return null; } }
 function upgrade(p){ // older editor projects → v3
   if(p.v===3) return p;
   const q=newProject(); Object.assign(q,{id:p.id,name:p.name||q.name,created:p.created||Date.now(),body:p.body||'tee',chestIn:p.chestIn||21,email:p.email||'',provider:p.provider||'',spec:p.spec||null});
@@ -779,12 +790,18 @@ async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[]
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
 $('#projBtn').onclick=openProjects;
 async function openProjects(){
-  const list=((await edDB.all('projects'))||[]).sort((a,b)=>b.updated-a.updated); const g=$('#projs'); g.innerHTML='';
-  if(!list.length) g.innerHTML='<div class="muted">No projects yet. Designs you open from the Reference Studio are saved here.</div>';
-  list.forEach(p=>{ const sd=p.sides?.front?.base?p.sides.front:p.sides?.back; const c=document.createElement('button'); c.className='pc';
-    c.innerHTML=`<img src="${sd?.polished||sd?.base||''}" alt=""><div><b>${esc(p.name)}</b><small>${new Date(p.updated).toLocaleDateString()}</small></div><span class="del">Delete</span>`;
-    c.onclick=async e=>{ if(e.target.classList.contains('del')){ e.stopPropagation(); if(confirm('Delete this project?')){ await edDB.del('projects',p.id); if(P?.id===p.id){P=null;render();} openProjects(); } return; }
-      $('#projModal').classList.add('hidden'); await openProject(p); };
+  const A=window.SPOOL_AUTH; const local=((await edDB.all('projects'))||[]); const cloudList=A?.user?await A.cloud.list():[];
+  const items=new Map(); local.forEach(p=>{ const sd=p.sides?.front?.base?p.sides.front:p.sides?.back; items.set(p.id,{id:p.id,name:p.name,updated:p.updated,thumb:sd?.polished||sd?.base||'',local:p,cloud:false}); });
+  cloudList.forEach(c=>{ const t=Date.parse(c.updated_at)||0, it=items.get(c.id); if(it){ it.cloud=true; if(t>it.updated+1000){ it.newer=true; it.updated=t; } } else items.set(c.id,{id:c.id,name:c.name,updated:t,thumb:c.thumb||'',local:null,cloud:true}); });
+  const list=[...items.values()].sort((a,b)=>b.updated-a.updated); const g=$('#projs'); g.innerHTML='';
+  if(A&&!A.user) g.insertAdjacentHTML('beforeend','<div class="muted" style="grid-column:1/-1">Sign in to keep your projects in your account and open them on any device.</div>');
+  if(!list.length) g.insertAdjacentHTML('beforeend','<div class="muted">No projects yet. Designs you open from the Reference Studio are saved here.</div>');
+  list.forEach(it=>{ const c=document.createElement('button'); c.className='pc';
+    c.innerHTML=`<img src="${it.thumb}" alt=""><div><b>${esc(it.name)}</b><small>${new Date(it.updated).toLocaleDateString()}${it.cloud?' · in your account':' · this browser only'}</small></div><span class="del">Delete</span>`;
+    c.onclick=async e=>{ if(e.target.classList.contains('del')){ e.stopPropagation(); if(confirm('Delete this project?')){ await edDB.del('projects',it.id); if(it.cloud) await A.cloud.remove(it.id); if(P?.id===it.id){P=null;render();} openProjects(); } return; }
+      let p=it.local; if(!p||it.newer){ busy(true,'Opening project','Loading from your account'); try{ p=await A.cloud.load(it.id)||p; }finally{ busy(false); } if(p) await edDB.put('projects',p); }
+      if(!p) return toast('Could not open this project');
+      $('#projModal').classList.add('hidden'); await openProject(p); if(!it.cloud) cloudSave(); };
     g.appendChild(c); });
   $('#projModal').classList.remove('hidden');
 }
@@ -794,7 +811,7 @@ async function fromStudio(){
   const h=await studioDB.get('kv','handoff'); if(!h||!h.ai) return false;
   busy(true,'Opening your design','Loading front and back');
   try{ const p=newProject(); p.name=(h.spec?.body&&!/custom|described/i.test(h.spec.body)?h.spec.body:'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'});
-    p.body=h.body||'tee'; p.chestIn=BODY_CHEST[p.body]||21; p.spec=h.spec||null; p.email=h.email||''; p.provider=h.ai.provider||'';
+    p.body=h.body||'tee'; p.chestIn=BODY_CHEST[p.body]||21; p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
     p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
     for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
     await studioDB.put('kv',null,'handoff'); await openProject(p); save(); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
@@ -805,6 +822,8 @@ $('#upPhotos').onchange=async e=>{ const fs=[...e.target.files]; e.target.value=
   for(const [i,sd] of [[0,'front'],[1,'back']]){ if(!fs[i]) continue; const d=await squareURL(await fileURL(fs[i])); p.sides[sd].original=d; p.sides[sd].base=d; } await openProject(p); save(); };
 
 /* ================= boot ================= */
+window.SPOOL_AUTH?.mount($('#acct'));
+window.SPOOL_AUTH?.onChange(u=>{ if(u&&P) cloudSave(); });
 (async()=>{
   if(MOCK) $('#mockbar').classList.remove('hidden');
   const q=new URLSearchParams(location.search); let opened=false;

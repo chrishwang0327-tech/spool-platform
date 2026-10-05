@@ -237,12 +237,13 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
   .mine{padding:0 16px 60px}
 }
 @media (max-width:520px){
-  .hdr-cta{display:none}
   .intro{padding:24px 20px}
   .step{grid-template-columns:1fr}
   .slots{flex-direction:row;justify-content:flex-start}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 
@@ -250,7 +251,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 <header>
   <a class="back" href="index.html">← Home</a>
   <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Reference Studio</span></a>
-  <div class="hdr-cta"><a href="editor.html#projects">My projects</a></div>
+  <div class="hdr-cta" id="acct"></div>
 </header>
 
 <main>
@@ -650,7 +651,8 @@ async function backJob(frontUrl){
   return {prompt:L.join('\n'),images};
 }
 async function callAI(body){
-  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quality:state.quality,...body,images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
+  const tk=await window.SPOOL_AUTH?.token?.();
+  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({quality:state.quality,...body,images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
   const d=await r.json(); if(!r.ok||!d.images?.length) throw new Error(d.error||'No images'); if(d.errors?.length) console.warn('AI partial errors',d.errors); return d.images;
 }
 async function generate(){
@@ -725,7 +727,7 @@ function showSpin(on){
     if(!spinPhase) $('#spinStep').textContent=SPIN_STEPS[Math.min(SPIN_STEPS.length-1,Math.floor(s/8))];
     $('#spinBar').style.width=Math.min(95,2+s*0.9)+'%';},1000);
 }
-function getEmail(){ try{ return localStorage.getItem('spoolEmail')||''; }catch(e){ return ''; } }
+function getEmail(){ if(window.SPOOL_AUTH?.email()) return window.SPOOL_AUTH.email(); try{ return localStorage.getItem('spoolEmail')||''; }catch(e){ return ''; } }
 function askEmail(){
   return new Promise(res=>{
     const m=$('#gate'); m.classList.add('open'); const f=$('#gateForm'), i=$('#gateEmail'); i.value=getEmail(); setTimeout(()=>i.focus(),50);
@@ -737,7 +739,8 @@ function askEmail(){
   });
 }
 async function create(){
-  if(!getEmail() && !(await askEmail())) return;
+  if(window.SPOOL_AUTH){ const u=await window.SPOOL_AUTH.requireLogin('Sign in to create designs. Everything you make is saved to your account.'); if(!u) return; }
+  else if(!getEmail() && !(await askEmail())) return;
   if(state.bodyMode==='upload'&&!state.refs['body-front']) return toast('Upload a front body reference, or switch to Describe');
   if(state.bodyMode==='describe'&&!state.front.note.body) return toast('Describe the body in the front notes');
   const btn=$('#create'); btn.disabled=true; btn.firstChild.textContent='SPINNING… ';
@@ -869,6 +872,7 @@ async function renderLists(){
 $('#newDesign').onclick=()=>{ curId=null; restore({v:2,refs:{},variations:[]}); saveDraft(); renderLists(); window.scrollTo({top:0,behavior:'smooth'}); };
 
 /* ---------- start ---------- */
+window.SPOOL_AUTH?.mount(document.getElementById('acct'));
 if(MOCK) $('#mockbar').classList.remove('hidden');
 (async()=>{
   const q=new URLSearchParams(location.search);

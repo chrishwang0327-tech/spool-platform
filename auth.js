@@ -1,0 +1,98 @@
+/* SPOOL account: sign-in (email link), session, header chip, cloud project storage.
+   Needs supabase-js (UMD) loaded first. Publishable key is safe to ship in the browser. */
+(function(){
+  'use strict';
+  const SB_URL='https://deblflfpfapfajghhufv.supabase.co';
+  const SB_KEY='sb_publishable_SmsPhhRum8I32qTCfdqceQ_H6Wcwdf4';
+  const ok=!!(window.supabase&&window.supabase.createClient);
+  const sb=ok?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit'}}):null;
+  let user=null; const subs=[];
+  const ready=(async()=>{ if(!sb) return null; try{ const {data}=await sb.auth.getSession(); user=data.session?.user||null; }catch(e){ console.warn(e); } return user; })();
+  if(sb) sb.auth.onAuthStateChange((_e,session)=>{ user=session?.user||null; subs.forEach(f=>{try{f(user)}catch(e){}}); renderChips(); });
+
+  /* ---------- modal ---------- */
+  const css=`.sa-back{position:fixed;inset:0;background:rgba(32,29,24,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;font-family:Outfit,system-ui,sans-serif}
+  .sa-back.open{display:flex}.sa-card{background:#FDFDF9;color:#201D18;border-radius:22px;max-width:420px;width:100%;padding:28px;position:relative;box-shadow:0 30px 80px -30px rgba(0,0,0,.5)}
+  .sa-card h2{font-size:22px;margin:0 0 6px}.sa-card p{color:#7a7566;font-size:14px;margin:0 0 14px;line-height:1.5}
+  .sa-in{width:100%;box-sizing:border-box;border:1.5px solid transparent;background:#F3F1E8;border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;outline:none}.sa-in:focus{border-color:#201D18;background:#fff}
+  .sa-btn{width:100%;margin-top:12px;border:0;border-radius:99px;padding:13px;font:inherit;font-weight:600;font-size:15px;background:#FEE32B;color:#201D18;cursor:pointer}.sa-btn:hover{background:#201D18;color:#FEE32B}.sa-btn:disabled{opacity:.5}
+  .sa-x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:0;background:#F3F1E8;cursor:pointer;font-size:15px}
+  .sa-err{color:#a3341d;font-size:13px;min-height:18px;margin-top:8px}.sa-small{font-size:12px;color:#7a7566;margin-top:12px}
+  .sa-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #201D1822;border-radius:99px;padding:6px 12px 6px 6px;background:#FDFDF9;font:500 13px Outfit,system-ui,sans-serif;color:#201D18;cursor:pointer;position:relative;white-space:nowrap}
+  .sa-chip.out{padding:8px 16px;background:#201D18;color:#FDFDF9;border-color:#201D18}
+  .sa-av{width:24px;height:24px;border-radius:50%;background:#FEE32B;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+  .sa-menu{position:absolute;right:0;top:calc(100% + 6px);background:#FDFDF9;border:1px solid #201D1822;border-radius:14px;box-shadow:0 14px 40px -16px rgba(0,0,0,.35);padding:6px;min-width:200px;display:none;z-index:150;text-align:left}
+  .sa-menu.open{display:block}.sa-menu a,.sa-menu button{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:10px;border:0;background:none;font:inherit;color:#201D18;text-decoration:none;cursor:pointer}
+  .sa-menu a:hover,.sa-menu button:hover{background:#FBEF9C}.sa-menu small{display:block;padding:6px 12px 8px;color:#7a7566;border-bottom:1px solid #201D1414;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis}`;
+  const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+  let back=null, pending=[];
+  function modal(reason){
+    if(!back){
+      back=document.createElement('div'); back.className='sa-back'; back.setAttribute('role','dialog'); back.setAttribute('aria-modal','true');
+      back.innerHTML=`<form class="sa-card" novalidate><button type="button" class="sa-x" aria-label="Close">✕</button>
+        <div id="saStep1"><h2>Sign in to SPOOL</h2><p id="saWhy">Save your designs and pick them up on any device.</p>
+        <label for="saEmail" style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a7566">Email</label>
+        <input class="sa-in" id="saEmail" type="email" autocomplete="email" placeholder="you@brand.com" style="margin-top:6px">
+        <button class="sa-btn" id="saSend" type="submit">Email me a sign-in link</button><div class="sa-err" id="saErr" role="alert"></div>
+        <div class="sa-small">No password needed. New here? The same link creates your account.</div></div>
+        <div id="saStep2" style="display:none"><h2>Check your email</h2><p>We sent a sign-in link to <b id="saTo"></b>. Open it on this device and you'll come right back here, signed in.</p>
+        <button class="sa-btn" type="button" id="saAgain" style="background:#F3F1E8">Use a different email</button></div></form>`;
+      document.body.appendChild(back);
+      const close=()=>{ back.classList.remove('open'); const p=pending; pending=[]; p.forEach(r=>r(user)); };
+      back.querySelector('.sa-x').onclick=close; back.addEventListener('click',e=>{ if(e.target===back) close(); });
+      document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&back.classList.contains('open')) close(); });
+      back.querySelector('#saAgain').onclick=()=>{ back.querySelector('#saStep1').style.display=''; back.querySelector('#saStep2').style.display='none'; };
+      back.querySelector('form').onsubmit=async e=>{ e.preventDefault();
+        const em=back.querySelector('#saEmail').value.trim(), err=back.querySelector('#saErr'), b=back.querySelector('#saSend');
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ err.textContent='Enter a valid email address.'; return; }
+        if(!sb){ err.textContent='Sign-in is not available right now. Refresh the page and try again.'; return; }
+        b.disabled=true; err.textContent='';
+        const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname+location.search}});
+        b.disabled=false;
+        if(error){ err.textContent=/rate|seconds/i.test(error.message)?'Too many emails just now. Wait a minute and try again.':error.message; return; }
+        try{ localStorage.setItem('spoolEmail',em); }catch(_){}
+        back.querySelector('#saTo').textContent=em; back.querySelector('#saStep1').style.display='none'; back.querySelector('#saStep2').style.display='';
+      };
+    }
+    back.querySelector('#saWhy').textContent=reason||'Save your designs and pick them up on any device.';
+    back.querySelector('#saStep1').style.display=''; back.querySelector('#saStep2').style.display='none'; back.querySelector('#saErr').textContent='';
+    try{ back.querySelector('#saEmail').value=localStorage.getItem('spoolEmail')||''; }catch(_){}
+    back.classList.add('open'); setTimeout(()=>back.querySelector('#saEmail').focus(),50);
+    return new Promise(r=>pending.push(r));
+  }
+  subs.push(u=>{ if(u&&back&&back.classList.contains('open')){ back.classList.remove('open'); const p=pending; pending=[]; p.forEach(r=>r(u)); } });
+
+  /* ---------- header chip ---------- */
+  const chips=[];
+  function renderChips(){ chips.forEach(el=>{
+    if(!user){ el.innerHTML=`<button type="button" class="sa-chip out">Sign in</button>`; el.firstChild.onclick=()=>modal(); return; }
+    const em=user.email||''; el.innerHTML=`<button type="button" class="sa-chip" aria-haspopup="menu"><span class="sa-av">${(em[0]||'?').toUpperCase()}</span>Account</button>
+      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><a href="editor.html#projects" role="menuitem">My projects</a><a href="studio.html" role="menuitem">Reference Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
+    const btn=el.querySelector('.sa-chip'), menu=el.querySelector('.sa-menu'); el.style.position='relative';
+    btn.onclick=e=>{ e.stopPropagation(); menu.classList.toggle('open'); };
+    document.addEventListener('click',()=>menu.classList.remove('open'));
+    el.querySelector('[data-out]').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
+  }); }
+
+  /* ---------- cloud projects (table "projects" + private bucket "projects") ---------- */
+  const cloud={
+    async list(){ if(!user) return []; const {data,error}=await sb.from('projects').select('id,name,thumb,updated_at').order('updated_at',{ascending:false}); if(error){ console.warn(error); return []; } return data||[]; },
+    async save(p,thumb){ if(!user) return false;
+      const path=`${user.id}/${p.id}.json`; const blob=new Blob([JSON.stringify(p)],{type:'application/json'});
+      const up=await sb.storage.from('projects').upload(path,blob,{upsert:true,contentType:'application/json'}); if(up.error){ console.warn(up.error); return false; }
+      const {error}=await sb.from('projects').upsert({id:p.id,user_id:user.id,name:p.name||'Untitled design',thumb:thumb||null,updated_at:new Date(p.updated||Date.now()).toISOString()}); if(error){ console.warn(error); return false; } return true; },
+    async load(id){ if(!user) return null; const {data,error}=await sb.storage.from('projects').download(`${user.id}/${id}.json`); if(error){ console.warn(error); return null; } return JSON.parse(await data.text()); },
+    async remove(id){ if(!user) return; await sb.storage.from('projects').remove([`${user.id}/${id}.json`]); await sb.from('projects').delete().eq('id',id); }
+  };
+
+  window.SPOOL_AUTH={
+    sb, ready, cloud,
+    get user(){ return user; },
+    email(){ return user?.email||''; },
+    onChange(f){ subs.push(f); },
+    async requireLogin(reason){ await ready; if(user) return user; return await modal(reason); },
+    async token(){ if(!sb) return ''; const {data}=await sb.auth.getSession(); return data.session?.access_token||''; },
+    mount(el){ if(!el) return; chips.push(el); ready.then(renderChips); renderChips(); },
+    signIn:modal
+  };
+})();
