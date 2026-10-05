@@ -205,6 +205,12 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .mine-empty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:28px;border:1.5px dashed var(--line);border-radius:18px;text-align:center}
 @media (hover:none){.mine-del{opacity:1}}
 
+.gate{position:fixed;inset:0;z-index:55;background:rgba(32,29,24,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+.gate.open{display:flex}
+.gate-card{position:relative;background:var(--bg);border-radius:24px;padding:30px;width:min(440px,100%);box-shadow:0 30px 80px rgba(0,0,0,.25)}
+.gate-card h2{font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px}
+.gate-card p{color:var(--muted);font-size:13.5px}
+.mockbar{background:var(--k,#201D18);color:#FDFDF9;font-size:12px;text-align:center;padding:7px 12px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#FDFDF9;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
 .toast.show{opacity:1;transform:translateX(-50%)}
 
@@ -225,10 +231,11 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 </head>
 <body>
 
+<div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com (or add ?ai=1 on an allowed domain).</div>
 <header>
-  <a class="back" href="/">← Back to blanks</a>
-  <a class="brand" href="/"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Reference Studio</span></a>
-  <div class="hdr-cta"><a href="/#spool-blanks">Shop blanks</a></div>
+  <a class="back" href="index.html">← Home</a>
+  <a class="brand" href="index.html"><img src="../assets/spool-logo-1.png" alt="SPOOL"><span>Reference Studio</span></a>
+  <div class="hdr-cta"><a href="editor.html#projects">My projects</a></div>
 </header>
 
 <main>
@@ -415,13 +422,27 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 </section>
 
 <div class="toast" id="toast"></div>
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateT">
+  <form class="gate-card" id="gateForm" novalidate>
+    <button type="button" class="lb-x" id="gateX" aria-label="Close" style="position:absolute;top:14px;right:14px;width:36px;height:36px">✕</button>
+    <div class="num" style="display:inline-block;margin-bottom:12px">FREE</div>
+    <h2 id="gateT">Where should we send your designs?</h2>
+    <p>Enter your email to start creating. We use it to follow up on samples and quotes — no spam.</p>
+    <label class="lbl" for="gateEmail" style="display:block;margin:16px 0 6px">Email</label>
+    <input class="field" id="gateEmail" type="email" autocomplete="email" placeholder="you@brand.com" required>
+    <div class="hint" id="gateErr" role="alert"></div>
+    <button class="create" type="submit" style="margin-top:16px">START CREATING</button>
+  </form>
+</div>
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image preview"><button class="lb-x" id="lbX" aria-label="Close">✕</button><img id="lbImg" alt=""><div class="lb-cap" id="lbCap"></div></div>
 
 <script>
 /* ============================================================
    SPOOL Reference Studio — front + back design from references
    ============================================================ */
-const AI_ENDPOINT = 'https://spool-studio-ai.chrishwang0327.workers.dev';
+const AI_URL = 'https://spool-studio-ai.chrishwang0327.workers.dev';
+const AI_ENDPOINT = (/(^|\.)spoolnyc\.com$/.test(location.hostname) || new URLSearchParams(location.search).has('ai')) ? AI_URL : '';
+const MOCK = !AI_ENDPOINT;
 
 const BODIES = {
   tee:{name:'Tee',top:true,path:'M60 20 L85 12 Q100 24 115 12 L140 20 L180 50 L162 78 L145 68 L145 205 L55 205 L55 68 L38 78 L20 50 Z',detail:'M85 12 Q100 30 115 12'},
@@ -625,7 +646,7 @@ async function callAI(body){
   const d=await r.json(); if(!r.ok||!d.images?.length) throw new Error(d.error||'No images'); if(d.errors?.length) console.warn('AI partial errors',d.errors); return d.images;
 }
 async function generate(){
-  if(!AI_ENDPOINT){ await new Promise(r=>setTimeout(r,1200)); return mockVariations(); }
+  if(!AI_ENDPOINT){ await new Promise(r=>setTimeout(r,1200)); return await mockVariations(); }
   const fronts=await callAI({...(await frontJob()),n:2});
   setSpinPhase('Front done — now the back');
   const backs=await Promise.all(fronts.slice(0,2).map(async f=>{
@@ -634,7 +655,17 @@ async function generate(){
   }));
   return fronts.slice(0,2).map((f,i)=>({front:f.src,back:backs[i],provider:f.provider}));
 }
-function mockVariations(){ return [0,1].map(i=>({mock:true,body:state.bodyMode==='preset'?state.body:'tee',color:isHex(state.color)?shade(state.color,[0,-22][i]):'#f2efe6'})); }
+async function mockImage(side,i){
+  const key=state.bodyMode==='preset'?state.body:'tee', col=isHex(state.color)?shade(state.color,[0,-22][i]):'#f2efe6';
+  const c=document.createElement('canvas'); c.width=c.height=1024; const x=c.getContext('2d'); x.fillStyle='#F6F4EE'; x.fillRect(0,0,1024,1024);
+  const svg=new Image(); await new Promise(r=>{svg.onload=r;svg.onerror=r;svg.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(garmentSVG(key,col,false).replace('<svg ','<svg width="800" height="880" '));});
+  x.drawImage(svg,112,72,800,880);
+  const art=state.refs[`graphic-${side}`];
+  if(art&&BODIES[key].top){ const a=new Image(); await new Promise(r=>{a.onload=r;a.onerror=r;a.src=art;}); const w=side==='back'?340:240, h=w*(a.height/a.width||1); x.drawImage(a,512-w/2,side==='back'?300:330,w,h); }
+  x.fillStyle='rgba(32,29,24,.55)'; x.font='600 22px Outfit, sans-serif'; x.fillText(`PREVIEW MOCK · ${side.toUpperCase()}`,32,52);
+  return c.toDataURL('image/png');
+}
+async function mockVariations(){ const out=[]; for(const i of [0,1]) out.push({front:await mockImage('front',i),back:await mockImage('back',i),provider:i?'Gemini (mock)':'ChatGPT (mock)'}); return out; }
 
 /* ---------- render ---------- */
 function viewEl(v,side,big){
@@ -681,7 +712,19 @@ function showSpin(on){
     if(!spinPhase) $('#spinStep').textContent=SPIN_STEPS[Math.min(SPIN_STEPS.length-1,Math.floor(s/8))];
     $('#spinBar').style.width=Math.min(95,2+s*0.9)+'%';},1000);
 }
+function getEmail(){ try{ return localStorage.getItem('spoolEmail')||''; }catch(e){ return ''; } }
+function askEmail(){
+  return new Promise(res=>{
+    const m=$('#gate'); m.classList.add('open'); const f=$('#gateForm'), i=$('#gateEmail'); i.value=getEmail(); setTimeout(()=>i.focus(),50);
+    f.onsubmit=e=>{ e.preventDefault(); const v=i.value.trim(); if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ $('#gateErr').textContent='Enter a valid email address.'; return; }
+      try{ localStorage.setItem('spoolEmail',v); }catch(_){}
+      if(window.SPOOL_LEAD_ENDPOINT){ fetch(window.SPOOL_LEAD_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:v,source:'reference-studio',at:new Date().toISOString()})}).catch(()=>{}); }
+      m.classList.remove('open'); res(true); };
+    $('#gateX').onclick=()=>{ m.classList.remove('open'); res(false); };
+  });
+}
 async function create(){
+  if(!getEmail() && !(await askEmail())) return;
   if(state.bodyMode==='upload'&&!state.refs['body-front']) return toast('Upload a front body reference, or pick a SPOOL blank');
   if(state.bodyMode==='describe'&&!state.front.note.body) return toast('Describe the body in the front notes');
   const btn=$('#create'); btn.disabled=true; btn.firstChild.textContent='SPINNING… ';
@@ -704,7 +747,7 @@ $('#create').onclick=create; $('#regen').onclick=create; $('#retry').onclick=cre
 /* ---------- download / tech pack / sample ---------- */
 $('#download').onclick=()=>{
   const v=state.variations[state.active]; if(!v) return;
-  if(v.mock) return toast('Connect the AI to download images');
+  
   const src=v[state.view]; if(!src) return toast(`No ${state.view} image`);
   const a=document.createElement('a'); a.download=`spool-design-${state.active+1}-${state.view}.png`; a.href=src; a.click();
 };
@@ -721,10 +764,10 @@ function specSummary(){
 const EDITOR_BODY={tee:'tee',hoodie:'hoodie',zip:'fullzip',crew:'sweatshirt',trucker:'sweatshirt',sweatpant:'sweatpants',denim:'denim',shorts:'sweatpants'};
 $('#editDesign').onclick=async()=>{
   const v=state.variations[state.active]; if(!v) return toast('Create a design first');
-  if(v.mock) return toast('Connect the AI first — the editor uses the real front/back images');
+  
   const key=state.bodyMode==='preset'?(EDITOR_BODY[state.body]||'tee'):'tee';
-  await DB.set('handoff',{key,ai:{front:v.front,back:v.back,provider:v.provider||''},items:[],spec:specSummary(),from:'reference-studio',at:Date.now()});
-  location.href='/?edit=reference';
+  await DB.set('handoff',{key,body:state.bodyMode==='preset'?state.body:'tee',ai:{front:v.front,back:v.back,provider:v.provider||''},spec:specSummary(),refs:{...state.refs},notes:{front:state.front.note,back:state.back.note},washType:{front:state.front.washType,back:state.back.washType},distress:{...state.distress},color:state.color,colorName:colorText(),direction:state.direction,email:getEmail(),from:'reference-studio',at:Date.now()});
+  location.href='editor.html?from=studio';
 };
 $('#sample').onclick=()=>{
   const sp=specSummary(), v=state.variations[state.active];
@@ -734,7 +777,7 @@ $('#sample').onclick=()=>{
     `- Back: ${[sp.back.graphic,sp.back.body,sp.back.wash].filter(Boolean).join(' / ')||'—'}`,
     sp.distress?`- Distress: ${sp.distress.level} ${sp.distress.where.join(', ')} (${sp.distress.side}) ${sp.distress.note||''}`:'',
     sp.direction?`- Direction: ${sp.direction}`:'',`- Design: ${state.active+1}${v?.provider?' ('+v.provider+')':''}`,
-    '','(Downloaded front and back images attached)'].filter(Boolean).join('\n');
+    getEmail()?`- Contact: ${getEmail()}`:'','','(Downloaded front and back images attached)'].filter(Boolean).join('\n');
   location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent('SPOOL sample request')+'&body='+encodeURIComponent(body);
 };
 
@@ -810,6 +853,7 @@ async function renderLists(){
 $('#newDesign').onclick=()=>{ curId=null; restore({v:2,refs:{},variations:[]}); saveDraft(); renderLists(); window.scrollTo({top:0,behavior:'smooth'}); };
 
 /* ---------- start ---------- */
+if(MOCK) $('#mockbar').classList.remove('hidden');
 (async()=>{
   const q=new URLSearchParams(location.search);
   const b=q.get('body'); const c=q.get('color');
