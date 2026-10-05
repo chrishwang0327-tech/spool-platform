@@ -612,10 +612,10 @@ function frontJob(){
   const F=state.front;
   return (async()=>{
     if(state.refs['graphic-front']) add(await shrink(state.refs['graphic-front']),`is the FRONT GRAPHIC: ${USE_WORDS[F.graphicUse]}. If it shows a person or a garment, extract ONLY the printed artwork and ignore the person and that garment. Place it on the front (chest / center front) unless the notes say otherwise.`);
-    if(state.refs['body-front']) add(await shrink(state.refs['body-front']),'is the BODY reference (front): match its garment type, silhouette, fit, panels and cut & sew construction.');
-    else if(state.bodyMode==='preset') add(await presetPNG(state.body,'#f2efe6'),'is a simple flat sketch of the garment type only — render it as a real garment.');
-    if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH & DISTRESS reference: copy only its wash, dye, fading and distressing — ignore its color, graphic and garment type.');
-    if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color, graphic and garment type.`);
+    if(state.refs['body-front']) add(await shrink(state.refs['body-front']),'is the BODY reference (front): use it ONLY for garment type, silhouette, fit, panels, seams and cut & sew construction. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
+    else if(state.bodyMode==='preset') add(await presetPNG(state.body,'#f2efe6'),'is a simple flat sketch of the garment type only — render it as a real garment. It has no print.');
+    if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH & DISTRESS reference: copy only its wash, dye, fading and distressing — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
+    if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
     if(state.bodyMode==='describe'&&F.note.body) L.push(`Garment: ${F.note.body}.`); else if(F.note.body) L.push(`Front construction: ${F.note.body}.`);
     if(F.note.graphic) L.push(`Front graphic notes: ${F.note.graphic}.`);
     if(!state.refs['graphic-front']&&!F.note.graphic) L.push('No print on the front.');
@@ -624,6 +624,7 @@ function frontJob(){
     L.push(disOn('front')?`Distressing on the front: ${disText('front')}.`:'No distressing — the garment is clean and intact.');
     if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
     if(state.direction) L.push(`Overall direction: ${state.direction}.`);
+    L.push(state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
     L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
     return {prompt:L.join('\n'),images:images.filter(Boolean)};
   })();
@@ -633,10 +634,10 @@ async function backJob(frontUrl){
   const B=state.back, F=state.front;
   L.push('Reference image 1 shows the FRONT of a garment. Create a professional e-commerce product photo of the BACK view of this exact same garment — same garment type, base color, fabric, fit and proportions — laid flat / ghost-mannequin style, back facing the camera, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.');
   if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK GRAPHIC: ${USE_WORDS[B.graphicUse]}. Extract only the printed artwork, ignore any person or garment in it. Print it large across the upper back unless the notes say otherwise.`);
-  if(state.refs['body-back']) add(await shrink(state.refs['body-back']),'is the BACK BODY reference: match its back panels, seams and cut & sew construction.');
-  if(state.refs['trim-back']&&B.trimType!=='none') add(await shrink(state.refs['trim-back']),`is the TRIM reference for the back: add ${TRIM_WORDS[B.trimType]} in the same style — ignore its color, graphic and garment type.`);
+  if(state.refs['body-back']) add(await shrink(state.refs['body-back']),'is the BACK BODY reference: use it ONLY for back panels, seams and cut & sew construction. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
+  if(state.refs['trim-back']&&B.trimType!=='none') add(await shrink(state.refs['trim-back']),`is the TRIM reference for the back: add ${TRIM_WORDS[B.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
   const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?null:state.refs['wash-back'];
-  if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing.');
+  if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
   if(B.note.body) L.push(`Back construction: ${B.note.body}.`); else if(!state.refs['body-back']) L.push('Back construction: same as the front, no extra panels.');
   if(B.note.graphic) L.push(`Back graphic notes: ${B.note.graphic}.`);
   if(!state.refs['graphic-back']&&!B.note.graphic) L.push('Plain back — no print.');
@@ -644,6 +645,7 @@ async function backJob(frontUrl){
   L.push(disOn('back')?`Distressing on the back: ${disText('back')}.`:'No distressing on the back.');
   L.push(B.trimType!=='none'?`Trims on the back: ${TRIM_WORDS[B.trimType]}${B.note.trim?' — '+B.note.trim:''}.`:'No trims on the back.');
   if(state.direction) L.push(`Overall direction: ${state.direction}.`);
+  L.push(state.refs['graphic-back']||B.note.graphic?'STRICT: The only artwork allowed on the back is from the BACK GRAPHIC reference and the back graphic notes. Do not copy the front print or any artwork from any other reference image onto the back.':'STRICT: Do not copy the front print or any artwork from any reference image onto the back.');
   L.push('Realistic fabric, sharp print detail, square image.');
   return {prompt:L.join('\n'),images};
 }
