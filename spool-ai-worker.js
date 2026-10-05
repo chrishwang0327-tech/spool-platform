@@ -2,7 +2,8 @@
  * SPOOL Reference Studio — AI image Worker (Cloudflare Workers)
  *
  * Keeps your API keys secret. The studio page sends references + prompt here.
- *  task "design"  (default): 4 images — 2 OpenAI + 2 Gemini, or 4 OpenAI if no Gemini key.
+ *  task "design"  (default): body.n images (1–4, default 2), split evenly between OpenAI and
+ *                  Gemini when both keys exist. body.quality = "low" | "medium" | "high" (OpenAI).
  *  task "extract": 1 image — the print graphic alone, transparent background when supported.
  *
  * Secrets (set in Cloudflare → Worker → Settings → Variables and Secrets):
@@ -53,12 +54,13 @@ export default {
       if (env.OPENAI_API_KEY) jobs.push(openai(env, prompt, images, { n: 1, background: 'transparent', quality: 'high' }));
       else if (env.GEMINI_API_KEY) jobs.push(gemini(env, prompt, images));
     } else {
+      const n = Math.max(1, Math.min(4, parseInt(body.n, 10) || 2));
+      const quality = ['low', 'medium', 'high'].includes(body.quality) ? body.quality : undefined;
       const both = env.OPENAI_API_KEY && env.GEMINI_API_KEY;
-      if (env.OPENAI_API_KEY) jobs.push(openai(env, prompt, images, { n: both ? 2 : 4 }));
-      if (env.GEMINI_API_KEY) {
-        const g = env.OPENAI_API_KEY ? 2 : 4;
-        for (let i = 0; i < g; i++) jobs.push(gemini(env, prompt, images));
-      }
+      const nOpenai = !env.OPENAI_API_KEY ? 0 : both ? Math.ceil(n / 2) : n;
+      const nGemini = !env.GEMINI_API_KEY ? 0 : n - nOpenai;
+      if (nOpenai) jobs.push(openai(env, prompt, images, { n: nOpenai, quality }));
+      for (let i = 0; i < nGemini; i++) jobs.push(gemini(env, prompt, images));
     }
     if (!jobs.length) return json({ error: 'No API keys configured on the Worker' }, 500);
 
