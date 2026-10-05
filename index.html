@@ -4731,9 +4731,10 @@ body.ts-mode .ts-dlg:hover{background:var(--y2)!important}
   function imgSize(src){return new Promise(res=>{const i=new Image();i.onload=()=>res([i.naturalWidth||1,i.naturalHeight||1]);i.onerror=()=>res([1,1]);i.src=src;});}
   window.addEventListener('load',async()=>{
     history.replaceState(null,'',location.pathname);
-    const h=await readHandoff(); if(!h||!h.graphic) return;
+    const h=await readHandoff(); if(!h) return;
     const key=PRODUCTS[h.key]?h.key:'tee';
     startStudioDesign(key);
+    if(!h.graphic) return;
     const [iw,ih]=await imgSize(h.graphic);
     (h.zones&&h.zones.length?h.zones:['Front']).forEach((zone,i)=>{
       state.activeZone=zone;

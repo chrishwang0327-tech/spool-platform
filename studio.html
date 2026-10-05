@@ -435,7 +435,7 @@ main{padding:32px 32px 72px;gap:32px}
       <div class="actions">
         <button class="btn" id="regen">↻ Regenerate</button>
         <button class="btn" id="download">Download</button>
-        <button class="btn y" id="editDesign" title="Open this design in the SPOOL Design Studio editor">Edit design →</button>
+        <button class="btn y" id="editDesign" title="Open the editor with your graphic so you can size and place it">Edit design →</button>
         <button class="btn" disabled>Tech pack<span class="soon">soon</span></button>
         <button class="btn dark" id="sample" style="margin-left:auto">Request sample →</button>
       </div>
@@ -799,29 +799,15 @@ $('#download').onclick=async()=>{
   const l=document.createElement('a'); l.download=`spool-design-v${state.active+1}.png`; l.href=c.toDataURL('image/png'); l.click();
 };
 
-/* graphic extraction (shared by "Download graphic only" and "Edit design") */
-async function getGraphic(v){
-  if(v.graphic) return v.graphic;
-  if(!AI_ENDPOINT||!v.url) return state.refs.graphic||null;
-  const img=await shrink(v.url,1024);
-  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:'extract',images:[{dataUrl:img}],
-    prompt:'Extract ONLY the printed graphic artwork from this garment photo and recreate it as a clean, flat, front-facing print file: no garment, no fabric texture, no wrinkles, no shadows, no wash effect. Keep every element, text, color and proportion of the artwork exactly. Transparent background (or pure white if transparency is not possible). Crisp edges, centered, high resolution, ready for screen printing.'})});
-  const d=await r.json(); if(!r.ok||!d.images?.length) throw new Error(d.error||'failed');
-  v.graphic=d.images[0].src; saveDraft(); return v.graphic;
-}
-async function withBusy(btn,label,fn){ const old=btn.textContent; btn.disabled=true; btn.textContent=label; try{ await fn(); } finally{ btn.disabled=false; btn.textContent=old; } }
-
 /* edit design → hand off to the SPOOL Design Studio editor */
 const EDITOR_BODY={tee:'tee',hoodie:'hoodie',zip:'fullzip',crew:'sweatshirt',trucker:'sweatshirt',sweatpant:'sweatpants',denim:'denim',shorts:'sweatpants'};
-$('#editDesign').onclick=()=>withBusy($('#editDesign'),'Preparing editor… ~30 sec',async()=>{
-  const v=state.variations[state.active]; if(!v) return toast('Create a design first');
-  let g; try{ g=await getGraphic(v); }catch(e){ console.error(e); return toast('Could not extract the graphic — try again'); }
-  if(!g) return toast('Add a graphic first — there is nothing to edit yet');
+$('#editDesign').onclick=async()=>{
+  if(!state.variations.length) return toast('Create a design first');
   const key=EDITOR_BODY[state.bodyMode==='preset'?state.body:'tee']||'tee';
   const zones=state.placement==='both'?['Front','Back']:[state.placement==='back'?'Back':'Front'];
-  await DB.set('handoff',{key,graphic:g,zones,color:state.color,from:'reference-studio',at:Date.now()});
+  await DB.set('handoff',{key,graphic:state.refs.graphic||null,zones,color:state.color,from:'reference-studio',at:Date.now()});
   location.href='/?edit=reference';
-});
+};
 
 /* request sample → email */
 $('#sample').onclick=()=>{
