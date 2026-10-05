@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prepare Tech Pack — SPOOL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FDFDF9;--ink:#201D18;--muted:#7a7566;--line:#201D1814;--soft:#F3F1E8;--accent:#877928;--y:#FEE32B;--y2:#FBEF9C}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.hidden{display:none!important}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 32px;position:sticky;top:0;z-index:8;background:rgba(253,253,249,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header>*{flex:1}
+.back{font-size:13px;font-weight:500;text-decoration:none;color:inherit;opacity:.7}.back:hover{opacity:1}
+.brand{flex:0 0 auto;text-align:center;text-decoration:none;color:inherit}
+.brand img{height:22px;display:block;margin:0 auto}
+.brand span{display:block;font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-top:6px}
+.hdr-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#FDFDF9;border-radius:99px;padding:9px 16px;font-size:13px;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--y2);border-color:transparent}
+.btn.dark{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}.btn.dark:hover{background:var(--accent);border-color:var(--accent)}
+.btn.y{background:var(--y);border-color:var(--y);font-weight:600}.btn.y:hover{background:var(--ink);color:var(--y);border-color:var(--ink)}
+.btn.on{background:var(--ink);color:var(--y);border-color:var(--ink)}
+
+main{max-width:1400px;margin:0 auto;padding:28px 32px 80px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,1fr);gap:28px;align-items:start}
+.titlebar{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.titlebar input{font-size:clamp(26px,3vw,38px);font-weight:600;letter-spacing:-.03em;border:0;background:none;outline:none;width:100%;max-width:640px;border-bottom:2px solid transparent}
+.titlebar input:focus{border-bottom-color:var(--y)}
+.titlebar small{display:block;color:var(--muted);font-size:13px}
+.saved-at{font-size:12px;color:var(--muted)}
+
+/* boards */
+.boards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.board{background:#FDFDF9;border:1px solid var(--line);border-radius:22px;padding:14px;position:relative}
+.board h3{font-size:12px;letter-spacing:.2em;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.board h3 span{font-weight:400;letter-spacing:0;color:var(--muted);font-size:11.5px}
+.canvas{position:relative;aspect-ratio:1;background:var(--soft);border-radius:16px;overflow:hidden;cursor:crosshair;user-select:none;touch-action:none}
+.canvas img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
+.canvas .noimg{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:20px}
+.pin{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:var(--ink);color:var(--y);font-size:12px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 3px #FDFDF9,0 4px 10px rgba(0,0,0,.25);cursor:grab;z-index:2}
+.pin.is-sel{background:var(--y);color:var(--ink);box-shadow:0 0 0 3px var(--ink)}
+.pin:active{cursor:grabbing}
+.tip{margin-top:12px;font-size:12.5px;color:var(--muted)}
+.tip b{color:var(--ink)}
+
+/* side panel */
+.panel{display:flex;flex-direction:column;gap:16px;position:sticky;top:96px}
+.card{background:#FDFDF9;border:1px solid var(--line);border-radius:22px;padding:20px}
+.card h2{font-size:16px;font-weight:600;letter-spacing:-.01em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2 .num{background:var(--y);border-radius:99px;padding:0 8px;font-size:11px}
+.card h2 .cnt{margin-left:auto;font-size:12px;font-weight:400;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.f label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px}
+.in,.sel,textarea{width:100%;border:1px solid transparent;border-radius:12px;padding:10px 12px;background:var(--soft);outline:none;font-size:13.5px}
+.in:focus,.sel:focus,textarea:focus{background:#FDFDF9;border-color:var(--ink);box-shadow:0 0 0 3px var(--y2)}
+textarea{resize:vertical;min-height:64px}
+.full{grid-column:1/-1}
+.callouts{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto;padding-right:2px}
+.co{border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;grid-template-columns:30px 1fr;gap:10px;background:#FDFDF9}
+.co.is-sel{border-color:var(--ink);background:var(--y2)}
+.co .n{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--y);font-size:12px;font-weight:700;display:grid;place-items:center}
+.co-top{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.co-top .sel{padding:6px 10px;font-size:12.5px}
+.co-top .side{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-left:auto}
+.co-top .del{width:26px;height:26px;border-radius:50%;font-size:12px}
+.co-top .del:hover{background:var(--y)}
+.co textarea{min-height:52px;font-size:13px}
+.empty{color:var(--muted);font-size:13px;padding:16px;border:1.5px dashed var(--line);border-radius:14px;text-align:center}
+.spec{font-size:13px;display:grid;grid-template-columns:96px 1fr;gap:6px 10px}
+.spec dt{color:var(--muted)}
+.spec dd{white-space:pre-wrap}
+.refs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.ref{border-radius:12px;overflow:hidden;background:var(--soft);aspect-ratio:1;position:relative;cursor:zoom-in}
+.ref img{width:100%;height:100%;object-fit:cover}
+.ref span{position:absolute;left:6px;bottom:6px;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:#FDFDF9;border-radius:99px;padding:1px 7px}
+
+/* list view */
+.list{max-width:1100px;margin:0 auto;padding:40px 32px}
+.list h1{font-size:34px;font-weight:600;letter-spacing:-.03em}
+.list p{color:var(--muted);margin:6px 0 22px}
+.tp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.tp-card{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#FDFDF9;text-decoration:none;color:inherit;position:relative;display:block}
+.tp-card:hover{border-color:var(--ink)}
+.tp-card .th{display:grid;grid-template-columns:1fr 1fr;aspect-ratio:2/1.1;background:var(--soft)}
+.tp-card .th img{width:100%;height:100%;object-fit:cover}
+.tp-card .m{padding:10px 12px}.tp-card b{display:block;font-size:14px}.tp-card small{color:var(--muted);font-size:12px}
+.tp-card .del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(253,253,249,.92)}
+
+.lb{position:fixed;inset:0;z-index:50;background:rgba(32,29,24,.82);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s}
+.lb.open{opacity:1;pointer-events:auto}
+.lb img{max-width:92vw;max-height:86vh;border-radius:16px;background:#FDFDF9}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#FDFDF9;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* print sheet (hidden on screen) */
+.sheet{display:none}
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  body{background:#fff;font-size:11px}
+  header,main,.list,.toast,.lb{display:none!important}
+  .sheet{display:block}
+  .pg{page-break-after:always}
+  .pg:last-child{page-break-after:auto}
+  .sh-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:10px}
+  .sh-head h1{font-size:20px}
+  .sh-head small{font-size:10px;color:#555}
+  .sh-info{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 14px;margin-bottom:10px;font-size:10.5px}
+  .sh-info div b{display:block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#666}
+  .sh-boards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .sh-board{border:1px solid #ccc;border-radius:6px;padding:6px}
+  .sh-board h4{font-size:10px;letter-spacing:.2em;margin-bottom:4px}
+  .sh-canvas{position:relative;aspect-ratio:1;max-height:118mm;margin:0 auto}
+  .sh-canvas img{width:100%;height:100%;object-fit:contain}
+  .sh-pin{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#000;color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table{width:100%;border-collapse:collapse;font-size:10.5px}
+  th,td{border:1px solid #bbb;padding:5px 7px;text-align:left;vertical-align:top}
+  th{background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sh-refs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}
+  .sh-refs figure img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid #ccc}
+  .sh-refs figcaption{font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+}
+
+@media (max-width:1000px){
+  main{grid-template-columns:1fr;padding:20px 16px 60px}
+  .panel{position:static}
+  header{padding:14px 16px}
+}
+@media (max-width:620px){
+  .boards{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .hdr-actions .btn.opt{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="studio.html">← Back to Reference Studio</a>
+  <a class="brand" href="/"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Prepare Tech Pack</span></a>
+  <div class="hdr-actions" id="hdrActions">
+    <a class="btn opt" href="techpack.html" style="text-decoration:none;color:inherit">All tech packs</a>
+    <button class="btn" id="printBtn">Print / PDF</button>
+    <button class="btn dark" id="sampleBtn">Request sample →</button>
+  </div>
+</header>
+
+<!-- LIST VIEW -->
+<section class="list hidden" id="listView">
+  <h1>Tech packs in progress</h1>
+  <p>Saved in this browser. Start one from the Reference Studio with <b>Prepare tech pack →</b>.</p>
+  <div class="tp-grid" id="tpGrid"></div>
+</section>
+
+<!-- EDITOR VIEW -->
+<main class="hidden" id="editView">
+  <div class="titlebar">
+    <div style="flex:1;min-width:260px">
+      <small>Prepare tech pack</small>
+      <input id="tpName" placeholder="Style name" aria-label="Style name">
+    </div>
+    <span class="saved-at" id="savedAt">Saved</span>
+  </div>
+
+  <section>
+    <div class="boards">
+      <div class="board"><h3>FRONT <span id="cntFront">0 callouts</span></h3><div class="canvas" data-side="front"></div></div>
+      <div class="board"><h3>BACK <span id="cntBack">0 callouts</span></h3><div class="canvas" data-side="back"></div></div>
+    </div>
+    <div class="tip"><b>Click on the garment</b> to add a numbered callout. Drag a pin to move it. Describe each point on the right — graphic, cut &amp; sew, trims, labels, wash, distress.</div>
+  </section>
+
+  <aside class="panel">
+    <div class="card">
+      <h2><span class="num">1</span>Style info</h2>
+      <div class="grid2">
+        <div class="f"><label>Style #</label><input class="in" data-info="styleNo" placeholder="SP-001"></div>
+        <div class="f"><label>Season</label><input class="in" data-info="season" placeholder="FW26"></div>
+        <div class="f"><label>Garment</label>
+          <select class="sel" data-info="garment">
+            <option value="">Select…</option><option>Tee</option><option>Long sleeve tee</option><option>Hoodie</option><option>Zip hood</option><option>Crewneck</option><option>Trucker jacket</option><option>Sweatpant</option><option>5-pocket denim</option><option>Shorts</option><option>Other</option>
+          </select></div>
+        <div class="f"><label>Fit</label><input class="in" data-info="fit" placeholder="Boxy / Oversized / Regular"></div>
+        <div class="f"><label>Fabric</label><input class="in" data-info="fabric" placeholder="100% cotton fleece"></div>
+        <div class="f"><label>Weight</label><input class="in" data-info="weight" placeholder="450 gsm"></div>
+        <div class="f"><label>Colorway</label><input class="in" data-info="colorway" placeholder="Black / Cream"></div>
+        <div class="f"><label>Size range</label><input class="in" data-info="sizes" placeholder="S–XXL"></div>
+        <div class="f"><label>Target qty</label><input class="in" data-info="qty" placeholder="300 pcs"></div>
+        <div class="f"><label>Target date</label><input class="in" data-info="due" placeholder="Dec 15"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">2</span>Callouts <span class="cnt" id="cntAll">0</span></h2>
+      <div class="callouts" id="callouts"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">3</span>From the Reference Studio</h2>
+      <dl class="spec" id="spec"></dl>
+      <div class="refs" id="refs"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">4</span>Notes for the factory</h2>
+      <textarea id="notes" rows="4" placeholder="Packaging, labels, hang tags, special instructions…"></textarea>
+    </div>
+  </aside>
+</main>
+
+<div class="sheet" id="sheet"></div>
+<div class="lb" id="lb"><img id="lbImg" alt=""></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS=['Graphic / print','Cut & sew','Stitching','Trim','Label','Wash','Distress','Fabric','Measurement','Other'];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
+
+/* storage (shared with the Reference Studio) */
+const DB=(()=>{let dbp;const open=()=>dbp||(dbp=new Promise((res,rej)=>{const r=indexedDB.open('spool-ref-studio',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('designs',{keyPath:'id'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));
+  const tx=async(mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction('kv',mode);const out=fn(t.objectStore('kv'));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn(e);return null;}};
+  return{get:k=>tx('readonly',s=>s.get(k)),set:(k,v)=>tx('readwrite',s=>s.put(v,k)),del:k=>tx('readwrite',s=>s.delete(k))};})();
+
+let doc=null, sel=null;
+
+async function index(){ return (await DB.get('tp-index'))||[]; }
+async function persist(){
+  if(!doc) return; doc.updatedAt=Date.now();
+  await DB.set('tp:'+doc.id,doc);
+  const idx=(await index()).filter(x=>x.id!==doc.id); idx.unshift({id:doc.id,name:doc.name,updatedAt:doc.updatedAt,front:doc.front,back:doc.back});
+  await DB.set('tp-index',idx);
+  $('#savedAt').textContent='Saved '+new Date(doc.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+}
+let saveT; function save(){ $('#savedAt').textContent='Saving…'; clearTimeout(saveT); saveT=setTimeout(persist,500); }
+
+/* ---------- list ---------- */
+async function showList(){
+  $('#listView').classList.remove('hidden'); $('#editView').classList.add('hidden');
+  $('#printBtn').classList.add('hidden'); $('#sampleBtn').classList.add('hidden');
+  const idx=await index(), g=$('#tpGrid');
+  g.innerHTML=idx.length?'':'<div class="empty" style="grid-column:1/-1">No tech packs yet. Go to the <a href="studio.html">Reference Studio</a>, pick a design and click <b>Prepare tech pack →</b>.</div>';
+  idx.forEach(t=>{ const a=document.createElement('a'); a.className='tp-card'; a.href='techpack.html?id='+encodeURIComponent(t.id);
+    a.innerHTML=`<div class="th">${t.front?`<img src="${t.front}" alt="">`:'<div></div>'}${t.back?`<img src="${t.back}" alt="">`:'<div></div>'}</div><div class="m"><b>${esc(t.name||'Untitled')}</b><small>Edited ${new Date(t.updatedAt).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</small></div><button class="del" title="Delete">✕</button>`;
+    a.querySelector('.del').onclick=async e=>{ e.preventDefault(); if(!confirm('Delete this tech pack?')) return; await DB.del('tp:'+t.id); await DB.set('tp-index',(await index()).filter(x=>x.id!==t.id)); showList(); };
+    g.appendChild(a); });
+}
+
+/* ---------- editor ---------- */
+function showEditor(){
+  $('#listView').classList.add('hidden'); $('#editView').classList.remove('hidden');
+  $('#printBtn').classList.remove('hidden'); $('#sampleBtn').classList.remove('hidden');
+  document.title=(doc.name||'Tech pack')+' — SPOOL';
+  $('#tpName').value=doc.name||'';
+  $$('[data-info]').forEach(el=>{ el.value=doc.info[el.dataset.info]||''; });
+  $('#notes').value=doc.notes||'';
+  renderSpec(); renderBoards(); renderCallouts();
+  $('#savedAt').textContent=doc.updatedAt?'Saved '+new Date(doc.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'Not saved yet';
+}
+$('#tpName').addEventListener('input',e=>{doc.name=e.target.value; save();});
+$$('[data-info]').forEach(el=>el.addEventListener('input',()=>{doc.info[el.dataset.info]=el.value; save();}));
+$('#notes').addEventListener('input',e=>{doc.notes=e.target.value; save();});
+
+function renderSpec(){
+  const s=doc.spec||{}, rows=[];
+  const row=(k,v)=>{ if(v&&String(v).trim()) rows.push(`<dt>${k}</dt><dd>${esc(v)}</dd>`); };
+  row('Body',s.body); row('Color',s.color);
+  ['front','back'].forEach(side=>{ const x=s[side]||{}; row(cap(side)+' graphic',x.graphic); row(cap(side)+' body',x.body); row(cap(side)+' wash',[x.wash,x.washNote].filter(Boolean).join(', ')); });
+  if(s.distress) row('Distress',`${s.distress.level} — ${s.distress.where.join(', ')||'any'} (${s.distress.side})${s.distress.note?'\n'+s.distress.note:''}`);
+  row('Direction',s.direction); row('Made with',doc.provider);
+  $('#spec').innerHTML=rows.join('')||'<dd style="grid-column:1/-1;color:var(--muted)">No notes were added in the studio.</dd>';
+  const refs=Object.entries(doc.refs||{}).filter(([,u])=>u);
+  $('#refs').innerHTML=refs.map(([k,u])=>`<div class="ref" data-src="${k}"><img src="${u}" alt="${esc(k)}"><span>${esc(k.replace('-',' · '))}</span></div>`).join('');
+  $$('#refs .ref').forEach(r=>r.onclick=()=>openLB(doc.refs[r.dataset.src]));
+}
+
+function renderBoards(){
+  $$('.canvas').forEach(cv=>{
+    const side=cv.dataset.side, src=doc[side];
+    cv.innerHTML=src?`<img src="${src}" alt="${side} view">`:`<div class="noimg">No ${side} image from the studio.<br>Callouts still work.</div>`;
+    doc.pins.forEach((p,i)=>{ if(p.side!==side) return;
+      const el=document.createElement('div'); el.className='pin'+(sel===p.id?' is-sel':''); el.textContent=i+1; el.style.left=p.x+'%'; el.style.top=p.y+'%'; el.dataset.id=p.id;
+      el.addEventListener('pointerdown',e=>startDrag(e,p,cv,el)); cv.appendChild(el); });
+  });
+  const c={front:0,back:0}; doc.pins.forEach(p=>c[p.side]++);
+  $('#cntFront').textContent=c.front+' callout'+(c.front===1?'':'s'); $('#cntBack').textContent=c.back+' callout'+(c.back===1?'':'s');
+  $('#cntAll').textContent=doc.pins.length;
+}
+let dragging=null;
+function startDrag(e,p,cv,el){
+  e.stopPropagation(); e.preventDefault(); el.setPointerCapture(e.pointerId);
+  dragging={p,cv,moved:false};
+  el.onpointermove=ev=>{ const r=cv.getBoundingClientRect(); p.x=Math.max(0,Math.min(100,(ev.clientX-r.left)/r.width*100)); p.y=Math.max(0,Math.min(100,(ev.clientY-r.top)/r.height*100)); el.style.left=p.x+'%'; el.style.top=p.y+'%'; dragging.moved=true; };
+  el.onpointerup=()=>{ el.onpointermove=null; el.onpointerup=null; const moved=dragging.moved; dragging=null; if(moved) save(); select(p.id); };
+}
+$$('.canvas').forEach(cv=>cv.addEventListener('click',e=>{
+  if(e.target.closest('.pin')) return;
+  const r=cv.getBoundingClientRect();
+  const p={id:'p'+Date.now(),side:cv.dataset.side,x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100,cat:'Graphic / print',note:''};
+  doc.pins.push(p); sel=p.id; renderBoards(); renderCallouts(); save();
+  setTimeout(()=>document.querySelector(`.co[data-id="${p.id}"] textarea`)?.focus(),30);
+}));
+function select(id){ sel=id; renderBoards(); $$('.co').forEach(c=>c.classList.toggle('is-sel',c.dataset.id===id)); document.querySelector(`.co[data-id="${id}"]`)?.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+
+function renderCallouts(){
+  const box=$('#callouts');
+  if(!doc.pins.length){ box.innerHTML='<div class="empty">Click on the front or back image to add your first callout.</div>'; return; }
+  box.innerHTML='';
+  doc.pins.forEach((p,i)=>{
+    const c=document.createElement('div'); c.className='co'+(sel===p.id?' is-sel':''); c.dataset.id=p.id;
+    c.innerHTML=`<div class="n">${i+1}</div><div><div class="co-top"><select class="sel" aria-label="Category">${CATS.map(x=>`<option${x===p.cat?' selected':''}>${x}</option>`).join('')}</select><span class="side">${p.side}</span><button class="del" title="Delete callout">✕</button></div><textarea placeholder="What should the factory know about this point? e.g. 4-color screen print, 11&quot; wide, 3&quot; below collar"></textarea></div>`;
+    const ta=c.querySelector('textarea'); ta.value=p.note||'';
+    ta.addEventListener('input',()=>{p.note=ta.value; save();}); ta.addEventListener('focus',()=>{ if(sel!==p.id){ sel=p.id; renderBoards(); $$('.co').forEach(x=>x.classList.toggle('is-sel',x.dataset.id===p.id)); } });
+    c.querySelector('select').addEventListener('change',e=>{p.cat=e.target.value; save();});
+    c.querySelector('.del').onclick=()=>{ doc.pins=doc.pins.filter(x=>x.id!==p.id); if(sel===p.id) sel=null; renderBoards(); renderCallouts(); save(); };
+    box.appendChild(c);
+  });
+}
+
+/* ---------- lightbox ---------- */
+function openLB(src){ if(!src) return; $('#lbImg').src=src; $('#lb').classList.add('open'); }
+$('#lb').onclick=()=>$('#lb').classList.remove('open');
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#lb').classList.remove('open'); });
+
+/* ---------- print / PDF ---------- */
+function buildSheet(){
+  const I=doc.info, s=doc.spec||{};
+  const info=[['Style',doc.name],['Style #',I.styleNo],['Season',I.season],['Garment',I.garment||s.body],['Fit',I.fit],['Fabric',I.fabric],['Weight',I.weight],['Colorway',I.colorway||s.color],['Sizes',I.sizes],['Qty',I.qty],['Target date',I.due],['Date',new Date().toLocaleDateString()]];
+  const board=side=>`<div class="sh-board"><h4>${side.toUpperCase()}</h4><div class="sh-canvas">${doc[side]?`<img src="${doc[side]}">`:''}${doc.pins.map((p,i)=>p.side===side?`<div class="sh-pin" style="left:${p.x}%;top:${p.y}%">${i+1}</div>`:'').join('')}</div></div>`;
+  const rows=doc.pins.map((p,i)=>`<tr><td>${i+1}</td><td>${cap(p.side)}</td><td>${esc(p.cat)}</td><td>${esc(p.note)}</td></tr>`).join('')||'<tr><td colspan="4">No callouts</td></tr>';
+  const specRows=$('#spec').innerHTML;
+  const refs=Object.entries(doc.refs||{}).filter(([,u])=>u).map(([k,u])=>`<figure><img src="${u}"><figcaption>${esc(k.replace('-',' · '))}</figcaption></figure>`).join('');
+  $('#sheet').innerHTML=`
+  <div class="pg"><div class="sh-head"><h1>${esc(doc.name||'Untitled style')}</h1><small>SPOOL · Prepared tech pack · page 1</small></div>
+    <div class="sh-info">${info.map(([k,v])=>`<div><b>${k}</b>${esc(v||'—')}</div>`).join('')}</div>
+    <div class="sh-boards">${board('front')}${board('back')}</div></div>
+  <div class="pg"><div class="sh-head"><h1>Callouts</h1><small>${esc(doc.name||'')} · page 2</small></div>
+    <table><thead><tr><th style="width:28px">#</th><th style="width:60px">Side</th><th style="width:120px">Category</th><th>Instruction</th></tr></thead><tbody>${rows}</tbody></table>
+    ${doc.notes?`<h3 style="margin:14px 0 6px;font-size:12px">Notes for the factory</h3><p style="white-space:pre-wrap">${esc(doc.notes)}</p>`:''}</div>
+  <div class="pg"><div class="sh-head"><h1>Design brief &amp; references</h1><small>${esc(doc.name||'')} · page 3</small></div>
+    <dl class="spec" style="display:grid;grid-template-columns:110px 1fr;gap:4px 10px">${specRows}</dl>
+    <div class="sh-refs">${refs}</div></div>`;
+}
+$('#printBtn').onclick=async()=>{ await persist(); buildSheet(); setTimeout(()=>window.print(),300); };
+
+/* ---------- request sample ---------- */
+$('#sampleBtn').onclick=async()=>{
+  await persist(); const I=doc.info;
+  const lines=['Hi SPOOL team,','','I would like a sample of this style:',`- Style: ${doc.name||'Untitled'}${I.styleNo?' ('+I.styleNo+')':''}`,
+    I.garment?`- Garment: ${I.garment}`:'',I.fabric?`- Fabric: ${I.fabric} ${I.weight||''}`:'',I.colorway?`- Colorway: ${I.colorway}`:'',I.sizes?`- Sizes: ${I.sizes}`:'',I.qty?`- Qty: ${I.qty}`:'',
+    '','Callouts:',...doc.pins.map((p,i)=>`${i+1}. [${cap(p.side)} · ${p.cat}] ${p.note||'—'}`),
+    doc.notes?'\nNotes: '+doc.notes:'','','(Tech pack PDF attached — saved with Print / PDF)'].filter(x=>x!=='');
+  location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent('SPOOL sample request — '+(doc.name||'tech pack'))+'&body='+encodeURIComponent(lines.join('\n'));
+};
+
+/* ---------- start ---------- */
+(async()=>{
+  const q=new URLSearchParams(location.search);
+  if(q.get('new')){
+    const h=await DB.get('tp-handoff');
+    if(h){ await DB.del('tp-handoff');
+      const s=h.spec||{};
+      doc={id:h.id,name:h.name||'New style',front:h.front||null,back:h.back||null,provider:h.provider||'',refs:h.refs||{},spec:s,pins:[],notes:'',
+        info:{garment:({tee:'Tee',hoodie:'Hoodie',zip:'Zip hood',crew:'Crewneck',trucker:'Trucker jacket',sweatpant:'Sweatpant',denim:'5-pocket denim',shorts:'Shorts'})[s.garment]||'',colorway:s.color||''},createdAt:h.createdAt||Date.now()};
+      await persist(); history.replaceState(null,'','techpack.html?id='+encodeURIComponent(doc.id)); showEditor(); return;
+    }
+  }
+  const id=q.get('id');
+  if(id){ doc=await DB.get('tp:'+id); if(doc){ doc.pins=doc.pins||[]; doc.info=doc.info||{}; showEditor(); return; } toast('That tech pack wasn’t found in this browser'); }
+  showList();
+})();
+</script>
+</body>
+</html>
