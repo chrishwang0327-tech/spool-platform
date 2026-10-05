@@ -107,6 +107,14 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .cmp figure{display:flex;flex-direction:column;gap:6px}
 .cmp img{width:100%;border-radius:12px;border:1px solid var(--line2);display:block}
 .cmp figcaption{font-size:12px;color:var(--muted);text-align:center}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tabs button{border:1.5px solid var(--line2);border-radius:14px;padding:8px 6px;background:#fff;font-weight:600;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button i{font-style:normal;font-size:10.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:0 7px}
+.tabs button.on{border-color:var(--ink);background:var(--y2)}
+.tabs button.on i{background:var(--y)}
+.box.det{border-style:dashed}
+.box.det .n{background:#fff;color:var(--ink);border:2px solid var(--ink);font-size:10.5px}
+.sub{font-size:12px;color:var(--muted);margin-top:4px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 @media (max-width:960px){
@@ -161,6 +169,13 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
   </section>
 
   <aside>
+    <div class="tabs" id="tabs" role="tablist">
+      <button class="on" data-t="graphic" role="tab"><i>01</i>Graphic</button>
+      <button data-t="body" role="tab"><i>02</i>Body</button>
+      <button data-t="details" role="tab"><i>03</i>Details</button>
+    </div>
+    <div id="tabIntro" class="sub"></div>
+    <div id="partsPane" style="display:flex;flex-direction:column;gap:16px">
     <div>
       <div class="lbl">Sizing</div>
       <div class="row" style="margin-top:8px"><span style="font-size:13px;white-space:nowrap">Chest width</span><input class="field" id="chest" type="number" min="8" max="40" step="0.5" value="21" style="width:90px"><span>in</span></div>
@@ -171,6 +186,9 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <div class="list" id="list"></div>
     </div>
     <div class="card" id="detail"></div>
+    <div class="card hidden" id="labelsCard"></div>
+    </div>
+    <div class="card hidden" id="bodyPane"></div>
     <div class="card">
       <div class="lbl">Finish</div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
@@ -209,7 +227,8 @@ const MOCK=!LIVE;
 const PX=1024, U=1000;                 // image pixels, layout units
 const k=PX/U;
 const BODY_CHEST={tee:21,hoodie:23,zip:23,crew:22,trucker:23,sweatpant:16,denim:16,shorts:16};
-const TECH={print:'Print',puff:'Puff print',emb:'Embroidery',patch:'Patch',app:'Appliqué',rhine:'Rhinestones',studs:'Studs',distress:'Distress'};
+const TECH={print:'Print',puff:'Puff print',emb:'Embroidery',patch:'Patch',app:'Appliqué',rhine:'Rhinestones',studs:'Studs',distress:'Distress',other:'Other trim'};
+const GT=['print','puff','emb','patch','app'], DT=['rhine','studs','distress','other'];
 const OPTS={
   print:[['Method',['Screen','DTG','Discharge','Heat transfer','Crack']],['Colors',['1','2','3','4+']]],
   puff:[['Colors',['1','2','3']]],
@@ -218,7 +237,8 @@ const OPTS={
   app:[['Fabric',['Twill','Felt','Jersey']],['Edge',['Satin stitch','Raw']]],
   rhine:[['Stone',['SS10','SS16','SS20']],['Color',['Crystal','AB','Black','Gold']],['Density',['Light','Full']]],
   studs:[['Shape',['Round','Pyramid','Star']],['Size',['6 mm','8 mm','10 mm']],['Finish',['Silver','Gold','Gunmetal']]],
-  distress:[['Level',['Light','Heavy']],['Type',['Holes','Fraying','Fading','Cracked print']]]
+  distress:[['Level',['Light','Heavy']],['Type',['Holes','Fraying','Fading','Cracked print']]],
+  other:[['Type',['Hardware','Zipper','Buttons','Drawcord','Lace','Other']]]
 };
 function techWords(p){
   const o=k2=>optOf(p,k2);
@@ -231,6 +251,7 @@ function techWords(p){
     case 'rhine': return `${o('Color').toLowerCase()} rhinestones (${o('Stone')}) set ${o('Density')==='Full'?'densely, fully covering':'along'} the artwork, sparkling`;
     case 'studs': return `${o('Finish').toLowerCase()} ${o('Shape').toLowerCase()} metal studs (${o('Size')}) following the artwork shape`;
     case 'distress': return `${o('Level').toLowerCase()} ${o('Type').toLowerCase()} distressing on the fabric`;
+    case 'other': return `a realistic ${o('Type').toLowerCase()} detail${p.note?' ('+p.note+')':''}`;
   }
 }
 const optOf=(p,key)=>{const d=OPTS[p.tech].find(x=>x[0]===key); return p.opts[p.tech+'|'+key]||(d?d[1][0]:'');};
@@ -276,8 +297,15 @@ const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'
 /* ================= state ================= */
 const defCal=()=>({x1:270,x2:730,y:430,hps:120});
 const blankSide=()=>({original:null,base:null,hole:null,separated:false,cal:defCal(),parts:[]});
-const newProject=()=>({v:3,id:'p'+Date.now(),name:'Untitled design',created:Date.now(),updated:Date.now(),body:'tee',chestIn:21,email:'',provider:'',spec:null,sides:{front:blankSide(),back:blankSide()}});
-let P=null, side='front', sel=null, view='spec', tool=null, imgCache=new Map();
+const blankBody=()=>({fabric:'',gsm:'',color:'',pantone:'',fit:'',neck:'',sleeve:'',hem:'',notes:''});
+const blankLabels=()=>({neck:'Printed',care:'Side seam',hangtag:'Yes',stitch:'',hardware:'',notes:''});
+const newProject=()=>({v:3,id:'p'+Date.now(),name:'Untitled design',created:Date.now(),updated:Date.now(),body:'tee',chestIn:21,email:'',provider:'',spec:null,bodySpec:blankBody(),labels:blankLabels(),sides:{front:blankSide(),back:blankSide()}});
+let P=null, side='front', sel=null, view='spec', tool=null, tab='graphic', imgCache=new Map();
+const kindOf=p=>p.kind||(DT.includes(p.tech)?'detail':'graphic');
+const curKind=()=>tab==='details'?'detail':'graphic';
+const visParts=()=>tab==='body'||!P?[]:S().parts.filter(p=>kindOf(p)===curKind());
+const lab=p=>kindOf(p)==='detail'?'D'+p.num:String(p.num);
+function renumber(s){ let g=0,d=0; s.parts.forEach(p=>{ p.kind=kindOf(p); p.num=p.kind==='detail'?++d:++g; }); }
 const S=()=>P.sides[side];
 const ipu=()=>{const c=S().cal; return (+P.chestIn||21)/Math.max(40,c.x2-c.x1);};
 const cx=()=>{const c=S().cal; return (c.x1+c.x2)/2;};
@@ -299,9 +327,9 @@ function place(el,b){el.style.left=pct(b[0]);el.style.top=pct(b[1]);el.style.wid
 function renderBoxes(){
   stage.querySelectorAll('.box').forEach(e=>e.remove());
   if(!P||!S().base) return;
-  S().parts.forEach(p=>{
-    const bx=document.createElement('div'); bx.className='box'+(sel===p?' sel':''); place(bx,p.b); bx.dataset.id=p.id;
-    bx.innerHTML=`<span class="n">${p.num}</span>`+(sel===p?'<span class="h"></span>':'');
+  visParts().forEach(p=>{
+    const bx=document.createElement('div'); bx.className='box'+(kindOf(p)==='detail'?' det':'')+(sel===p?' sel':''); place(bx,p.b); bx.dataset.id=p.id;
+    bx.innerHTML=`<span class="n">${lab(p)}</span>`+(sel===p?'<span class="h"></span>':'');
     bx.addEventListener('pointerdown',e=>boxDown(e,p,e.target.classList.contains('h')));
     stage.appendChild(bx);
   });
@@ -321,7 +349,7 @@ function renderMeas(){
     const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);renderDetail();save();};
     addEventListener('pointermove',mv); addEventListener('pointerup',up); }));
 }
-function render(){ draw(); renderBoxes(); renderMeas(); renderList(); renderDetail(); renderTop(); }
+function render(){ draw(); renderBoxes(); renderMeas(); renderList(); renderDetail(); renderTabs(); renderTop(); }
 function renderTop(){
   const has=!!(P&&S().base);
   $('#empty').classList.toggle('hidden',has);
@@ -329,27 +357,28 @@ function renderTop(){
   $('#drawBtn').classList.toggle('on',tool==='draw'); $('#measBtn').classList.toggle('on',tool==='measure');
   const sep=has&&S().separated; $('#sepBtn').classList.toggle('hidden',sep); $('#unsepBtn').classList.toggle('hidden',!sep);
   ['#detBtn','#drawBtn','#measBtn','#sepBtn','#polishBtn','#dlBtn','#tpBtn','#sampleBtn','#resetBtn'].forEach(s=>$(s).disabled=!has);
+  $('#detBtn').classList.toggle('hidden',tab!=='graphic'); $('#sepBtn').disabled=!has||tab!=='graphic'; $('#drawBtn').disabled=!has||tab==='body';
   $$('#sideSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.v===side); b.querySelector('.dot')?.remove(); if(P&&P.sides[b.dataset.v].parts.length&&b.dataset.v!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');});
-  $('#hint').textContent=tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':tool==='measure'?'Drag the yellow knobs: chest line across the armpits, dashed line at the high point of the shoulder (HPS).':sep?'Graphics are separated: drag a selected box to move it, pull the corner to resize. Inches update as you go.':(P&&S().parts.length?'Select a part to set its technique and size. To move or resize artwork visually, use “Separate graphics”.':'Press “Auto-detect” to box the graphics automatically, or drag “＋ Select area” yourself.');
+  $('#hint').textContent=tab==='body'?'Body specs apply to the whole garment. Fill them in on the right; preview a new body color with AI if you like.':tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':tool==='measure'?'Drag the yellow knobs: chest line across the armpits, dashed line at the high point of the shoulder (HPS).':sep?'Graphics are separated: drag a selected box to move it, pull the corner to resize. Inches update as you go.':(tab==='details'?'Drag “＋ Select area” over where rhinestones, studs, distressing or hardware go. Labels and trims are below the parts list.':P&&visParts().length?'Select a part to set its technique and size. To move or resize artwork visually, use “Separate graphics”.':'Press “Auto-detect” to box the graphics automatically, or drag “＋ Select area” yourself.');
 }
 function renderList(){
   const L=$('#list'); L.innerHTML=''; if(!P) return;
-  const parts=S().parts; $('#partCount').textContent=parts.length?`${parts.length} on ${side}`:'';
-  if(!parts.length){ L.innerHTML='<div class="muted">No parts yet. Use “＋ Select area”.</div>'; return; }
+  const parts=visParts(); $('#partCount').textContent=parts.length?`${parts.length} on ${side}`:'';
+  if(!parts.length){ L.innerHTML=`<div class="muted">${tab==='details'?'No details yet. Use “＋ Select area” to mark where they go.':'No graphics yet. Use “Auto-detect” or “＋ Select area”.'}</div>`; return; }
   parts.forEach(p=>{const b=document.createElement('button'); b.className='li'+(sel===p?' on':'');
-    b.innerHTML=`<span class="n">${p.num}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]} · ${f1(widthIn(p))}"</small>`;
+    b.innerHTML=`<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]} · ${f1(widthIn(p))}"</small>`;
     b.onclick=()=>{sel=p;render();}; L.appendChild(b);});
 }
 const widthIn=p=>p.specW||p.b[2]*ipu();
 const heightIn=p=>p.specW?p.specW*p.b[3]/p.b[2]:p.b[3]*ipu();
 function renderDetail(){
   const d=$('#detail'); const p=sel;
-  if(!P||!p){ d.innerHTML='<div class="lbl">Part</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>'; return; }
+  if(!P||!p||tab==='body'){ d.innerHTML=`<div class="lbl">${tab==='details'?'Detail':'Graphic'}</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>`; return; }
   const fromHps=(p.b[1]-S().cal.hps)*ipu(), fromC=(p.b[0]+p.b[2]/2-cx())*ipu();
   const opts=OPTS[p.tech].map(([key,vals])=>`<div style="margin-top:10px"><div class="lbl">${key}</div><div class="chips">${vals.map(v=>`<button class="chip${optOf(p,key)===v?' on':''}" data-o="${key}" data-v="${v}">${v}</button>`).join('')}</div></div>`).join('');
   d.innerHTML=`<div class="row" style="justify-content:space-between"><input class="field" id="pName" value="${esc(p.name)}" style="font-weight:600;max-width:230px"><button class="btn sm" id="pDel">Delete</button></div>
    <div style="margin-top:12px" class="lbl">Technique</div>
-   <div class="chips">${Object.entries(TECH).map(([t,v])=>`<button class="chip${p.tech===t?' on':''}" data-t="${t}">${v}</button>`).join('')}</div>
+   <div class="chips">${(kindOf(p)==='detail'?DT:GT).map(t=>`<button class="chip${p.tech===t?' on':''}" data-t="${t}">${TECH[t]}</button>`).join('')}</div>
    ${opts}
    <div style="margin-top:14px" class="lbl">Size & placement</div>
    <div class="kv">
@@ -358,7 +387,7 @@ function renderDetail(){
      <label>Below HPS<input class="field" value="${f1(fromHps)}&quot;" disabled></label>
      <label>From center<input class="field" value="${Math.abs(fromC)<0.15?'Centered':(fromC>0?'R ':'L ')+f1(Math.abs(fromC))+'&quot;'}" disabled></label>
    </div>
-   <div class="est">${S().separated&&p.layer?'Drag the box to move the artwork, pull the corner to resize it.':'Width changes the spec only. To resize the artwork itself, use “Separate graphics”.'}</div>
+   <div class="est">${kindOf(p)==='detail'?'Drag the box or its corner to mark the exact area.':S().separated&&p.layer?'Drag the box to move the artwork, pull the corner to resize it.':'Width changes the spec only. To resize the artwork itself, use “Separate graphics”.'}</div>
    <label style="display:block;margin-top:12px" class="lbl" for="pNote">Note for the factory</label>
    <input class="field" id="pNote" style="margin-top:6px" value="${esc(p.note||'')}" placeholder="e.g. match Pantone 186 C, tack down corners">
    <div class="row" style="margin-top:14px;gap:6px;flex-wrap:wrap">
@@ -370,13 +399,70 @@ function renderDetail(){
   d.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{p.opts[p.tech+'|'+b.dataset.o]=b.dataset.v; save(); renderDetail();});
   $('#pName').oninput=e=>{p.name=e.target.value; renderList(); save();};
   $('#pNote').oninput=e=>{p.note=e.target.value; save();};
-  $('#pDel').onclick=()=>{ if(S().separated&&p.layer&&!confirm('Delete this part? Its separated artwork will be removed from the image.')) return; const s=S(); s.parts=s.parts.filter(q=>q!==p); s.parts.forEach((q,i)=>q.num=i+1); sel=null; save(); render(); };
+  $('#pDel').onclick=()=>{ if(S().separated&&p.layer&&!confirm('Delete this part? Its separated artwork will be removed from the image.')) return; const s=S(); s.parts=s.parts.filter(q=>q!==p); renumber(s); sel=null; save(); render(); };
   $('#wIn').onchange=e=>{ const v=+e.target.value; if(!(v>0)) return;
     if(S().separated&&p.layer){ const nw=v/ipu(), r=p.b[3]/p.b[2], c0=[p.b[0]+p.b[2]/2,p.b[1]+p.b[3]/2]; p.b=clampB([c0[0]-nw/2,c0[1]-nw*r/2,nw,nw*r]); p.specW=null; }
     else p.specW=v;
     save(); render(); };
   $('#fxBtn').onclick=()=>preview(p);
   $('#fxUndo').onclick=()=>undoPreview(p);
+}
+
+/* ================= tabs ================= */
+const TAB_INTRO={graphic:'Artwork: mark each graphic, pick its technique and size.',body:'The garment itself: fabric, color, fit and finishing.',details:'Trims and finishing: rhinestones, studs, distressing, hardware, labels.'};
+$('#tabs').onclick=e=>{const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; sel=null; tool=null; render();};
+const chipRow=(key,vals,cur)=>`<div class="chips">${vals.map(v=>`<button class="chip${cur===v?' on':''}" data-k="${key}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
+function renderTabs(){
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  $('#tabIntro').textContent=TAB_INTRO[tab];
+  $('#partsPane').classList.toggle('hidden',tab==='body'); $('#bodyPane').classList.toggle('hidden',tab!=='body'); $('#labelsCard').classList.toggle('hidden',tab!=='details');
+  if(!P) return;
+  if(tab==='body') renderBody(); if(tab==='details') renderLabels();
+}
+function bindForm(root,obj){
+  root.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ obj[b.dataset.k]=obj[b.dataset.k]===b.dataset.v?'':b.dataset.v; save(); renderTabs(); });
+  root.querySelectorAll('[data-f]').forEach(i=>i.oninput=()=>{ obj[i.dataset.f]=i.value; save(); });
+}
+function renderBody(){
+  const B=P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); const s=S();
+  const el=$('#bodyPane');
+  el.innerHTML=`<div class="lbl">Fabric</div>
+   ${chipRow('fabric',['Cotton jersey','Heavyweight jersey','French terry','Fleece','Twill','Oxford','Denim','Nylon'],B.fabric)}
+   <div class="kv"><label>Weight (GSM / oz)<input class="field" data-f="gsm" value="${esc(B.gsm)}" placeholder="e.g. 240 GSM"></label><label>Other fabric<input class="field" data-f="fabricNote" value="${esc(B.fabricNote||'')}" placeholder="e.g. 100% cotton slub"></label></div>
+   <div class="lbl" style="margin-top:14px">Color</div>
+   <div class="kv"><label>Color name<input class="field" data-f="color" value="${esc(B.color)}" placeholder="e.g. Washed black"></label><label>Pantone (optional)<input class="field" data-f="pantone" value="${esc(B.pantone)}" placeholder="e.g. 19-4007 TCX"></label></div>
+   <div class="row" style="margin-top:10px;gap:6px;flex-wrap:wrap"><button class="btn y sm" id="bodyFx">Preview color on ${side}</button><button class="btn sm" id="bodyUndo" ${s.bodyHist?.length?'':'disabled'}>Undo color</button></div>
+   <div class="note">AI recolors the ${side} photo once. Graphics should stay the same; use Undo if anything else changed.</div>
+   <div class="lbl" style="margin-top:14px">Fit</div>
+   ${chipRow('fit',['Regular','Oversized','Boxy','Slim','Cropped'],B.fit)}
+   <div class="lbl" style="margin-top:14px">Finishing</div>
+   <div class="kv"><label>Neck / collar<input class="field" data-f="neck" value="${esc(B.neck)}" placeholder="e.g. 1x1 rib, 2.5 cm"></label><label>Sleeve / cuff<input class="field" data-f="sleeve" value="${esc(B.sleeve)}" placeholder="e.g. raw edge"></label>
+   <label>Hem<input class="field" data-f="hem" value="${esc(B.hem)}" placeholder="e.g. double needle"></label><label>Sample size<input class="field" value="Chest ${f1(+P.chestIn)}&quot;" disabled></label></div>
+   <label class="lbl" style="display:block;margin-top:14px">Body notes</label>
+   <textarea class="field" data-f="notes" rows="3" style="margin-top:6px" placeholder="e.g. side-seam pockets, contrast back yoke">${esc(B.notes)}</textarea>`;
+  bindForm(el,B);
+  $('#bodyFx').onclick=previewBody; $('#bodyUndo').onclick=()=>{ const h=s.bodyHist?.pop(); if(!h) return; Object.assign(s,h); save(); render(); };
+}
+function renderLabels(){
+  const Lb=P.labels=Object.assign(blankLabels(),P.labels||{}); const el=$('#labelsCard');
+  el.innerHTML=`<div class="lbl">Labels & trims (whole garment)</div>
+   <div class="lbl" style="margin-top:12px">Neck label</div>${chipRow('neck',['Printed','Woven','Heat transfer','None'],Lb.neck)}
+   <div class="lbl" style="margin-top:12px">Care label</div>${chipRow('care',['Side seam','Neck','None'],Lb.care)}
+   <div class="lbl" style="margin-top:12px">Hang tag</div>${chipRow('hangtag',['Yes','No'],Lb.hangtag)}
+   <div class="kv"><label>Stitch / thread color<input class="field" data-f="stitch" value="${esc(Lb.stitch)}" placeholder="e.g. tonal"></label><label>Hardware<input class="field" data-f="hardware" value="${esc(Lb.hardware)}" placeholder="e.g. matte black snaps"></label></div>
+   <label class="lbl" style="display:block;margin-top:12px">Notes</label><input class="field" data-f="notes" style="margin-top:6px" value="${esc(Lb.notes)}" placeholder="e.g. brand logo on neck label, size 1 in">`;
+  bindForm(el,Lb);
+}
+const bodyPrompt=B=>`BODY COLOR EDIT: Edit this garment product photo. Change ONLY the color of the garment fabric to ${B.color}${B.pantone?' (Pantone '+B.pantone+')':''}. Keep every print, graphic, text, patch, trim, label, wash, distressing, fold, seam, the framing and the background exactly the same.`;
+async function previewBody(){
+  const s=S(), B=P.bodySpec; if(isBusy()) return; if(!B.color) return toast('Enter a color name first');
+  busy(true,'Recoloring the body','One AI pass on the '+side+' photo');
+  try{
+    if(s.separated){ const out=await squareURL(await ai(bodyPrompt(B),[s.hole])); (s.bodyHist=s.bodyHist||[]).push({hole:s.hole,clean:s.clean}); s.hole=out; s.clean=out; }
+    else { const out=await squareURL(await ai(bodyPrompt(B),[s.base])); (s.bodyHist=s.bodyHist||[]).push({base:s.base}); s.base=out; }
+    if(s.bodyHist.length>3) s.bodyHist.shift(); toast('Body color preview applied');
+  }catch(e){ console.error(e); toast('Color preview failed: '+e.message); }
+  busy(false); save(); render();
 }
 
 /* ================= pointer: boxes / draw ================= */
@@ -402,9 +488,10 @@ stage.addEventListener('pointerdown',e=>{
   const mv=ev=>{const [x,y]=toU(ev); place(d,rect(x,y));};
   const up=ev=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up); d.remove(); const [x,y]=toU(ev); const b=rect(x,y); tool=null;
     if(b[2]<12||b[3]<12){ render(); return toast('Drag a bigger area'); }
-    const s=S(); const p={id:'a'+Date.now(),num:s.parts.length+1,name:'Area '+(s.parts.length+1),b:clampB(b),tech:'print',opts:{},note:'',layer:null,hist:[]};
-    s.parts.push(p); sel=p;
-    if(s.separated) extractInto(p).then(()=>{save();render();}); else { save(); render(); } };
+    const s=S(), kind=curKind(), n=s.parts.filter(q=>kindOf(q)===kind).length+1;
+    const p={id:'a'+Date.now(),kind,num:n,name:(kind==='detail'?'Detail ':'Graphic ')+n,b:clampB(b),tech:kind==='detail'?'rhine':'print',opts:{},note:'',layer:null,hist:[]};
+    s.parts.push(p); renumber(s); sel=p;
+    if(s.separated&&kind==='graphic') extractInto(p).then(()=>{save();render();}); else { save(); render(); } };
   addEventListener('pointermove',mv); addEventListener('pointerup',up);
 });
 $('#drawBtn').onclick=()=>{tool=tool==='draw'?null:'draw'; render();};
@@ -456,8 +543,8 @@ $('#detBtn').onclick=async()=>{
     const c=canvas(768); c.getContext('2d').drawImage(await (async()=>{const f=canvas(PX); await composite(f,s); return f;})(),0,0,768,768);
     const found=await detectAPI(c.toDataURL('image/jpeg',.85)); let added=0;
     for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5)) continue;
-      const p={id:'a'+Date.now()+added,num:s.parts.length+1,name:f.label||('Area '+(s.parts.length+1)),b,tech:'print',opts:{},note:'',layer:null,hist:[]};
-      s.parts.push(p); if(s.separated) await extractInto(p); added++; }
+      const p={id:'a'+Date.now()+added,kind:'graphic',num:0,name:f.label||'Graphic',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
+      s.parts.push(p); renumber(s); if(s.separated) await extractInto(p); added++; }
     sel=s.parts[s.parts.length-added]||sel;
     toast(added?`Found ${added} part${added>1?'s':''} — fix any box by dragging it, or add more with “＋ Select area”`:'No new graphics found. Add them with “＋ Select area”.');
   }catch(e){ console.error(e); toast('Auto-detect failed: '+e.message); }
@@ -466,11 +553,11 @@ $('#detBtn').onclick=async()=>{
 
 /* ================= separate ================= */
 $('#sepBtn').onclick=async()=>{
-  const s=S(); if(isBusy()) return; if(!s.parts.length) return toast('Select the graphics first with “＋ Select area”');
+  const s=S(); if(isBusy()) return; if(!s.parts.some(p=>kindOf(p)==='graphic')) return toast('Mark the graphics first with “Auto-detect” or “＋ Select area”');
   busy(true,'Separating body and graphics','One AI pass for the blank body, then each selected area becomes its own layer');
   try{
     s.clean=await squareURL(await ai(P_CLEAN,[s.base]));
-    s.hole=s.base; for(const p of s.parts) await extractInto(p);
+    s.hole=s.base; for(const p of s.parts) if(kindOf(p)==='graphic') await extractInto(p);
     s.separated=true; tool=null; toast('Separated — drag a selected box to move it, pull the corner to resize');
   }catch(e){ console.error(e); toast('Separation failed: '+e.message); }
   busy(false); save(); render();
@@ -533,7 +620,7 @@ async function calloutImage(s){
   const c=canvas(PX), x=c.getContext('2d'); x.drawImage(await img(await finalURL(s)),0,0,PX,PX);
   x.lineWidth=4; x.font='700 26px Outfit, Arial'; x.textAlign='center'; x.textBaseline='middle';
   s.parts.forEach(p=>{ const b=p.b.map(v=>v*k); x.strokeStyle='#201D18'; x.setLineDash([12,8]); x.strokeRect(b[0],b[1],b[2],b[3]); x.setLineDash([]);
-    x.fillStyle='#FEE32B'; x.beginPath(); x.arc(b[0],b[1],20,0,Math.PI*2); x.fill(); x.stroke(); x.fillStyle='#201D18'; x.fillText(p.num,b[0],b[1]+1); });
+    const det=kindOf(p)==='detail'; x.fillStyle=det?'#FFFFFF':'#FEE32B'; x.beginPath(); x.arc(b[0],b[1],det?24:20,0,Math.PI*2); x.fill(); x.stroke(); x.fillStyle='#201D18'; x.font=det?'700 22px Outfit, Arial':'700 26px Outfit, Arial'; x.fillText(lab(p),b[0],b[1]+1); });
   return c.toDataURL('image/jpeg',.9);
 }
 $('#tpBtn').onclick=async()=>{
@@ -541,33 +628,41 @@ $('#tpBtn').onclick=async()=>{
   w.document.write('<p style="font-family:sans-serif;padding:20px">Building tech pack…</p>');
   const sp=P.spec||{}, rows=[];
   const sideBlock=async sd=>{ const s=P.sides[sd]; if(!s.base) return ''; const saveSide=side; side=sd;
-    const tr=s.parts.map(p=>{ const fh=(p.b[1]-s.cal.hps)*ipu(), fc=(p.b[0]+p.b[2]/2-(s.cal.x1+s.cal.x2)/2)*ipu();
-      return `<tr><td><b>${p.num}</b></td><td>${esc(p.name)}</td><td>${TECH[p.tech]}</td><td>${f1(widthIn(p))}" × ${f1(heightIn(p))}"</td><td>${f1(fh)}" below HPS<br>${Math.abs(fc)<0.15?'Centered':(fc>0?'Right ':'Left ')+f1(Math.abs(fc))+'"'}</td><td>${OPTS[p.tech].map(([kk])=>`${kk}: ${esc(optOf(p,kk))}`).join('<br>')}${p.note?'<br><i>'+esc(p.note)+'</i>':''}</td></tr>`; }).join('');
+    const row=p=>{ const fh=(p.b[1]-s.cal.hps)*ipu(), fc=(p.b[0]+p.b[2]/2-(s.cal.x1+s.cal.x2)/2)*ipu();
+      return `<tr><td><b>${lab(p)}</b></td><td>${esc(p.name)}</td><td>${TECH[p.tech]}</td><td>${f1(widthIn(p))}" × ${f1(heightIn(p))}"</td><td>${f1(fh)}" below HPS<br>${Math.abs(fc)<0.15?'Centered':(fc>0?'Right ':'Left ')+f1(Math.abs(fc))+'"'}</td><td>${OPTS[p.tech].map(([kk])=>`${kk}: ${esc(optOf(p,kk))}`).join('<br>')}${p.note?'<br><i>'+esc(p.note)+'</i>':''}</td></tr>`; };
+    const tbl=(kind,title)=>{ const rs=s.parts.filter(p=>kindOf(p)===kind).map(row).join(''); return rs?`<h3>${title}</h3><table><thead><tr><th>#</th><th>Part</th><th>Technique</th><th>Size</th><th>Placement</th><th>Details</th></tr></thead><tbody>${rs}</tbody></table>`:''; };
+    const tr=tbl('graphic','Graphics')+tbl('detail','Details');
     const imgs=[await finalURL(s),await calloutImage(s)]; side=saveSide;
     return `<section><h2>${sd.toUpperCase()}</h2><div class="imgs"><figure><img src="${imgs[0]}"><figcaption>Final</figcaption></figure><figure><img src="${imgs[1]}"><figcaption>Callouts</figcaption></figure></div>
-      ${tr?`<table><thead><tr><th>#</th><th>Part</th><th>Technique</th><th>Size</th><th>Placement</th><th>Details</th></tr></thead><tbody>${tr}</tbody></table>`:'<p class="m">No parts marked on this side.</p>'}</section>`; };
+      ${tr||'<p class="m">No parts marked on this side.</p>'}</section>`; };
   const f=sp.front||{}, b=sp.back||{};
   const kv=[['Style',P.name],['Date',new Date().toLocaleDateString()],['Contact',P.email||'—'],['Body',sp.body||P.body],['Sample size','Chest ≈ '+f1(+P.chestIn)+'"'],
     ['Wash front',[f.wash,f.washNote].filter(Boolean).join(', ')||'—'],['Wash back',[b.wash,b.washNote].filter(Boolean).join(', ')||'—'],
     ['Distress',sp.distress?[sp.distress.front&&'Front: '+sp.distress.front,sp.distress.back&&'Back: '+sp.distress.back].filter(Boolean).join(' / '):'—'],
     ['Trims',[f.trim&&'Front: '+f.trim+(f.trimNote?' ('+f.trimNote+')':''),b.trim&&'Back: '+b.trim+(b.trimNote?' ('+b.trimNote+')':'')].filter(Boolean).join(' / ')||'—'],
     ['Body notes',[f.body&&'Front: '+f.body,b.body&&'Back: '+b.body].filter(Boolean).join(' / ')||'—'],['Direction',sp.direction||'—']];
+  const B=Object.assign(blankBody(),P.bodySpec||{}), Lb=Object.assign(blankLabels(),P.labels||{});
+  const bodyKv=[['Fabric',[B.fabric,B.fabricNote,B.gsm].filter(Boolean).join(', ')||'—'],['Color',[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' · ')||'—'],['Fit',B.fit||'—'],['Neck / collar',B.neck||'—'],['Sleeve / cuff',B.sleeve||'—'],['Hem',B.hem||'—'],['Body notes',B.notes||'—']];
+  const labKv=[['Neck label',Lb.neck||'—'],['Care label',Lb.care||'—'],['Hang tag',Lb.hangtag||'—'],['Stitch color',Lb.stitch||'—'],['Hardware',Lb.hardware||'—'],['Notes',Lb.notes||'—']];
   const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tech pack — ${esc(P.name)}</title><style>
     body{font-family:Helvetica,Arial,sans-serif;color:#201D18;margin:28px;font-size:12px}h1{font-size:22px;letter-spacing:.2em;margin:0}h2{font-size:14px;letter-spacing:.2em;margin:26px 0 10px;border-bottom:2px solid #201D18;padding-bottom:4px}
     .top{display:flex;justify-content:space-between;align-items:flex-end}.m{color:#7a7566}
     .kv{display:grid;grid-template-columns:140px 1fr;gap:4px 12px;margin-top:14px}.kv b{color:#7a7566;font-weight:600}
     .imgs{display:grid;grid-template-columns:1fr 1fr;gap:14px}figure{margin:0}img{width:100%;border:1px solid #ddd}figcaption{text-align:center;color:#7a7566;margin-top:4px}
     table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;padding:6px;border-bottom:1px solid #ddd;vertical-align:top}th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7a7566}
-    section{page-break-inside:avoid}.pb{margin-top:18px}button{padding:8px 16px;border-radius:99px;border:0;background:#FEE32B;font-weight:600;cursor:pointer}@media print{.pb{display:none}}</style></head><body>
+    h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:16px 0 0}section{page-break-inside:avoid}.pb{margin-top:18px}button{padding:8px 16px;border-radius:99px;border:0;background:#FEE32B;font-weight:600;cursor:pointer}@media print{.pb{display:none}}</style></head><body>
     <div class="top"><div><h1>SPOOL</h1><div class="m">TECH PACK</div></div><div class="m">Sizes are estimates from the image; confirmed on the sample.</div></div>
     <div class="kv">${kv.map(([a,v])=>`<b>${a}</b><span>${esc(v)}</span>`).join('')}</div>
+    <h2>BODY</h2><div class="kv">${bodyKv.map(([a,v])=>`<b>${a}</b><span>${esc(v)}</span>`).join('')}</div>
+    <h2>LABELS &amp; TRIMS</h2><div class="kv">${labKv.map(([a,v])=>`<b>${a}</b><span>${esc(v)}</span>`).join('')}</div>
     ${await sideBlock('front')}${await sideBlock('back')}
     <div class="pb"><button onclick="print()">Save as PDF / Print</button></div></body></html>`;
   w.document.open(); w.document.write(html); w.document.close();
 };
 $('#sampleBtn').onclick=()=>{
   const sp=P.spec||{}, lines=['Hi SPOOL team,','',`I'd like a sample of "${P.name}".`,'',`- Body: ${sp.body||P.body} (chest ≈ ${f1(+P.chestIn)} in)`];
-  ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; lines.push(`- ${sd} #${p.num} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))}" wide, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
+  { const B=Object.assign(blankBody(),P.bodySpec||{}); const bl=[B.fabric,B.gsm,B.color,B.pantone&&'Pantone '+B.pantone,B.fit].filter(Boolean).join(', '); if(bl) lines.push('- Body spec: '+bl); }
+  ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; lines.push(`- ${sd} #${lab(p)} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))}" wide, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
   if(P.email) lines.push(`- Contact: ${P.email}`); lines.push('','(Tech pack PDF and images attached)');
   location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent('SPOOL sample request — '+P.name)+'&body='+encodeURIComponent(lines.join('\n'));
 };
@@ -581,7 +676,7 @@ function upgrade(p){ // older editor projects → v3
   ['front','back'].forEach(sd=>{ const o=p.sides?.[sd]; const src=o?.original||o?.base||null; q.sides[sd].original=src; q.sides[sd].base=src; });
   return q;
 }
-async function openProject(p){ P=upgrade(p); side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
+async function openProject(p){ P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); ['front','back'].forEach(sd=>renumber(P.sides[sd])); side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
   $('#pname').value=P.name; $('#chest').value=P.chestIn; render(); }
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
 $('#projBtn').onclick=openProjects;
@@ -602,6 +697,7 @@ async function fromStudio(){
   busy(true,'Opening your design','Loading front and back');
   try{ const p=newProject(); p.name=(h.spec?.body&&!/custom|described/i.test(h.spec.body)?h.spec.body:'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'});
     p.body=h.body||'tee'; p.chestIn=BODY_CHEST[p.body]||21; p.spec=h.spec||null; p.email=h.email||''; p.provider=h.ai.provider||'';
+    p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
     for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
     await studioDB.put('kv',null,'handoff'); await openProject(p); save(); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
   } finally { busy(false); }
