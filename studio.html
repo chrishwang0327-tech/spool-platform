@@ -392,7 +392,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
         <button class="btn" id="regen">↻ Regenerate</button>
       </div>
       <div class="actions primary">
-        <button class="btn y" id="prepTP" title="Open this design (front + back) to prepare the tech pack">Prepare tech pack →</button>
+        <button class="btn y" id="editDesign" title="Open this design (front + back) in the SPOOL design editor">Edit design →</button>
         <button class="btn dark" id="sample">Request sample →</button>
       </div>
     </div>
@@ -718,12 +718,13 @@ function specSummary(){
     direction:state.direction
   };
 }
-$('#prepTP').onclick=async()=>{
+const EDITOR_BODY={tee:'tee',hoodie:'hoodie',zip:'fullzip',crew:'sweatshirt',trucker:'sweatshirt',sweatpant:'sweatpants',denim:'denim',shorts:'sweatpants'};
+$('#editDesign').onclick=async()=>{
   const v=state.variations[state.active]; if(!v) return toast('Create a design first');
-  if(v.mock) return toast('Connect the AI first — the tech pack uses the real front/back images');
-  await DB.set('tp-handoff',{id:'tp'+Date.now(),name:`${bodyName()} design`,front:v.front,back:v.back,provider:v.provider||'',
-    refs:{...state.refs},spec:specSummary(),createdAt:Date.now()});
-  location.href='techpack.html?new=1';
+  if(v.mock) return toast('Connect the AI first — the editor uses the real front/back images');
+  const key=state.bodyMode==='preset'?(EDITOR_BODY[state.body]||'tee'):'tee';
+  await DB.set('handoff',{key,ai:{front:v.front,back:v.back,provider:v.provider||''},items:[],spec:specSummary(),from:'reference-studio',at:Date.now()});
+  location.href='/?edit=reference';
 };
 $('#sample').onclick=()=>{
   const sp=specSummary(), v=state.variations[state.active];

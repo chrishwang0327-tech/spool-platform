@@ -1605,6 +1605,9 @@ function garmentSVG(type, color, size, customization={}){
     return `${r*wf*shade*.2126} ${r*wf*shade*.7152} ${r*wf*shade*.0722} 0 ${r*wf*base} ${g*wf*shade*.2126} ${g*wf*shade*.7152} ${g*wf*shade*.0722} 0 ${g*wf*base} ${b*wf*shade*.2126} ${b*wf*shade*.7152} ${b*wf*shade*.0722} 0 ${b*wf*base} 0 0 0 1 0`;
   };
   const sleeveView=activeZone==='Left Sleeve' || activeZone==='Right Sleeve';
+  // AI design mode: a Reference Studio design (front/back images) replaces the blank photo.
+  const aiBase=(state.aiMode&&state.aiBase&&state.aiBase[state.productKey])||null;
+  const aiBaseSrc=aiBase?(garmentView==='Back'?aiBase.back:aiBase.front)||null:null;
   const ribView=activeZone==='Rib';
   const sleeveViewColor=frontBodyColor;
   const sleeveRGB=colorMap[sleeveViewColor] || [.75,.75,.75];
@@ -1732,7 +1735,7 @@ function garmentSVG(type, color, size, customization={}){
     </defs>
     <g transform="translate(${100-100*fitScale} 0) scale(${fitScale} 1)">
       <g transform="translate(${sourceOffset} ${sourceOffset}) scale(${sourceScale})">
-      ${sleeveView ? sleevePattern : ribView ? ribPattern : `<g transform="${garmentView==='Back'?'translate(200 0) scale(-1 1)':''}">
+      ${sleeveView ? sleevePattern : ribView ? ribPattern : aiBaseSrc ? `<image class="ai-base" href="${aiBaseSrc}" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet"/>` : `<g transform="${garmentView==='Back'?'translate(200 0) scale(-1 1)':''}">
         <image href="assets/${photoFiles[type]}" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet" filter="url(#bodyColor)"/>
         ${type!=='sweatpants'?`<image href="assets/${photoFiles[type]}" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet" filter="url(#leftSleeveColor)" clip-path="url(#leftSleeveClip)"/>
         <image href="assets/${photoFiles[type]}" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid meet" filter="url(#rightSleeveColor)" clip-path="url(#rightSleeveClip)"/>`:''}
@@ -4719,6 +4722,35 @@ body.ts-mode .ts-dlg:hover{background:var(--y2)!important}
   window.addEventListener('load',inject);
 })();
 </script>
+<script id="spool-ai-design-mode">
+/* AI design mode — keeps Reference Studio front/back images as the garment base in this editor. */
+(function(){
+  function idb(fn){return new Promise(res=>{try{const r=indexedDB.open('spool-ref-studio',1);
+    r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('designs',{keyPath:'id'});};
+    r.onsuccess=()=>{const tx=r.result.transaction('kv','readwrite');const out=fn(tx.objectStore('kv'));tx.oncomplete=()=>res(out&&out.result);tx.onerror=()=>res(null);};
+    r.onerror=()=>res(null);}catch(e){res(null);}});}
+  function persist(){ return idb(s=>s.put({aiBase:state.aiBase||{},aiMode:!!state.aiMode},'editor-ai')); }
+  window.spoolSaveAiBase=persist;
+  idb(s=>s.get('editor-ai')).then(v=>{ if(v&&!state.aiBase){ state.aiBase=v.aiBase||{}; state.aiMode=v.aiMode!==false; if(state.view==='item') render(); } });
+  function inject(){
+    const bar=document.getElementById('ts-actions'); if(!bar) return;
+    const has=!!(state.aiBase&&state.aiBase[state.productKey]);
+    let b=bar.querySelector('.ts-ai-mode');
+    if(!has){ if(b) b.remove(); return; }
+    if(!b){ b=document.createElement('button'); b.type='button'; b.className='ts-btn ts-ai-mode'; bar.insertBefore(b,bar.firstChild);
+      b.onclick=()=>{ state.aiMode=!state.aiMode; persist(); render(); }; }
+    const label=state.aiMode?'AI design: On':'AI design: Off';
+    if(b.textContent!==label) b.textContent=label;
+    b.title=state.aiMode?'Showing your Reference Studio design. Click to see the SPOOL blank instead.':'Showing the SPOOL blank. Click to show your Reference Studio design.';
+    b.classList.toggle('on',!!state.aiMode);
+  }
+  new MutationObserver(inject).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+<style>
+body.ts-mode .ts-ai-mode{background:var(--soft,#F3F1E8)!important;color:#201D18!important}
+body.ts-mode .ts-ai-mode.on{background:#201D18!important;color:#FEE32B!important}
+</style>
 <script id="reference-studio-handoff">
 /* Receives a design from the Reference Studio (studio.html → "Edit design")
    and opens it in this editor with the graphic as an editable layer. */
@@ -4728,11 +4760,18 @@ body.ts-mode .ts-dlg:hover{background:var(--y2)!important}
     r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('designs',{keyPath:'id'});};
     r.onsuccess=()=>{const db=r.result;const tx=db.transaction('kv','readwrite');const s=tx.objectStore('kv');const g=s.get('handoff');g.onsuccess=()=>{s.delete('handoff');res(g.result||null);};g.onerror=()=>res(null);};
     r.onerror=()=>res(null);}catch(e){res(null);}});}
+  async function saveAiBase(){ return new Promise(res=>{const r=indexedDB.open('spool-ref-studio',1);r.onsuccess=()=>{const tx=r.result.transaction('kv','readwrite');tx.objectStore('kv').put({aiBase:state.aiBase,aiMode:state.aiMode},'editor-ai');tx.oncomplete=()=>res();tx.onerror=()=>res();};r.onerror=()=>res();}); }
+  window.spoolSaveAiBase=saveAiBase;
   function imgSize(src){return new Promise(res=>{const i=new Image();i.onload=()=>res([i.naturalWidth||1,i.naturalHeight||1]);i.onerror=()=>res([1,1]);i.src=src;});}
   window.addEventListener('load',async()=>{
     history.replaceState(null,'',location.pathname);
     const h=await readHandoff(); if(!h) return;
     const key=PRODUCTS[h.key]?h.key:'tee';
+    if(h.ai&&(h.ai.front||h.ai.back)){
+      state.aiBase=state.aiBase||{}; state.aiBase[key]={front:h.ai.front||null,back:h.ai.back||null,provider:h.ai.provider||'',spec:h.spec||null};
+      state.aiMode=true;
+      try{ await saveAiBase(); }catch(e){}
+    }
     startStudioDesign(key);
     const items=h.items||(h.graphic?(h.zones&&h.zones.length?h.zones:['Front']).map(z=>({zone:z,graphic:h.graphic})):[]);
     for(let i=0;i<items.length;i++){
