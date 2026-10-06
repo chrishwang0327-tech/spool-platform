@@ -770,7 +770,7 @@ $('#sampleBtn').onclick=()=>{
   { const B=Object.assign(blankBody(),P.bodySpec||{}); const bl=[B.fabric,B.gsm,B.color,B.pantone&&'Pantone '+B.pantone,B.fit].filter(Boolean).join(', '); if(bl) lines.push('- Body spec: '+bl); }
   ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; lines.push(`- ${sd} #${lab(p)} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))}" wide, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
   if(P.email) lines.push(`- Contact: ${P.email}`); lines.push('','(Tech pack PDF and images attached)');
-  location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent('SPOOL sample request — '+P.name)+'&body='+encodeURIComponent(lines.join('\n'));
+  location.href='mailto:info@spoolnyc.com?subject='+encodeURIComponent('SPOOL sample request — '+P.name)+'&body='+encodeURIComponent(lines.join('\n'));
 };
 
 /* ================= projects ================= */

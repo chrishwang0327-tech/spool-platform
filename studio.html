@@ -794,7 +794,7 @@ $('#sample').onclick=()=>{
     sp.distress?`- Distress: ${[sp.distress.front?'Front '+sp.distress.front:'',sp.distress.back?'Back '+sp.distress.back:''].filter(Boolean).join(' / ')}`:'',
     sp.direction?`- Direction: ${sp.direction}`:'',`- Design: ${state.active+1}${v?.provider?' ('+v.provider+')':''}`,
     getEmail()?`- Contact: ${getEmail()}`:'','','(Downloaded front and back images attached)'].filter(Boolean).join('\n');
-  location.href='mailto:info@noboundaryapparel.com?subject='+encodeURIComponent('SPOOL sample request')+'&body='+encodeURIComponent(body);
+  location.href='mailto:info@spoolnyc.com?subject='+encodeURIComponent('SPOOL sample request')+'&body='+encodeURIComponent(body);
 };
 
 /* ---------- browser saving (IndexedDB) ---------- */
