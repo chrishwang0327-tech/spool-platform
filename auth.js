@@ -96,3 +96,15 @@
     signIn:modal
   };
 })();
+
+
+/* Crisp support chat, shared by Home, Reference Studio and Design Editor. */
+(function () {
+  if (document.querySelector('script[src="https://client.crisp.chat/l.js"]')) return;
+  window.$crisp = window.$crisp || [];
+  window.CRISP_WEBSITE_ID = 'a2a225a7-bec7-4e21-9b54-6dede084dbf1';
+  const script = document.createElement('script');
+  script.src = 'https://client.crisp.chat/l.js';
+  script.async = true;
+  document.head.appendChild(script);
+})();
