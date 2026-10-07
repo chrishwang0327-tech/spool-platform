@@ -127,7 +127,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js"></script>
+<script src="auth.js?v=7ede95e"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -202,6 +202,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
         <button class="btn" id="hiresBtn" title="Garment images at 2048 px + each boxed graphic as its own large PNG">Export hi-res</button>
         <button class="btn y" id="tpBtn">Tech pack</button>
         <button class="btn dark" id="sampleBtn">Request sample →</button>
+        <p class="note" id="sampleStatus" role="status" aria-live="polite"></p>
         <button class="btn sm" id="resetBtn">Restore original image</button>
       </div>
       <div class="note" id="saved">Saved in this browser</div>
@@ -786,12 +787,25 @@ $('#tpBtn').onclick=async()=>{
   w.document.open(); w.document.write(html); w.document.close();
 };
 
-$('#sampleBtn').onclick=()=>{
+let sampleAttempt=null;
+$('#sampleBtn').onclick=async()=>{
+  if(!P||isBusy()) return;
+  if(!confirm('Send a sample request for "'+P.name+'" to SPOOL? We will reply to your account email. This sends the specifications; you can reply with your tech pack PDF and images.')) return;
+  const button=$('#sampleBtn'), status=$('#sampleStatus');
+  button.disabled=true; status.textContent='Sending your sample request…';
+  try{
   const sp=P.spec||{}, lines=['Hi SPOOL team,','',`I'd like a sample of "${P.name}".`,'',`- Body: ${sp.body||P.body} (chest ≈ ${f1(+P.chestIn)} in)`];
   { const B=Object.assign(blankBody(),P.bodySpec||{}); const bl=[B.fabric,B.gsm,B.color,B.pantone&&'Pantone '+B.pantone,B.fit].filter(Boolean).join(', '); if(bl) lines.push('- Body spec: '+bl); }
   ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; lines.push(`- ${sd} #${lab(p)} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))}" wide, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
-  if(P.email) lines.push(`- Contact: ${P.email}`); lines.push('','(Tech pack PDF and images attached)');
-  location.href='mailto:info@spoolnyc.com?subject='+encodeURIComponent('SPOOL sample request — '+P.name)+'&body='+encodeURIComponent(lines.join('\n'));
+    lines.push('','Design ID: '+P.id,'Please reply with the tech pack PDF and design images to complete the sample brief.');
+    const subject=(P.name||'Untitled design').trim().slice(0,160), message=lines.join('\n');
+    const fingerprint=JSON.stringify([window.SPOOL_AUTH?.email(),subject,message]);
+    if(!sampleAttempt||sampleAttempt.fingerprint!==fingerprint) sampleAttempt={fingerprint,requestId:crypto.randomUUID()};
+    const result=await window.SPOOL_AUTH.sendRequest({requestId:sampleAttempt.requestId,kind:'sample',subject,message});
+    if(result){ status.textContent='Sample request sent. SPOOL will reply to your account email. Reference: '+result.requestId; }
+    else status.textContent='Request not sent. Sign in to continue.';
+  }catch(error){ status.textContent=error.message||'Could not send your request. Please try again.'; }
+  finally{ button.disabled=false; }
 };
 
 /* ================= projects ================= */
