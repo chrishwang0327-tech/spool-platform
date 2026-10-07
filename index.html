@@ -69,7 +69,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js"></script>
+<script src="auth.js?v=20261007c"></script>
 </head>
 <body>
 <header>
@@ -78,7 +78,8 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
     <a href="index.html" aria-current="page">Home</a>
     <a href="editor.html#projects">My projects</a>
     <a href="#production">Production</a>
-    <a class="cta" href="studio.html">Reference Studio</a>
+    <a href="mailto:info@spoolnyc.com" id="navContact">Contact</a>
+    <a class="cta" href="studio.html">Design Studio</a>
     <span id="acct"></span>
   </nav>
 </header>
@@ -132,13 +133,14 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
       <div class="contact">
         <div><div class="eyebrow">Contact</div><p>Questions about samples, minimums or timing? Email us. Tech packs from the studio come with everything we need to quote.</p></div>
         <div class="mail">info@spoolnyc.com</div>
-        <a class="btn dark" href="studio.html" style="text-align:center">Open Reference Studio →</a>
+        <a class="btn dark" href="studio.html" style="text-align:center">Open Design Studio →</a>
       </div>
     </div>
   </section>
 
-  <footer><span>© <span id="yr"></span> SPOOL NYC</span><span><a href="studio.html">Reference Studio</a><a href="editor.html#projects">My projects</a><a href="mailto:info@spoolnyc.com">Contact</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></span></footer>
+  <footer><span>© <span id="yr"></span> SPOOL NYC</span><span><a href="studio.html">Design Studio</a><a href="editor.html#projects">My projects</a><a href="mailto:info@spoolnyc.com">Contact</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></span></footer>
 </div>
-<script>document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));</script>
+<script>document.getElementById('navContact').addEventListener('click',e=>{ if(window.$crisp){ e.preventDefault(); window.$crisp.push(['do','chat:open']); window.SPOOL_TRACK?.('contact_open'); } });
+document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));</script>
 </body>
 </html>

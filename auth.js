@@ -8,7 +8,10 @@
   const sb=ok?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit'}}):null;
   let user=null; const subs=[];
   const ready=(async()=>{ if(!sb) return null; try{ const {data}=await sb.auth.getSession(); user=data.session?.user||null; }catch(e){ console.warn(e); } return user; })();
-  if(sb) sb.auth.onAuthStateChange((_e,session)=>{ user=session?.user||null; subs.forEach(f=>{try{f(user)}catch(e){}}); renderChips(); });
+  let scopeId=null; ready.then(u=>{ scopeId=u?u.id:'guest'; });
+  if(sb) sb.auth.onAuthStateChange((_e,session)=>{ user=session?.user||null; subs.forEach(f=>{try{f(user)}catch(e){}}); renderChips();
+    // another account (or signed out) → reload so this page only shows that account's saved work
+    if(scopeId!==null && (user?user.id:'guest')!==scopeId){ scopeId=user?user.id:'guest'; setTimeout(()=>location.reload(),150); } });
 
   /* ---------- modal ---------- */
   const css=`.sa-back{position:fixed;inset:0;background:rgba(32,29,24,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;font-family:Outfit,system-ui,sans-serif}
@@ -69,7 +72,7 @@
   function renderChips(){ chips.forEach(el=>{
     if(!user){ el.innerHTML=`<button type="button" class="sa-chip out">Sign in</button>`; el.firstChild.onclick=()=>modal(); return; }
     const em=user.email||''; el.innerHTML=`<button type="button" class="sa-chip" aria-haspopup="menu"><span class="sa-av">${(em[0]||'?').toUpperCase()}</span>Account</button>
-      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><a href="editor.html#projects" role="menuitem">My projects</a><a href="studio.html" role="menuitem">Reference Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
+      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><a href="editor.html#projects" role="menuitem">My projects</a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
     const btn=el.querySelector('.sa-chip'), menu=el.querySelector('.sa-menu'); el.style.position='relative';
     btn.onclick=e=>{ e.stopPropagation(); menu.classList.toggle('open'); };
     document.addEventListener('click',()=>menu.classList.remove('open'));
@@ -100,6 +103,7 @@
     email(){ return user?.email||''; },
     onChange(f){ subs.push(f); },
     async requireLogin(reason){ await ready; if(user) return user; return await modal(reason); },
+    scope(){ return ready.then(u=>u?u.id:'guest'); },
     async token(){ if(!sb) return ''; const {data}=await sb.auth.getSession(); return data.session?.access_token||''; },
     mount(el){ if(!el) return; chips.push(el); ready.then(renderChips); renderChips(); },
     signIn:modal

@@ -1,0 +1,90 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin — SPOOL</title><link rel="icon" href="assets/spool-logo-1.png">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FDFDF9;--ink:#201D18;--muted:#7a7566;--line:#201D1818;--soft:#F3F1E8;--y:#FEE32B}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Outfit,system-ui,sans-serif;font-size:14px}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);gap:12px}
+header b{letter-spacing:.3em}header a{color:var(--ink);text-decoration:none}
+main{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}.tabs button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 16px;font:inherit;cursor:pointer}.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.msg{color:var(--muted);padding:30px 0;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px}.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:var(--soft);cursor:zoom-in}
+.meta{font-size:12.5px;color:var(--muted);line-height:1.45}.meta b{color:var(--ink);font-weight:600}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}th{background:var(--soft);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.wrap{overflow-x:auto}.pill{display:inline-block;background:var(--soft);border-radius:99px;padding:2px 8px;font-size:11.5px}
+.files a{display:inline-block;margin:0 6px 4px 0;color:var(--ink)}
+.filter{margin-bottom:12px}.filter input{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;width:min(320px,100%)}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}#lb.open{display:flex}#lb img{max-width:100%;max-height:100%;border-radius:12px;background:#fff}
+</style></head><body>
+<header><a href="index.html"><b>SPOOL</b> · Admin</a><span id="acct"></span></header>
+<main>
+  <div class="tabs" id="tabs"><button class="on" data-t="designs">Designs</button><button data-t="samples">Sample requests</button><button data-t="users">Users</button><button data-t="funnel">Funnel</button></div>
+  <div class="filter"><input id="q" placeholder="Filter by email"></div>
+  <div id="out"><div class="msg">Loading…</div></div>
+</main>
+<div id="lb"><img alt=""></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="auth.js?v=20261007c"></script>
+<script>
+(async()=>{
+'use strict';
+const A=window.SPOOL_AUTH, $=s=>document.querySelector(s), out=$('#out');
+const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const when=t=>new Date(t).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+A.mount($('#acct'));
+const u=await A.requireLogin('Sign in with the SPOOL owner account.');
+if(!u){ out.innerHTML='<div class="msg">Sign in to continue.</div>'; return; }
+const {data:isAdmin}=await A.sb.rpc('is_admin');
+if(isAdmin!==true){ out.innerHTML='<div class="msg">This page is for the SPOOL team only.</div>'; return; }
+let tab='designs';
+const signed=async(bucket,paths)=>{ if(!paths.length) return {}; const {data}=await A.sb.storage.from(bucket).createSignedUrls(paths,3600); const m={}; (data||[]).forEach(x=>{ if(x.signedUrl) m[x.path]=x.signedUrl; }); return m; };
+const filt=()=>$('#q').value.trim().toLowerCase();
+async function designs(){
+  const {data,error}=await A.sb.from('creations').select('*').order('created_at',{ascending:false}).limit(120);
+  if(error) return out.innerHTML=`<div class="msg">${esc(error.message)}</div>`;
+  const rows=(data||[]).filter(r=>!filt()||(r.email||'').toLowerCase().includes(filt()));
+  if(!rows.length) return out.innerHTML='<div class="msg">No designs yet.</div>';
+  const urls=await signed('creations',rows.flatMap(r=>(r.thumbs||[]).map(t=>t.path)));
+  out.innerHTML=`<div class="grid">${rows.map(r=>`<div class="card"><div class="thumbs">${(r.thumbs||[]).map(t=>urls[t.path]?`<img src="${urls[t.path]}" alt="Design ${t.design} ${t.side}" title="Design ${t.design} · ${t.side} · ${esc(t.option||'')}">`:'').join('')}</div>
+    <div class="meta"><b>${esc(r.email||'—')}</b> · ${when(r.created_at)}<br>${esc(r.idea||'')}${r.recipe?`<br><span style="opacity:.8">${esc(r.recipe)}</span>`:''}</div></div>`).join('')}</div>`;
+}
+async function samples(){
+  const {data,error}=await A.sb.from('sample_requests').select('*').order('created_at',{ascending:false}).limit(200);
+  if(error) return out.innerHTML=`<div class="msg">${esc(error.message)}</div>`;
+  const rows=(data||[]).filter(r=>!filt()||(r.email||'').toLowerCase().includes(filt()));
+  if(!rows.length) return out.innerHTML='<div class="msg">No sample requests yet.</div>';
+  const urls=await signed('samples',rows.flatMap(r=>Object.values(r.images||{})));
+  out.innerHTML=`<div class="wrap"><table><tr><th>Date</th><th>Customer</th><th>Design</th><th>Sample</th><th>Production</th><th>Files</th><th>Status</th></tr>${rows.map(r=>`<tr>
+    <td>${when(r.created_at)}</td><td><b>${esc(r.name)}</b>${r.brand?' · '+esc(r.brand):''}<br>${esc(r.email)}${r.phone?'<br>'+esc(r.phone):''}<br><span class="meta">${esc([r.city,r.state,r.zip,r.country].filter(Boolean).join(', '))}</span></td>
+    <td>${esc(r.design?.name||'')}<br><span class="meta">${esc([r.design?.body,r.design?.color].filter(Boolean).join(' · '))}</span></td>
+    <td>${esc(r.sample_size)} × ${esc(r.sample_qty)}</td><td>${esc(r.production_qty)}${r.needed_by?'<br>by '+esc(r.needed_by):''}${r.target_price?'<br>target '+esc(r.target_price):''}</td>
+    <td class="files">${Object.entries(r.images||{}).map(([k,p])=>urls[p]?`<a href="${urls[p]}" target="_blank" rel="noopener">${esc(k)}</a>`:'').join('')}</td><td><span class="pill">${esc(r.status)}</span></td></tr>`).join('')}</table></div>
+    <p class="meta" style="margin-top:10px">To change a status, edit the <b>status</b> column in Supabase → Table Editor → sample_requests.</p>`;
+}
+async function users(){
+  const {data,error}=await A.sb.rpc('admin_activity_list');
+  if(error) return out.innerHTML=`<div class="msg">${esc(error.message)}</div>`;
+  const rows=(data||[]).filter(r=>!filt()||(r.email||'').toLowerCase().includes(filt()));
+  const cols=['email','signed_up','last_active','designs_created','create_errors','saved','editor_opens','techpacks','samples_requested','cloud_projects'];
+  out.innerHTML=`<div class="wrap"><table><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr>${rows.map(r=>`<tr>${cols.map(c=>`<td>${esc(c==='last_active'&&r[c]?when(r[c]):r[c])}</td>`).join('')}</tr>`).join('')}</table></div>
+    <p class="meta" style="margin-top:10px">To give someone more free designs: Supabase → Table Editor → credits → Insert row → email + extra_designs.</p>`;
+}
+async function funnel(){
+  const {data,error}=await A.sb.rpc('admin_funnel');
+  if(error) return out.innerHTML=`<div class="msg">${esc(error.message)}</div>`;
+  const cols=['day','visitors','signins_sent','creates','creates_ok','saves','editor_opens','techpacks','sample_forms','samples_sent'];
+  out.innerHTML=`<div class="wrap"><table><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr>${(data||[]).map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</table></div>`;
+}
+const views={designs,samples,users,funnel};
+const load=()=>{ out.innerHTML='<div class="msg">Loading…</div>'; views[tab]().catch(e=>out.innerHTML=`<div class="msg">${esc(e.message)}</div>`); };
+$('#tabs').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); load(); };
+let qt; $('#q').oninput=()=>{ clearTimeout(qt); qt=setTimeout(load,300); };
+out.addEventListener('click',e=>{ const i=e.target.closest('.thumbs img'); if(!i) return; $('#lb img').src=i.src; $('#lb').classList.add('open'); });
+$('#lb').onclick=()=>$('#lb').classList.remove('open');
+load();
+})();
+</script></body></html>

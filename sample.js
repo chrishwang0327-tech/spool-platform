@@ -91,7 +91,7 @@
   function chips(name,list,val){ return `<div class="sr-chips" data-chips="${name}">${list.map(v=>`<button type="button" class="sr-chip${v===val?' on':''}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`; }
 
   function renderForm(){
-    const d=cur.design||{}, img=cur.images||{}, saved=(()=>{ try{ return JSON.parse(localStorage.getItem('spoolSampleContact')||'{}'); }catch(_){ return {}; } })();
+    const d=cur.design||{}, img=cur.images||{}, saved=(()=>{ try{ return JSON.parse(localStorage.getItem('spoolSampleContact:'+(window.SPOOL_AUTH?.user?.id||'guest'))||'{}'); }catch(_){ return {}; } })();
     const email=window.SPOOL_AUTH?.email()||saved.email||'';
     const summary=[d.body,d.color,d.wash,d.trims].filter(Boolean).join(' · ');
     back.querySelector('#srBody').innerHTML=`
@@ -148,7 +148,7 @@
     const A=window.SPOOL_AUTH; const u=await A?.requireLogin?.('Sign in to request a sample.'); if(!u) return err.textContent='Sign in to send your request.';
     btn.disabled=true; btn.textContent='Sending…';
     try{
-      try{ localStorage.setItem('spoolSampleContact',JSON.stringify({name:f.name,brand:f.brand,phone:f.phone,city:f.city,state:f.state,zip:f.zip,country:f.country,email:f.email})); }catch(_){}
+      try{ localStorage.setItem('spoolSampleContact:'+uid,JSON.stringify({name:f.name,brand:f.brand,phone:f.phone,city:f.city,state:f.state,zip:f.zip,country:f.country,email:f.email})); }catch(_){}
       const id=uuid(), uid=u.id||A.user?.id, images={};
       const add=async(label,src)=>{ const blob=await toJpeg(src); if(!blob) return; const path=`${uid}/${id}/${label}.jpg`;
         const {error}=await A.sb.storage.from('samples').upload(path,blob,{contentType:'image/jpeg',upsert:false}); if(error) throw error; images[label]=path; };

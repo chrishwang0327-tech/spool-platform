@@ -123,17 +123,22 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
   main{grid-template-columns:1fr}
   aside{border-left:0;border-top:1px solid var(--line);max-height:none;position:static}
   .center{padding:14px 16px}
-  .stage{max-width:100%}
+  .stage{max-width:min(100%,44vh)}
+  .tabs{position:sticky;top:0;z-index:20;background:var(--bg);padding:8px 0;margin:-8px 0 0}
+  aside{padding-top:10px}
+  .mob-more{display:flex!important}
 }
+.mob-more{display:none;justify-content:center;margin-top:10px}
+.mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js"></script>
-<script src="sample.js"></script>
+<script src="auth.js?v=20261007c"></script>
+<script src="sample.js?v=20261007c"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
 <header>
-  <a class="back" href="studio.html">← Reference Studio</a>
+  <a class="back" href="studio.html">← Design Studio</a>
   <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Design Editor</span></a>
   <div class="hdr-r">
     <input class="pname" id="pname" value="Untitled design" aria-label="Project name">
@@ -163,18 +168,19 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
         <div class="meas hidden" id="meas"></div>
         <div class="empty hidden" id="empty">
           <h2>Nothing to edit yet</h2>
-          <p>Create a design in the Reference Studio and press “Edit selected design”, open a saved project, or start from your own front and back photos.</p>
+          <p>Create a design in the Design Studio and press “Edit selected design”, open a saved project, or start from your own front and back photos.</p>
           <div class="row" style="flex-wrap:wrap;justify-content:center">
-            <a class="btn y" href="studio.html">Open Reference Studio</a>
+            <a class="btn y" href="studio.html">Open Design Studio</a>
             <label class="btn">Use my photos<input type="file" id="upPhotos" accept="image/*" multiple hidden></label>
           </div>
           <div class="hint">Pick the front first, then the back (optional).</div>
         </div>
       </div>
     </div>
+    <div class="mob-more"><button type="button" onclick="document.getElementById('asidePanel').scrollIntoView({behavior:'smooth'})">Graphic · Body · Details specs ↓</button></div>
   </section>
 
-  <aside>
+  <aside id="asidePanel">
     <div class="tabs" id="tabs" role="tablist">
       <button class="on" data-t="graphic" role="tab"><i>01</i>Graphic</button>
       <button data-t="body" role="tab"><i>02</i>Body</button>
@@ -300,7 +306,7 @@ const localPrompt=p=>`LOCAL EDIT: This is a close-up crop of a garment product p
 const P_POLISH='POLISH: Clean up this garment product photo so every printed, stitched and attached detail looks naturally lit and consistent. Do not change the design, layout, sizes, colors, techniques or garment in any way. Same framing and background.';
 
 /* ================= storage ================= */
-const IDB=(name,up)=>{let p;const open=()=>p||(p=new Promise((res,rej)=>{if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open(name,1);r.onupgradeneeded=()=>up(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));
+const IDB=(name,up)=>{let p;const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest'; return await new Promise((res,rej)=>{if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open(name+'-'+sc,1);r.onupgradeneeded=()=>up(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); })());
   const tx=async(st,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(st,mode);const o=fn(t.objectStore(st));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn(e);return null;}};
   return{get:(st,key)=>tx(st,'readonly',s=>s.get(key)),put:(st,v,key)=>tx(st,'readwrite',s=>key===undefined?s.put(v):s.put(v,key)),all:st=>tx(st,'readonly',s=>s.getAll()),del:(st,key)=>tx(st,'readwrite',s=>s.delete(key))};};
 const studioDB=IDB('spool-ref-studio',db=>{db.createObjectStore('kv');db.createObjectStore('designs',{keyPath:'id'});});
@@ -431,7 +437,7 @@ function renderDetail(){
 
 /* ================= tabs ================= */
 const TAB_INTRO={graphic:'Artwork: mark each graphic, pick its technique and size.',body:'The garment itself: fabric, color, fit and finishing.',details:'Trims and finishing: rhinestones, studs, distressing, hardware, labels.'};
-$('#tabs').onclick=e=>{const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; sel=null; tool=null; render();};
+$('#tabs').onclick=e=>{const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; sel=null; tool=null; render(); if(window.innerWidth<960) setTimeout(()=>$('#asidePanel').scrollIntoView({behavior:'smooth',block:'start'}),60);};
 const chipRow=(key,vals,cur)=>`<div class="chips">${vals.map(v=>`<button class="chip${cur===v?' on':''}" data-k="${key}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
 function renderTabs(){
   $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
@@ -819,7 +825,7 @@ async function openProjects(){
   cloudList.forEach(c=>{ const t=Date.parse(c.updated_at)||0, it=items.get(c.id); if(it){ it.cloud=true; if(t>it.updated+1000){ it.newer=true; it.updated=t; } } else items.set(c.id,{id:c.id,name:c.name,updated:t,thumb:c.thumb||'',local:null,cloud:true}); });
   const list=[...items.values()].sort((a,b)=>b.updated-a.updated); const g=$('#projs'); g.innerHTML='';
   if(A&&!A.user) g.insertAdjacentHTML('beforeend','<div class="muted" style="grid-column:1/-1">Sign in to keep your projects in your account and open them on any device.</div>');
-  if(!list.length) g.insertAdjacentHTML('beforeend','<div class="muted">No projects yet. Designs you open from the Reference Studio are saved here.</div>');
+  if(!list.length) g.insertAdjacentHTML('beforeend','<div class="muted">No projects yet. Designs you open from the Design Studio are saved here.</div>');
   list.forEach(it=>{ const c=document.createElement('button'); c.className='pc';
     c.innerHTML=`<img src="${it.thumb}" alt=""><div><b>${esc(it.name)}</b><small>${new Date(it.updated).toLocaleDateString()}${it.cloud?' · in your account':' · this browser only'}</small></div><span class="del">Delete</span>`;
     c.onclick=async e=>{ if(e.target.classList.contains('del')){ e.stopPropagation(); if(confirm('Delete this project?')){ await edDB.del('projects',it.id); if(it.cloud) await A.cloud.remove(it.id); if(P?.id===it.id){P=null;render();} openProjects(); } return; }

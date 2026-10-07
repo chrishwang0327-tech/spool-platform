@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reference Studio — SPOOL</title>
+<title>Design Studio — SPOOL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -123,6 +123,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .create{margin-top:14px;width:100%;background:var(--y);color:var(--ink);border-radius:99px;padding:17px;font-weight:600;letter-spacing:.16em;font-size:14px;transition:.15s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(254,227,43,.35)}
 .create:hover{background:var(--ink);color:var(--y)}
 .create:disabled{opacity:.5;cursor:not-allowed}
+.quota{text-align:center;font-size:12.5px;color:var(--muted);margin-top:8px;min-height:18px}.quota b{color:var(--ink)}.quota a{color:var(--ink)}
 .create small{font-weight:400;letter-spacing:0;opacity:.65;font-size:11.5px}
 
 /* output */
@@ -255,15 +256,15 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js"></script>
-<script src="sample.js"></script>
+<script src="auth.js?v=20261007c"></script>
+<script src="sample.js?v=20261007c"></script>
 </head>
 <body>
 
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com (or add ?ai=1 on an allowed domain).</div>
 <header>
   <a class="back" href="index.html">← Home</a>
-  <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Reference Studio</span></a>
+  <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Design Studio</span></a>
   <div class="hdr-cta" id="acct"></div>
 </header>
 
@@ -404,6 +405,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
     </div>
 
     <button class="create" id="create">CREATE <small>2 designs · front + back</small></button>
+    <div class="quota" id="quota" aria-live="polite"></div>
   </section>
 
   <!-- RIGHT: output -->
@@ -443,9 +445,10 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
     </div>
 
     <div class="fail hidden" id="fail">
-      <div class="spin-h" style="font-size:22px">Thread snapped.</div>
-      <p>The AI couldn't finish this one. Nothing was saved — try again.</p>
+      <div class="spin-h" style="font-size:22px" id="failH">Thread snapped.</div>
+      <p id="failP">The AI couldn't finish this one. Nothing was saved — try again.</p>
       <button class="btn dark" id="retry">Try again</button>
+      <button class="btn hidden" id="failContact">Contact us</button>
     </div>
 
     <div class="hidden" id="result" style="display:flex;flex-direction:column;flex:1">
@@ -497,7 +500,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 
 <script>
 /* ============================================================
-   SPOOL Reference Studio — front + back design from references
+   SPOOL Design Studio — front + back design from references
    ============================================================ */
 const AI_URL = 'https://spool-studio-ai.chrishwang0327.workers.dev';
 const AI_ENDPOINT = (/(^|\.)spoolnyc\.com$/.test(location.hostname) || new URLSearchParams(location.search).has('ai')) ? AI_URL : '';
@@ -722,7 +725,7 @@ async function backJob(frontUrl){
 async function callAI(body){
   const tk=await window.SPOOL_AUTH?.token?.();
   const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({quality:state.quality,...body,images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
-  const d=await r.json(); if(!r.ok||!d.images?.length) throw new Error(d.error||'No images'); if(d.errors?.length) console.warn('AI partial errors',d.errors); return d.images;
+  const d=await r.json(); if(!r.ok||!d.images?.length){ const er=new Error(d.error||'No images'); er.code=d.code||''; throw er; } if(d.errors?.length) console.warn('AI partial errors',d.errors); return d.images;
 }
 async function generate(){
   if(!AI_ENDPOINT){ await new Promise(r=>setTimeout(r,1200)); return await mockVariations(); }
@@ -818,18 +821,42 @@ async function create(){
   renderRecipe(); showSpin(true);
   if(window.innerWidth<960) $('#output').scrollIntoView({behavior:'smooth'});
   window.SPOOL_TRACK?.('create_click',{refs:Object.values(state.refs).filter(Boolean).length,idea:!!state.direction});
-  let out=null, failMsg=''; try{ out=await generate(); }catch(e){ console.error(e); failMsg=e.message||''; }
+  let out=null, failMsg='', failCode=''; try{ out=await generate(); }catch(e){ console.error(e); failMsg=e.message||''; failCode=e.code||''; }
   window.SPOOL_TRACK?.(out?'create_ok':'create_fail',out?null:{err:String(failMsg).slice(0,120)});
   showSpin(false); btn.disabled=false; btn.firstChild.textContent='CREATE ';
   if(!out){
+    if(failCode==='free_limit'||failCode==='daily_limit'){ showLimit(failMsg); if(prev.length){ state.variations=prev; $('#recipe').innerHTML=prevRecipe; $('#result').classList.remove('hidden'); render(); $('#fail').classList.add('hidden'); toast(failMsg); } refreshQuota(); return; }
     if(prev.length){ state.variations=prev; $('#recipe').innerHTML=prevRecipe; $('#result').classList.remove('hidden'); render(); toast('The AI couldn’t finish — your last design is still here'); }
     else $('#fail').classList.remove('hidden');
     return;
   }
   state.variations=out; state.active=0; state.view='front';
-  $('#result').classList.remove('hidden'); render(); saveHistory();
+  $('#result').classList.remove('hidden'); render(); saveHistory(); refreshQuota(); saveCreation(out);
 }
+/* ---------- free designs left ---------- */
+async function refreshQuota(){
+  const el=$('#quota'); if(!el||!AI_ENDPOINT||!window.SPOOL_AUTH) return; await window.SPOOL_AUTH.ready; if(!window.SPOOL_AUTH.user){ el.textContent=''; return; }
+  try{ const tk=await window.SPOOL_AUTH.token(); const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({task:'quota'})}); const q=await r.json();
+    if(q.admin){ el.innerHTML='Admin · unlimited'; return; }
+    if(q.designsLeft==null){ el.textContent=''; return; }
+    el.innerHTML=q.designsLeft>0?`<b>${q.designsLeft}</b> free design${q.designsLeft===1?'':'s'} left`:`No free designs left · <a href="#" id="quotaContact">Contact us for more</a>`;
+    $('#quotaContact')?.addEventListener('click',e=>{e.preventDefault(); openContact();});
+  }catch(e){ el.textContent=''; } }
+function openContact(){ if(window.$crisp){ window.$crisp.push(['do','chat:open']); } else location.href='mailto:info@spoolnyc.com'; }
+function showLimit(msg){ $('#failH').textContent='That’s all the free designs.'; $('#failP').textContent=msg; $('#retry').classList.add('hidden'); $('#failContact').classList.remove('hidden'); $('#fail').classList.remove('hidden'); }
+$('#failContact').onclick=openContact;
+window.SPOOL_AUTH?.ready.then(()=>refreshQuota());
+/* ---------- save small thumbnails of each Create (so the SPOOL team can review designs) ---------- */
+async function saveCreation(out){
+  const A=window.SPOOL_AUTH; if(!A?.user||!A.sb||!AI_ENDPOINT) return;
+  try{ const uid=A.user.id, stamp=Date.now(), thumbs=[];
+    for(let i=0;i<out.length;i++) for(const sd of ['front','back']){ const src=out[i][sd]; if(!src) continue;
+      const blob=await new Promise(res=>{ const im=new Image(); im.onload=()=>{ const s=Math.min(1,384/Math.max(im.width,im.height)); const c=document.createElement('canvas'); c.width=Math.round(im.width*s); c.height=Math.round(im.height*s); const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(im,0,0,c.width,c.height); c.toBlob(res,'image/jpeg',.82); }; im.onerror=()=>res(null); im.src=src; });
+      if(!blob) continue; const path=`${uid}/${stamp}-${i+1}-${sd}.jpg`; const {error}=await A.sb.storage.from('creations').upload(path,blob,{contentType:'image/jpeg'}); if(!error) thumbs.push({design:i+1,side:sd,path,option:optLabel(out[i].provider)}); }
+    await A.sb.from('creations').insert({user_id:uid,email:A.email(),idea:(state.direction||'').slice(0,500),recipe:$('#recipe').innerText.replace(/\s+/g,' ').slice(0,500),thumbs});
+  }catch(e){ console.warn('creation save failed',e); } }
 $('#create').onclick=create; $('#regen').onclick=create; $('#retry').onclick=create;
+$('#create').addEventListener('click',()=>{ $('#failH').textContent='Thread snapped.'; $('#failP').textContent='The AI couldn’t finish this one. Nothing was saved — try again.'; $('#retry').classList.remove('hidden'); $('#failContact').classList.add('hidden'); },true);
 
 /* ---------- download / tech pack / sample ---------- */
 $('#download').onclick=()=>{
@@ -868,7 +895,7 @@ $('#sample').onclick=()=>{
 };
 
 /* ---------- browser saving (IndexedDB) ---------- */
-const DB=(()=>{let dbp;const open=()=>dbp||(dbp=new Promise((res,rej)=>{if(!window.indexedDB)return rej('no idb');const r=indexedDB.open('spool-ref-studio',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('designs',{keyPath:'id'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));
+const DB=(()=>{let dbp;const open=()=>dbp||(dbp=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest'; const DBNAME='spool-ref-studio-'+sc; return await new Promise((res,rej)=>{if(!window.indexedDB)return rej('no idb');const r=indexedDB.open(DBNAME,1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('designs',{keyPath:'id'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); })());
   const tx=async(store,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(store,mode);const out=fn(t.objectStore(store));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn('save failed',e);return null;}};
   return{get:k=>tx('kv','readonly',s=>s.get(k)),set:(k,v)=>tx('kv','readwrite',s=>s.put(v,k)),all:()=>tx('designs','readonly',s=>s.getAll()),put:v=>tx('designs','readwrite',s=>s.put(v)),del:id=>tx('designs','readwrite',s=>s.delete(id))};})();
 
