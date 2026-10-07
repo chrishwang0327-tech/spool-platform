@@ -31,6 +31,52 @@
     i.onload=()=>{ const s=Math.min(1,max/Math.max(i.width,i.height)); const c=document.createElement('canvas'); c.width=Math.round(i.width*s); c.height=Math.round(i.height*s);
       const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); c.toBlob(b=>res(b),'image/jpeg',.9); };
     i.onerror=()=>res(null); i.src=src; }); }
+  function jpegURL(src,max=1400){ return new Promise(res=>{ if(!src) return res(null); const i=new Image(); i.crossOrigin='anonymous';
+    i.onload=()=>{ const s=Math.min(1,max/Math.max(i.width,i.height)); const c=document.createElement('canvas'); c.width=Math.round(i.width*s); c.height=Math.round(i.height*s);
+      const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); res({url:c.toDataURL('image/jpeg',.9),w:c.width,h:c.height}); };
+    i.onerror=()=>res(null); i.src=src; }); }
+  let jspdfP=null;
+  const loadJsPDF=()=>jspdfP||(jspdfP=new Promise((res,rej)=>{ if(window.jspdf) return res(window.jspdf); const sc=document.createElement('script');
+    sc.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; sc.onload=()=>res(window.jspdf); sc.onerror=()=>rej(new Error('PDF library failed to load')); document.head.appendChild(sc); }));
+  /* Factory order sheet (US Letter, portrait). No customer contact or target price — safe to forward to a factory. */
+  async function orderSheet(id,f,d,img){
+    const {jsPDF}=await loadJsPDF(); const doc=new jsPDF({unit:'pt',format:'letter'}); const W=612, M=36, CW=W-M*2; let y=M;
+    const ink=[32,29,24], mut=[122,117,102], line=[200,195,180];
+    const box=(x,yy,w,h)=>{ doc.setDrawColor(...line); doc.setLineWidth(.8); doc.rect(x,yy,w,h); };
+    const head=(t,x,yy,w)=>{ doc.setFillColor(32,29,24); doc.rect(x,yy,w,18,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text(t,x+8,yy+12.5); doc.setTextColor(...ink); };
+    // title
+    doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(...ink); doc.text('SAMPLE ORDER SHEET',M,y+18);
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...mut);
+    const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+    doc.text(`SPOOL  ·  Request #${id.slice(0,8).toUpperCase()}  ·  ${today}`,M,y+34);
+    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(...ink); doc.text('SPOOL',W-M,y+18,{align:'right'});
+    y+=48;
+    // design name
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text(doc.splitTextToSize(d.name||'SPOOL design',CW)[0],M,y+4); y+=14;
+    // images
+    head('FRONT',M,y,CW/2-4); head('BACK',M+CW/2+4,y,CW/2-4); y+=18;
+    const IH=250; box(M,y,CW/2-4,IH); box(M+CW/2+4,y,CW/2-4,IH);
+    for(const [k,x0] of [['front',M],['back',M+CW/2+4]]){ const im=await jpegURL(img[k]); if(!im) { doc.setFontSize(9); doc.setTextColor(...mut); doc.text('—',x0+(CW/2-4)/2,y+IH/2,{align:'center'}); doc.setTextColor(...ink); continue; }
+      const bw=CW/2-4-16, bh=IH-16, s=Math.min(bw/im.w,bh/im.h), w=im.w*s, h=im.h*s; doc.addImage(im.url,'JPEG',x0+8+(bw-w)/2,y+8+(bh-h)/2,w,h); }
+    y+=IH+12;
+    // spec table
+    const rows=[['Body',d.body],['Color',d.color],['Wash',d.wash],['Distress',d.distress],['Trims',d.trims],['Graphics',(d.graphics||[]).join('\n')],['Fabric / weight',f.fabric],['Notes',f.notes],['Design idea',d.idea]].filter(([,v])=>v&&String(v).trim());
+    head('SPECIFICATIONS',M,y,CW); y+=18;
+    const LW=110; doc.setFontSize(9);
+    for(const [k,v] of rows){ const lines=doc.splitTextToSize(String(v),CW-LW-16).slice(0,8); const h=Math.max(18,lines.length*11+8);
+      if(y+h>740){ doc.addPage(); y=M; }
+      box(M,y,LW,h); box(M+LW,y,CW-LW,h); doc.setFont('helvetica','bold'); doc.setTextColor(...mut); doc.text(k.toUpperCase(),M+8,y+12);
+      doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(lines,M+LW+8,y+12); y+=h; }
+    y+=12; if(y+90>740){ doc.addPage(); y=M; }
+    // sample + production
+    const half=CW/2-4; head('SAMPLE',M,y,half); head('PRODUCTION PLAN',M+half+8,y,half); y+=18;
+    const cell=(x,yy,label,val)=>{ box(x,yy,half,22); doc.setFont('helvetica','bold'); doc.setTextColor(...mut); doc.setFontSize(8); doc.text(label,x+8,yy+14); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.setFontSize(10); doc.text(String(val||'—'),x+half-8,yy+14.5,{align:'right'}); };
+    cell(M,y,'SAMPLE SIZE',f.sample_size); cell(M+half+8,y,'EST. QUANTITY',f.production_qty); y+=22;
+    cell(M,y,'SAMPLE QTY',f.sample_qty); cell(M+half+8,y,'NEEDED BY',f.needed_by?new Date(f.needed_by+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}):''); y+=34;
+    doc.setFontSize(8); doc.setTextColor(...mut); doc.text('Colors and details in AI design images are approximate. Confirm materials, colors and measurements with SPOOL before cutting.',M,Math.min(y,760));
+    doc.text('SPOOL · info@spoolnyc.com',W-M,772,{align:'right'});
+    return doc.output('blob');
+  }
   const fileURL=f=>new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.onerror=()=>r(null); fr.readAsDataURL(f); });
   const uuid=()=>crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);});
 
@@ -107,6 +153,8 @@
       const add=async(label,src)=>{ const blob=await toJpeg(src); if(!blob) return; const path=`${uid}/${id}/${label}.jpg`;
         const {error}=await A.sb.storage.from('samples').upload(path,blob,{contentType:'image/jpeg',upsert:false}); if(error) throw error; images[label]=path; };
       await add('front',cur.images?.front); await add('back',cur.images?.back);
+      try{ const pdf=await orderSheet(id,f,cur.design||{},cur.images||{}); const path=`${uid}/${id}/order-sheet.pdf`;
+        const {error:pe}=await A.sb.storage.from('samples').upload(path,pdf,{contentType:'application/pdf',upsert:false}); if(!pe) images['order-sheet']=path; else console.warn(pe); }catch(pe){ console.warn('order sheet failed',pe); }
       const files=[...(back.querySelector('#srFiles').files||[])].slice(0,2);
       for(let i=0;i<files.length;i++) await add('extra-'+(i+1),await fileURL(files[i]));
       const {error}=await A.sb.from('sample_requests').insert({id,user_id:uid,...f,design:cur.design||null,images});
