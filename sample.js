@@ -120,7 +120,7 @@
       <div class="sr-grid" style="margin-top:12px">
         <div class="sr-f"><label for="srNeed">Needed by <i>(optional)</i></label><input class="sr-in" id="srNeed" type="date"></div>
         <div class="sr-f"><label for="srPrice">Target price per unit <i>(optional)</i></label><input class="sr-in" id="srPrice" placeholder="e.g. $18"></div>
-        <div class="sr-f full"><label for="srFabric">Fabric / weight <i>(optional)</i></label><input class="sr-in" id="srFabric" placeholder="e.g. 100% cotton fleece, 400 GSM"></div>
+        <div class="sr-f full"><label for="srFabric">Fabric / weight <i>(optional)</i></label><input class="sr-in" id="srFabric" placeholder="e.g. 100% cotton fleece, 400 GSM" value="${esc(cur.prefill?.fabric||'')}"></div>
         <div class="sr-f full"><label for="srNotes">Notes <i>(optional)</i></label><textarea class="sr-in" id="srNotes" placeholder="Anything else we should know — labels, packaging, changes from the design"></textarea></div>
         <div class="sr-f full"><label for="srFiles">Extra files <i>(optional, up to 2 images)</i></label><input class="sr-in" id="srFiles" type="file" accept="image/*" multiple></div>
       </div>

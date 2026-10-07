@@ -74,7 +74,7 @@
     const em=user.email||''; el.innerHTML=`<button type="button" class="sa-chip" aria-haspopup="menu"><span class="sa-av">${(em[0]||'?').toUpperCase()}</span>Account</button>
       <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><a href="editor.html#projects" role="menuitem">My projects</a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
     const btn=el.querySelector('.sa-chip'), menu=el.querySelector('.sa-menu'); el.style.position='relative';
-    btn.onclick=e=>{ e.stopPropagation(); menu.classList.toggle('open'); };
+    btn.onclick=e=>{ e.stopPropagation(); menu.classList.toggle('open'); if(menu.classList.contains('open')){ menu.style.left=''; menu.style.right=''; const r=menu.getBoundingClientRect(); if(r.left<8){ menu.style.right='auto'; menu.style.left='0'; } else if(r.right>innerWidth-8){ menu.style.left='auto'; menu.style.right='0'; } } };
     document.addEventListener('click',()=>menu.classList.remove('open'));
     el.querySelector('[data-out]').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
   }); }
@@ -95,6 +95,13 @@
   function track(name,props){ if(!sb) return; try{ const row={name:String(name).slice(0,40),page:location.pathname.replace(/\.html$/,'')||'/',anon_id:anon,props:props||null}; if(user) row.user_id=user.id;
     sb.from('events').insert(row).then(()=>{},()=>{}); }catch(_){} }
   window.SPOOL_TRACK=track;
+  /* header: make the small label under the SPOOL logo exactly as wide as the logo */
+  function fitBrand(){ document.querySelectorAll('.brand').forEach(b=>{ const img=b.querySelector('img'), sp=b.querySelector('span'); if(!img||!sp||!img.offsetWidth) return;
+    sp.style.display='inline-block'; sp.style.letterSpacing='0px'; sp.style.marginRight='0px'; sp.style.whiteSpace='nowrap'; const n=Math.max(1,sp.textContent.length-1), w=sp.getBoundingClientRect().width; const ls=(img.offsetWidth-w)/n;
+    sp.style.letterSpacing=ls.toFixed(2)+'px'; sp.style.marginRight=(-ls).toFixed(2)+'px'; }); }
+  const fitSoon=()=>requestAnimationFrame(fitBrand);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fitSoon); else fitSoon();
+  addEventListener('load',fitSoon); addEventListener('resize',fitSoon); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitSoon);
   ready.then(()=>track('page_view',{ref:document.referrer?new URL(document.referrer).hostname:null}));
 
   window.SPOOL_AUTH={

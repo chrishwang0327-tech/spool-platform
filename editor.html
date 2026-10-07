@@ -117,6 +117,11 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .sub{font-size:12px;color:var(--muted);margin-top:4px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
+@media (max-width:600px){
+  header{flex-wrap:wrap;row-gap:10px}
+  .hdr-r{flex:1 0 100%;width:100%;min-width:0}
+  .pname{flex:1 1 auto;min-width:0;width:auto}
+}
 @media (max-width:960px){
   header{padding:12px 16px}
   .back{display:none}
@@ -132,8 +137,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261007c"></script>
-<script src="sample.js?v=20261007c"></script>
+<script src="auth.js?v=20261007d"></script>
+<script src="sample.js?v=20261007d"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -154,6 +159,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <button class="btn sm" id="hideBtn" title="Show the design without boxes">Hide boxes</button>
       <button class="btn sm" id="undoBtn" title="Undo (Cmd/Ctrl + Z)" aria-label="Undo">↶</button>
       <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
+      <button class="btn sm" id="resetBtn" title="Go back to the original AI image for this side">Reset</button>
       <span class="sp"></span>
       <button class="btn sm" id="measBtn" title="Set the chest line and HPS used for inch sizes">Measure</button>
       <button class="btn sm" id="detBtn" title="AI finds the graphics and draws the boxes for you">Auto-detect</button>
@@ -177,14 +183,14 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
         </div>
       </div>
     </div>
-    <div class="mob-more"><button type="button" onclick="document.getElementById('asidePanel').scrollIntoView({behavior:'smooth'})">Graphic · Body · Details specs ↓</button></div>
+    <div class="mob-more"><button type="button" onclick="document.getElementById('asidePanel').scrollIntoView({behavior:'smooth'})">Graphic · Body · Trims specs ↓</button></div>
   </section>
 
   <aside id="asidePanel">
     <div class="tabs" id="tabs" role="tablist">
       <button class="on" data-t="graphic" role="tab"><i>01</i>Graphic</button>
       <button data-t="body" role="tab"><i>02</i>Body</button>
-      <button data-t="details" role="tab"><i>03</i>Details</button>
+      <button data-t="details" role="tab"><i>03</i>Trims &amp; Branding</button>
     </div>
     <div id="tabIntro" class="sub"></div>
     <div id="partsPane" style="display:flex;flex-direction:column;gap:16px">
@@ -204,12 +210,11 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
     <div class="card">
       <div class="lbl">Finish</div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
-        <button class="btn" id="polishBtn" title="AI cleans up the whole image once; you choose before or after">Polish final (AI)</button>
-        <button class="btn" id="dlBtn">Download images</button>
-        <button class="btn" id="hiresBtn" title="Garment images at 2048 px + each boxed graphic as its own large PNG">Export hi-res</button>
+        <button class="btn hidden" id="polishBtn" title="AI cleans up the whole image once; you choose before or after">Polish final (AI)</button>
+        <button class="btn hidden" id="dlBtn">Download images</button>
+        <button class="btn" id="hiresBtn" title="Front and back at 2048 px + each boxed graphic as its own large PNG">Download files</button>
         <button class="btn y" id="tpBtn">Tech pack</button>
         <button class="btn dark" id="sampleBtn">Request sample →</button>
-        <button class="btn sm" id="resetBtn">Restore original image</button>
       </div>
       <div class="note" id="saved">Saved in this browser</div>
     </div>
@@ -240,8 +245,8 @@ const MOCK=!LIVE;
 const PX=1024, U=1000;                 // image pixels, layout units
 const k=PX/U;
 const BODY_CHEST={tee:21,hoodie:23,zip:23,crew:22,trucker:23,sweatpant:16,denim:16,shorts:16};
-const TECH={print:'Print',puff:'Puff print',emb:'Embroidery',patch:'Patch',app:'Appliqué',rhine:'Rhinestones',studs:'Studs',distress:'Distress',other:'Other trim'};
-const GT=['print','puff','emb','patch','app'], DT=['rhine','studs','distress','other'];
+const TECH={print:'Print',puff:'Puff print',emb:'Embroidery',patch:'Patch',app:'Appliqué',rhine:'Rhinestones',studs:'Studs',label:'Label',hangtag:'Hang tag',zipper:'Zipper',drawcord:'Drawcord',grommet:'Grommets / eyelets',chain:'Chains',distress:'Distress area',other:'Other trim'};
+const GT=['print','puff','emb','patch','app','rhine','studs'], DT=['label','hangtag','zipper','drawcord','grommet','chain','distress','other'];
 const OPTS={
   print:[['Method',['Screen','DTG','Discharge','Heat transfer','Crack']],['Colors',['1','2','3','4+']]],
   puff:[['Colors',['1','2','3']]],
@@ -251,7 +256,13 @@ const OPTS={
   rhine:[['Stone',['SS10','SS16','SS20']],['Color',['Crystal','AB','Black','Gold']],['Density',['Light','Full']]],
   studs:[['Shape',['Round','Pyramid','Star']],['Size',['6 mm','8 mm','10 mm']],['Finish',['Silver','Gold','Gunmetal']]],
   distress:[['Level',['Light','Heavy']],['Type',['Holes','Fraying','Fading','Cracked print']]],
-  other:[['Type',['Hardware','Zipper','Buttons','Drawcord','Lace','Other']]]
+  label:[['Type',['Woven','Printed','Heat transfer','Leather','Rubber']],['Place',['Neck','Hem','Sleeve','Chest']]],
+  hangtag:[['Material',['Paper','Recycled kraft','Woven']],['String',['Cotton','Safety pin','Plastic barb']]],
+  zipper:[['Type',['Metal','Nylon coil','Vislon']],['Finish',['Silver','Gold','Gunmetal','Black']]],
+  drawcord:[['Type',['Flat','Round']],['Tip',['Metal aglet','Plastic aglet','Knot']]],
+  grommet:[['Size',['8 mm','10 mm','12 mm']],['Finish',['Silver','Gold','Gunmetal','Black']]],
+  chain:[['Type',['Curb','Ball','Cable']],['Finish',['Silver','Gold','Gunmetal']]],
+  other:[['Type',['Hardware','Buttons','Lace','Snaps','Other']]]
 };
 function techWords(p){
   const o=k2=>optOf(p,k2);
@@ -264,6 +275,12 @@ function techWords(p){
     case 'rhine': return `${o('Color').toLowerCase()} rhinestones (${o('Stone')}) set ${o('Density')==='Full'?'densely, fully covering':'along'} the artwork, sparkling`;
     case 'studs': return `${o('Finish').toLowerCase()} ${o('Shape').toLowerCase()} metal studs (${o('Size')}) following the artwork shape`;
     case 'distress': return `${o('Level').toLowerCase()} ${o('Type').toLowerCase()} distressing on the fabric`;
+    case 'label': return `a small ${o('Type').toLowerCase()} brand label at the ${o('Place').toLowerCase()}`;
+    case 'hangtag': return `a ${o('Material').toLowerCase()} hang tag attached with a ${o('String').toLowerCase()}`;
+    case 'zipper': return `a ${o('Finish').toLowerCase()} ${o('Type').toLowerCase()} zipper`;
+    case 'drawcord': return `a ${o('Type').toLowerCase()} drawcord with ${o('Tip').toLowerCase()} tips`;
+    case 'grommet': return `${o('Finish').toLowerCase()} metal grommets (${o('Size')})`;
+    case 'chain': return `a ${o('Finish').toLowerCase()} ${o('Type').toLowerCase()} chain attached to the garment`;
     case 'other': return `a realistic ${o('Type').toLowerCase()} detail${p.note?' ('+p.note+')':''}`;
   }
 }
@@ -329,7 +346,7 @@ function redo(){ const st=redoStack[side]; if(!st.length) return toast('Nothing 
 const kindOf=p=>p.kind||(DT.includes(p.tech)?'detail':'graphic');
 const curKind=()=>tab==='details'?'detail':'graphic';
 const visParts=()=>tab==='body'||!P?[]:S().parts.filter(p=>kindOf(p)===curKind());
-const lab=p=>kindOf(p)==='detail'?'D'+p.num:String(p.num);
+const lab=p=>kindOf(p)==='detail'?'T'+p.num:String(p.num);
 function renumber(s){ let g=0,d=0; s.parts.forEach(p=>{ p.kind=kindOf(p); p.num=p.kind==='detail'?++d:++g; }); }
 const S=()=>P.sides[side];
 const ipu=()=>{const c=S().cal; return (+P.chestIn||21)/Math.max(40,c.x2-c.x1);};
@@ -391,7 +408,7 @@ function renderTop(){
 function renderList(){
   const L=$('#list'); L.innerHTML=''; if(!P) return;
   const parts=visParts(); $('#partCount').textContent=parts.length?`${parts.length} on ${side}`:'';
-  if(!parts.length){ L.innerHTML=`<div class="muted">${tab==='details'?'No details yet. Use “＋ Select area” to mark where they go.':'No graphics yet. Use “Auto-detect” or “＋ Select area”.'}</div>`; return; }
+  if(!parts.length){ L.innerHTML=`<div class="muted">${tab==='details'?'No trims yet. Use “＋ Select area” to mark where they go.':'No graphics yet. Use “Auto-detect” or “＋ Select area”.'}</div>`; return; }
   parts.forEach(p=>{const b=document.createElement('button'); b.className='li'+(sel===p?' on':'');
     b.innerHTML=`<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]} · ${f1(widthIn(p))}"</small>`;
     b.onclick=()=>{sel=p;render();}; L.appendChild(b);});
@@ -400,7 +417,7 @@ const widthIn=p=>p.specW||p.b[2]*ipu();
 const heightIn=p=>p.specW?p.specW*p.b[3]/p.b[2]:p.b[3]*ipu();
 function renderDetail(){
   const d=$('#detail'); const p=sel;
-  if(!P||!p||tab==='body'){ d.innerHTML=`<div class="lbl">${tab==='details'?'Detail':'Graphic'}</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>`; return; }
+  if(!P||!p||tab==='body'){ d.innerHTML=`<div class="lbl">${tab==='details'?'Trim':'Graphic'}</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>`; return; }
   const fromHps=(p.b[1]-S().cal.hps)*ipu(), fromC=(p.b[0]+p.b[2]/2-cx())*ipu();
   const opts=OPTS[p.tech].map(([key,vals])=>`<div style="margin-top:10px"><div class="lbl">${key}</div><div class="chips">${vals.map(v=>`<button class="chip${optOf(p,key)===v?' on':''}" data-o="${key}" data-v="${v}">${v}</button>`).join('')}</div></div>`).join('');
   d.innerHTML=`<div class="row" style="justify-content:space-between"><input class="field" id="pName" value="${esc(p.name)}" style="font-weight:600;max-width:230px"><button class="btn sm" id="pDel">Delete</button></div>
@@ -436,7 +453,7 @@ function renderDetail(){
 }
 
 /* ================= tabs ================= */
-const TAB_INTRO={graphic:'Artwork: mark each graphic, pick its technique and size.',body:'The garment itself: fabric, color, fit and finishing.',details:'Trims and finishing: rhinestones, studs, distressing, hardware, labels.'};
+const TAB_INTRO={graphic:'Artwork: mark each graphic, pick its technique (print, embroidery, rhinestones, studs…) and size.',body:'The garment itself: fabric, color, fit and finishing. All optional — fill in what you know; it goes on the tech pack.',details:'Trims & branding: labels, hang tags, zippers, drawcords, grommets, chains and distress areas.'};
 $('#tabs').onclick=e=>{const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; sel=null; tool=null; render(); if(window.innerWidth<960) setTimeout(()=>$('#asidePanel').scrollIntoView({behavior:'smooth',block:'start'}),60);};
 const chipRow=(key,vals,cur)=>`<div class="chips">${vals.map(v=>`<button class="chip${cur===v?' on':''}" data-k="${key}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
 function renderTabs(){
@@ -521,7 +538,7 @@ stage.addEventListener('pointerdown',e=>{
   const up=ev=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up); d.remove(); const [x,y]=toU(ev); const b=rect(x,y); tool=null;
     if(b[2]<12||b[3]<12){ render(); return toast('Drag a bigger area'); }
     snap(); const s=S(), kind=curKind(), n=s.parts.filter(q=>kindOf(q)===kind).length+1;
-    const p={id:'a'+Date.now(),kind,num:n,name:(kind==='detail'?'Detail ':'Graphic ')+n,b:clampB(b),tech:kind==='detail'?'rhine':'print',opts:{},note:'',layer:null,hist:[]};
+    const p={id:'a'+Date.now(),kind,num:n,name:(kind==='detail'?'Trim ':'Graphic ')+n,b:clampB(b),tech:kind==='detail'?'label':'print',opts:{},note:'',layer:null,hist:[]};
     s.parts.push(p); renumber(s); sel=p;
     if(s.separated&&kind==='graphic') extractInto(p).then(()=>{save();render();}); else { save(); render(); } };
   addEventListener('pointermove',mv); addEventListener('pointerup',up);
@@ -755,7 +772,7 @@ $('#tpBtn').onclick=async()=>{
     <div><h4>BODY</h4>${kvT([['Fabric',fabric],['Color',[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' · ')],['Fit',B.fit],['Neck / collar',B.neck],['Sleeve / cuff',B.sleeve],['Hem',B.hem],['Body notes',B.notes]])}
       <h4>WASH &amp; DISTRESS</h4>${kvT([['Wash front',[f.wash,f.washNote].filter(Boolean).join(', ')],['Wash back',[bk.wash,bk.washNote].filter(Boolean).join(', ')],['Distress',sp.distress?[sp.distress.front&&'Front: '+sp.distress.front,sp.distress.back&&'Back: '+sp.distress.back].filter(Boolean).join(' / '):'']])}</div>
     <div><h4>LABELS &amp; TRIMS</h4>${kvT([['Neck label',Lb.neck],['Care label',Lb.care],['Hang tag',Lb.hangtag],['Stitch / thread',Lb.stitch],['Hardware',Lb.hardware],['Notes',Lb.notes]])}
-      <h4>DETAILS</h4>${dets.length?`<table class="grid"><tr><th>#</th><th>Side</th><th>Detail</th><th>Type</th><th>Size</th><th>Placement</th></tr>${dets.map(d=>`<tr><td><b>${lab(d.p)}</b></td><td>${d.sd}</td><td>${esc(d.p.name)}${d.p.note?'<br><small>'+esc(d.p.note)+'</small>':''}</td><td>${TECH[d.p.tech]}<br><small>${OPTS[d.p.tech].map(([kk])=>esc(optOf(d.p,kk))).join(' / ')}</small></td><td>${sizeTxt(d.s,d.p)}</td><td>${placeTxt(d.s,d.p).join('<br>')}</td></tr>`).join('')}</table>`:'<p class="m">No details marked.</p>'}
+      <h4>TRIMS &amp; BRANDING</h4>${dets.length?`<table class="grid"><tr><th>#</th><th>Side</th><th>Trim</th><th>Type</th><th>Size</th><th>Placement</th></tr>${dets.map(d=>`<tr><td><b>${lab(d.p)}</b></td><td>${d.sd}</td><td>${esc(d.p.name)}${d.p.note?'<br><small>'+esc(d.p.note)+'</small>':''}</td><td>${TECH[d.p.tech]}<br><small>${OPTS[d.p.tech].map(([kk])=>esc(optOf(d.p,kk))).join(' / ')}</small></td><td>${sizeTxt(d.s,d.p)}</td><td>${placeTxt(d.s,d.p).join('<br>')}</td></tr>`).join('')}</table>`:'<p class="m">No details marked.</p>'}
       <h4>APPROVAL</h4><div class="sign"><div>Designer</div><div>Factory</div><div>Date</div></div>
       <p class="m">Sizes and colors are estimated from the design image and confirmed on the first sample.</p></div></div>`);
   const tot=pages.length, label=i=>i===0?'OVERVIEW':i===tot-1?'CONSTRUCTION':'ARTWORK';
@@ -800,7 +817,7 @@ $('#sampleBtn').onclick=async()=>{
   for(const sd of sides) images[sd]=await finalURL(P.sides[sd]);
   const graphics=[]; ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; graphics.push(`${sd} #${lab(p)} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))} × ${f1(heightIn(p))} in, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
   window.SPOOL_SAMPLE?.open({ design:{name:P.name, body:`${sp.body||P.body} (chest ≈ ${f1(+P.chestIn)} in)`+([B.fabric,B.gsm&&B.gsm+' GSM',B.fit].filter(Boolean).length?' — '+[B.fabric,B.gsm&&B.gsm+' GSM',B.fit].filter(Boolean).join(', '):''),
-    color:[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' / ')||sp.color||'', wash:sp.front?.wash||'', distress:sp.distress?.level||'', trims:'', graphics, idea:sp.direction||''}, images });
+    color:[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' / ')||sp.color||'', wash:sp.front?.wash||'', distress:sp.distress?.level||'', trims:'', graphics, idea:sp.direction||''}, images, prefill:{fabric:[B.fabric,B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM')].filter(Boolean).join(', ')} });
 };
 
 /* ================= projects ================= */
