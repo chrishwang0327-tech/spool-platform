@@ -85,8 +85,21 @@
     async remove(id){ if(!user) return; await sb.storage.from('projects').remove([`${user.id}/${id}.json`]); await sb.from('projects').delete().eq('id',id); }
   };
 
+  async function sendRequest(payload){
+    await ready;
+    const account=user||await modal('Sign in to send your request to SPOOL. We will reply to your account email.');
+    if(!account) return null;
+    const {data,error}=await sb.functions.invoke('spool-send-request',{body:payload});
+    if(error){
+      let message='We could not send your request. Please try again.';
+      try{const detail=await error.context?.json(); if(detail?.error) message=detail.error;}catch(_){}
+      throw new Error(message);
+    }
+    if(!data?.ok) throw new Error(data?.error||'We could not send your request. Please try again.');
+    return data;
+  }
   window.SPOOL_AUTH={
-    sb, ready, cloud,
+    sb, ready, cloud, sendRequest,
     get user(){ return user; },
     email(){ return user?.email||''; },
     onChange(f){ subs.push(f); },
