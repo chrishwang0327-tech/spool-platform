@@ -38,20 +38,20 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .intro p{opacity:.75;margin-top:12px;max-width:460px}
 
 /* steps */
-.step{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 1px 2px rgba(32,29,24,.04);display:grid;grid-template-columns:96px 1fr;gap:20px;align-items:start}
+.step{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 1px 2px rgba(32,29,24,.04);display:grid;grid-template-columns:166px 1fr;gap:20px;align-items:start}
 .plus{display:flex;justify-content:center;height:22px;align-items:center;opacity:.5}
 .step-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .num{background:var(--y);border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:600}
 .step-title{font-weight:600;font-size:16px;letter-spacing:-.01em}
 .opt{font-size:11px;color:var(--muted);background:var(--soft);border-radius:99px;padding:1px 8px}
-.slots{display:flex;flex-direction:column;gap:12px;align-items:center}
+.slots{display:flex;flex-direction:row;gap:10px;align-items:flex-start}
 .slot{display:flex;flex-direction:column;align-items:center}
 .slot-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:6px;font-weight:600}
 .slot.cur .slot-label{color:var(--ink)}
 .slot.cur .drop{box-shadow:0 0 0 3px var(--y2)}
 
 /* upload circle */
-.drop{width:88px;height:88px;border-radius:50%;border:1.5px dashed #c9c3ad;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;background:var(--soft);transition:.15s}
+.drop{width:76px;height:76px;border-radius:50%;border:1.5px dashed #c9c3ad;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;background:var(--soft);transition:.15s}
 .drop:hover,.drop.over{background:var(--y2);border-color:var(--accent)}
 .drop b{font-size:13px;font-weight:600;line-height:1}
 .drop small{font-size:9.5px;letter-spacing:.12em;color:var(--muted);margin-top:3px}
@@ -105,6 +105,18 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .dis-off .dis-more{opacity:.4;pointer-events:none}
 
 /* global */
+.idea{margin-top:16px;background:#FDFDF9;font-size:15px;min-height:56px}
+.examples{margin-top:10px;font-size:13px;opacity:.85}.examples button{background:none;border:0;padding:0;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink)}
+.desc{font-size:13px;color:var(--muted);line-height:1.45;margin-top:-4px}.desc b{color:var(--ink);font-weight:500}
+.optbtn{display:inline-flex;align-items:center;gap:4px;background:none;border:0;padding:0;margin-top:8px;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.optbtn .car{display:inline-block;transition:transform .15s}.step.open .optbtn .car{transform:rotate(180deg)}
+.step .more{display:none;margin-top:14px}.step.open .more{display:block}
+.chip small{font-size:10.5px;color:var(--muted);margin-left:5px}.chip.on small{color:#FDFDF9;opacity:.7}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.sw{width:30px;height:30px;border-radius:50%;border:1px solid #201D1826;background:var(--c,#FDFDF9);cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;font-size:10px;padding:0}
+.sw[data-c=""]{width:auto;padding:0 10px;border-radius:99px;background:var(--soft);font-weight:600}
+.sw.on{outline:2px solid var(--ink);outline-offset:2px}
+.sw.custom{background:conic-gradient(#e44,#ee4,#4e4,#4ee,#44e,#e4e,#e44);color:#fff;font-size:15px;font-weight:700;overflow:hidden}.sw.custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .global{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px}
 .global h3{font-size:16px;font-weight:600;margin-bottom:10px}
 .qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}
@@ -243,7 +255,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=a06863d"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 
@@ -258,17 +270,22 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
   <section>
     <div class="intro">
       <h1>Build from references.</h1>
-      <p>Front and back are designed together. Add a reference and a note for each side — every slot is optional.</p>
+      <p>Every step is optional.</p>
+      <textarea class="field idea" id="p-global" rows="2" placeholder="Describe your idea — e.g. washed black hoodie, cracked chest logo"></textarea>
+      <div class="examples">or try an example: <button type="button" data-ex="hoodie">Vintage hoodie</button> · <button type="button" data-ex="zip">Rhinestone zip-up</button> · <button type="button" data-ex="tee">Graphic tee</button></div>
     </div>
 
     <!-- 01 GRAPHIC -->
     <div class="step" data-step="graphic">
       <div class="slots">
-        <div class="slot cur" data-side="front"><label class="drop" data-slot="graphic-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
-        <div class="slot" data-side="back"><label class="drop" data-slot="graphic-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="graphic-front"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="graphic-back"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
         <div class="step-head"><span class="num">01</span><span class="step-title">Graphic</span><span class="opt">Optional</span></div>
+        <div class="desc">A print, logo or artwork you like — front and back. <b>Empty = no print.</b></div>
+        <button type="button" class="optbtn">Options <span class="car">▾</span></button>
+        <div class="more">
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
         <input class="field" data-note="graphic" placeholder="e.g. keep the logo, make it distressed, 2 colors max">
         <div class="chips" data-pick="graphicUse">
@@ -276,6 +293,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
           <button class="chip" data-v="logo">Logo only</button>
           <button class="chip" data-v="style">Style only</button>
           <button class="chip" data-v="colors">Colors only</button>
+        </div>
         </div>
       </div>
     </div>
@@ -285,15 +303,31 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
     <!-- 02 BODY -->
     <div class="step" data-step="body">
       <div class="slots">
-        <div class="slot cur" data-side="front"><label class="drop" data-slot="body-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
-        <div class="slot" data-side="back"><label class="drop" data-slot="body-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="body-front"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="body-back"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
-        <div class="step-head"><span class="num">02</span><span class="step-title">Body</span></div>
+        <div class="step-head"><span class="num">02</span><span class="step-title">Body</span><span class="opt">Optional</span></div>
+        <div class="desc">The garment shape and color. <b>Empty = classic tee.</b></div>
+        <button type="button" class="optbtn">Options <span class="car">▾</span></button>
+        <div class="more">
         <div class="seg" id="bodyMode"><button class="on" data-v="upload">My reference</button><button data-v="describe">Describe</button></div>
         <div class="subhead"><div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div></div>
         <input class="field" data-note="body" placeholder="Front: e.g. forest green, cut & sew color-block yoke, boxy fit">
         <div class="hint" id="bodyHint">Upload the front (and back) of the body you want. Notes say what to change. Empty back = same construction as the front.</div>
+        <div class="lbl" style="margin-top:14px">Color</div>
+        <div class="swatches" id="colorPick">
+          <button type="button" class="sw" data-c="" title="From reference / idea"><span>Auto</span></button>
+          <button type="button" class="sw" data-c="#1c1c1c" data-n="Black" style="--c:#1c1c1c" title="Black"></button>
+          <button type="button" class="sw" data-c="#ffffff" data-n="White" style="--c:#ffffff" title="White"></button>
+          <button type="button" class="sw" data-c="#8f8f8a" data-n="Grey" style="--c:#8f8f8a" title="Grey"></button>
+          <button type="button" class="sw" data-c="#2f3a4f" data-n="Navy" style="--c:#2f3a4f" title="Navy"></button>
+          <button type="button" class="sw" data-c="#a3201d" data-n="Red" style="--c:#a3201d" title="Red"></button>
+          <button type="button" class="sw" data-c="#ece4d0" data-n="Cream" style="--c:#ece4d0" title="Cream"></button>
+          <label class="sw custom" title="Custom color"><input type="color" id="colorCustom" value="#5a6146"><span>+</span></label>
+        </div>
+        <div class="hint" id="colorHint">Auto = from your body photo or idea. AI colors are close, not exact — the final color is matched at sampling.</div>
+        </div>
       </div>
     </div>
 
@@ -302,19 +336,22 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
     <!-- 03 WASH & DISTRESS -->
     <div class="step" data-step="wash">
       <div class="slots">
-        <div class="slot cur" data-side="front"><label class="drop" data-slot="wash-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
-        <div class="slot" data-side="back"><label class="drop" data-slot="wash-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="wash-front"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="wash-back"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
         <div class="step-head"><span class="num">03</span><span class="step-title">Wash &amp; Distress</span><span class="opt">Optional</span></div>
+        <div class="desc">Fading, dye effects, rips and frayed edges. <b>Empty = clean and new.</b></div>
+        <button type="button" class="optbtn">Options <span class="car">▾</span></button>
+        <div class="more">
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
         <div class="lbl" style="margin-top:4px">Wash</div>
         <div class="chips" data-pick="washType">
           <button class="chip on" data-v="none">Clean</button>
-          <button class="chip" data-v="garment">Garment dye</button>
-          <button class="chip" data-v="pigment">Pigment dye</button>
+          <button class="chip" data-v="garment">Garment dye<small>soft, lived-in</small></button>
+          <button class="chip" data-v="pigment">Pigment dye<small>faded color</small></button>
           <button class="chip" data-v="vintage">Vintage fade</button>
-          <button class="chip" data-v="acid">Acid wash</button>
+          <button class="chip" data-v="acid">Acid wash<small>marbled</small></button>
           <button class="chip" data-v="same">Same as front</button>
         </div>
         <div id="distressStep" class="dis-off">
@@ -333,6 +370,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
         </div>
         <input class="field" data-note="wash" style="margin-top:12px" placeholder="Front: e.g. heavy sun fade, small hole at left chest">
         <div class="hint">One photo can show both — e.g. a vintage tee with fading and holes.</div>
+        </div>
       </div>
     </div>
 
@@ -341,33 +379,29 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
     <!-- 04 TRIMS -->
     <div class="step" data-step="trim">
       <div class="slots">
-        <div class="slot cur" data-side="front"><label class="drop" data-slot="trim-front"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
-        <div class="slot" data-side="back"><label class="drop" data-slot="trim-back"><b>REF.</b><small>UPLOAD</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
+        <div class="slot cur" data-side="front"><label class="drop" data-slot="trim-front"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
+        <div class="slot" data-side="back"><label class="drop" data-slot="trim-back"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
         <div class="step-head"><span class="num">04</span><span class="step-title">Trims</span><span class="opt">Optional</span></div>
+        <div class="desc">Studs, rhinestones, patches, grommets (metal eyelets), chains. <b>Empty = none.</b></div>
+        <button type="button" class="optbtn">Options <span class="car">▾</span></button>
+        <div class="more">
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
         <div class="chips" data-pick="trimType">
           <button class="chip on" data-v="none">None</button>
           <button class="chip" data-v="studs">Studs</button>
           <button class="chip" data-v="rhinestones">Rhinestones</button>
           <button class="chip" data-v="patches">Patches</button>
-          <button class="chip" data-v="grommets">Grommets</button>
+          <button class="chip" data-v="grommets">Grommets<small>metal eyelets</small></button>
           <button class="chip" data-v="chains">Chains</button>
         </div>
         <input class="field" data-note="trim" style="margin-top:12px" placeholder="Front: e.g. silver pyramid studs around the heart">
         <div class="hint">Upload a photo of the trim you want. Exact count and size are set in the editor.</div>
+        </div>
       </div>
     </div>
 
-    <div class="global">
-      <h3>Overall direction</h3>
-      <textarea class="field" id="p-global" rows="2" placeholder="e.g. 90s skate, heavyweight, minimal, for a NYC streetwear drop"></textarea>
-    </div>
-
-    <div class="qrow"><span class="lbl">Quality</span>
-      <div class="seg" id="qualitySeg"><button class="on" data-v="low">Draft · cheaper</button><button data-v="medium">Final · sharper</button></div>
-    </div>
     <button class="create" id="create">CREATE <small>2 designs · front + back</small></button>
   </section>
 
@@ -382,7 +416,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
     <div class="empty" id="empty">
       <svg width="64" height="64" viewBox="0 0 200 220" fill="none" stroke="#877928" stroke-width="5"><path d="M60 20 L85 12 Q100 24 115 12 L140 20 L180 50 L162 78 L145 68 L145 205 L55 205 L55 68 L38 78 L20 50 Z"/></svg>
       <div class="eq">FRONT + BACK</div>
-      <div>Add your references and hit Create.<br>You'll get 2 designs, each with a front and a back.</div>
+      <div>Describe your idea or add photos, then hit Create.<br>You'll get 2 designs, each with a front and a back.</div>
     </div>
 
     <div class="spin hidden" id="spin" role="status" aria-live="polite">
@@ -467,6 +501,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 const AI_URL = 'https://spool-studio-ai.chrishwang0327.workers.dev';
 const AI_ENDPOINT = (/(^|\.)spoolnyc\.com$/.test(location.hostname) || new URLSearchParams(location.search).has('ai')) ? AI_URL : '';
 const MOCK = !AI_ENDPOINT;
+const optLabel = p => !p ? '' : /gemini/i.test(p) ? 'Option 2' : 'Option 1';
 
 const BODIES = {
   tee:{name:'Tee',top:true,path:'M60 20 L85 12 Q100 24 115 12 L140 20 L180 50 L162 78 L145 68 L145 205 L55 205 L55 68 L38 78 L20 50 Z',detail:'M85 12 Q100 30 115 12'},
@@ -493,7 +528,7 @@ const state={
   tab:{graphic:'front',body:'front',wash:'front',trim:'front'},
   front:blankSide(), back:{...blankSide(),washType:'same'},
   bodyMode:'upload', body:'tee',
-  direction:'', quality:'low',
+  direction:'', quality:'low', color:'', colorName:'',
   variations:[], active:0, view:'front'
 };
 
@@ -510,7 +545,7 @@ function garmentSVG(key,fill,small){
 }
 function shrink(dataUrl,max=768){return new Promise(res=>{const i=new Image();i.onload=()=>{const s=Math.min(1,max/Math.max(i.width,i.height));const c=document.createElement('canvas');c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.88));};i.onerror=()=>res(null);i.src=dataUrl;});}
 function presetPNG(key,color){return shrink('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(garmentSVG(key,color,false).replace('<svg ','<svg width="800" height="880" ')),900);}
-function bodyName(){ return state.bodyMode==='preset'?BODIES[state.body].name:state.bodyMode==='upload'?'Custom body':'Described body'; }
+function bodyName(){ return state.bodyMode==='preset'?BODIES[state.body].name:state.refs['body-front']?'Custom body':(state.bodyMode==='describe'&&state.front.note.body)?'Described body':'Classic tee'; }
 
 /* ---------- presets ---------- */
 
@@ -568,7 +603,38 @@ const disOn=side=>state[side].dis.level!=='none';
 function disText(side){ const d=state[side].dis; return `${d.level}${d.where.length?' at '+d.where.join(', '):''}${d.note?' — '+d.note:''}`; }
 
 $('#p-global').addEventListener('input',e=>{state.direction=e.target.value; saveDraft();});
-$('#qualitySeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.quality=b.dataset.v; $$('#qualitySeg button').forEach(x=>x.classList.toggle('on',x===b)); saveDraft();});
+/* ---------- options toggle (per step) ---------- */
+function hasContent(step){ return SIDES.some(x=>state.refs[`${step}-${x}`]||state[x].note[step]) || (step==='wash'&&SIDES.some(x=>disOn(x)||!['none','same'].includes(state[x].washType))) || (step==='trim'&&SIDES.some(x=>state[x].trimType!=='none')) || (step==='graphic'&&SIDES.some(x=>state[x].graphicUse!=='full')) || (step==='body'&&(state.bodyMode==='describe'||!!state.color)); }
+function openStep(step,on){ stepEl(step).classList.toggle('open',on); }
+$$('.step').forEach(el=>el.querySelector('.optbtn')?.addEventListener('click',()=>el.classList.toggle('open')));
+function syncOpen(){ ['graphic','body','wash','trim'].forEach(st=>{ if(hasContent(st)) openStep(st,true); }); }
+
+/* ---------- color (in Body) ---------- */
+function syncColor(){ $$('#colorPick .sw').forEach(b=>b.classList.toggle('on', b.classList.contains('custom') ? (!!state.color && !$$('#colorPick .sw[data-c]').some(x=>x.dataset.c===state.color)) : (b.dataset.c||'')===(state.color||''))); }
+$('#colorPick').addEventListener('click',e=>{ const b=e.target.closest('.sw[data-c]'); if(!b) return; state.color=b.dataset.c; state.colorName=b.dataset.n||''; syncColor(); saveDraft(); });
+$('#colorCustom').addEventListener('input',e=>{ state.color=e.target.value; state.colorName='custom color'; syncColor(); saveDraft(); });
+
+/* ---------- examples ---------- */
+const EXAMPLES={
+  hoodie:{idea:'Oversized heavyweight pullover hoodie, 90s skate feel, washed black, cracked old-English chest logo',color:'#1c1c1c',colorName:'Black',
+    front:{graphic:'old-English wordmark across the chest, cracked vintage print, 1 color off-white',body:'oversized pullover hoodie, dropped shoulder, kangaroo pocket',washType:'vintage',dis:{level:'light',where:['cuffs','hem'],note:''},trimType:'none'},
+    back:{graphic:'',washType:'same',dis:{level:'none',where:[],note:''},trimType:'none'}},
+  zip:{idea:'Boxy cropped full-zip hoodie with a rhinestone script logo, clean garment-dyed grey',color:'#8f8f8a',colorName:'Grey',
+    front:{graphic:'small script logo on the left chest',body:'boxy cropped full-zip hoodie',washType:'garment',dis:{level:'none',where:[],note:''},trimType:'rhinestones',trim:'clear rhinestones covering the chest logo'},
+    back:{graphic:'large script logo across the upper back',washType:'same',dis:{level:'none',where:[],note:''},trimType:'rhinestones',trim:'clear rhinestones covering the back logo'}},
+  tee:{idea:'Heavyweight boxy graphic tee, cream, faded pigment-dye look, bold front graphic',color:'#ece4d0',colorName:'Cream',
+    front:{graphic:'bold retro illustration of a vintage race car with block lettering, 3 colors',body:'heavyweight boxy short-sleeve tee',washType:'pigment',dis:{level:'none',where:[],note:''},trimType:'none'},
+    back:{graphic:'',washType:'same',dis:{level:'none',where:[],note:''},trimType:'none'}}
+};
+$$('.examples [data-ex]').forEach(b=>b.addEventListener('click',()=>{
+  const ex=EXAMPLES[b.dataset.ex]; if(!ex) return;
+  Object.keys(state.refs).forEach(k=>applyRef(k,null)); $$('.drop input').forEach(i=>i.value='');
+  SIDES.forEach(x=>{ const e=ex[x]; const S=x==='front'?blankSide():{...blankSide(),washType:'same'};
+    S.note.graphic=e.graphic||''; S.note.body=e.body||''; S.note.trim=e.trim||''; S.washType=e.washType; S.dis={...e.dis,where:[...e.dis.where]}; S.trimType=e.trimType; state[x]=S; });
+  setBodyMode('describe'); state.color=ex.color; state.colorName=ex.colorName; state.direction=ex.idea; $('#p-global').value=ex.idea;
+  ['graphic','body','wash','trim'].forEach(st=>{ state.tab[st]='front'; syncStep(st); }); syncColor(); syncOpen(); saveDraft();
+  toast('Example loaded — hit Create, or change anything first');
+}));
 
 /* ---------- uploads ---------- */
 function applyRef(slot,url){
@@ -582,7 +648,7 @@ $$('.drop').forEach(d=>{
   const load=file=>{
     if(!file||!file.type.startsWith('image/')) return toast('Please use an image file');
     const r=new FileReader();
-    r.onload=()=>{ applyRef(slot,r.result); state.tab[step]=side; if(step==='trim'&&state[side].trimType==='none') state[side].trimType='studs'; syncStep(step);
+    r.onload=()=>{ applyRef(slot,r.result); openStep(step,true); state.tab[step]=side; if(step==='trim'&&state[side].trimType==='none') state[side].trimType='studs'; syncStep(step);
       if(step==='body'&&side==='front'&&state.bodyMode==='preset') setBodyMode('upload');
       saveDraft(); };
     r.readAsDataURL(file);
@@ -608,7 +674,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') lb.classList.remov
 /* ---------- prompts ---------- */
 function frontJob(){
   const images=[], L=[], add=(url,line)=>{ images.push(url); L.push(`Reference image ${images.length} ${line}`); };
-  const garment=state.bodyMode==='preset'?GARMENT_WORDS[state.body]:'garment';
+  const noBody=!state.refs['body-front']&&!(state.bodyMode==='describe'&&state.front.note.body);
+  const garment=state.bodyMode==='preset'?GARMENT_WORDS[state.body]:noBody?(state.direction?'garment (type as described in the design idea; if the idea names none, a classic short-sleeve crewneck t-shirt)':'classic short-sleeve crewneck t-shirt'):'garment';
   L.push(`Create a professional e-commerce product photo of ONE ${garment}, FRONT view, laid flat / ghost-mannequin style, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.`);
   const F=state.front;
   return (async()=>{
@@ -619,13 +686,14 @@ function frontJob(){
     if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
     if(state.bodyMode==='describe'&&F.note.body) L.push(`Garment: ${F.note.body}.`); else if(F.note.body) L.push(`Front construction: ${F.note.body}.`);
     if(F.note.graphic) L.push(`Front graphic notes: ${F.note.graphic}.`);
-    if(!state.refs['graphic-front']&&!F.note.graphic) L.push('No print on the front.');
-    L.push(state.refs['body-front']?'Garment color: keep the color of the body reference unless the notes say otherwise.':'Garment color: as given in the notes; otherwise natural off-white.');
+    const ideaOnly=!state.refs['graphic-front']&&!F.note.graphic&&!!state.direction;
+    if(!state.refs['graphic-front']&&!F.note.graphic) L.push(ideaOnly?'Front print: only artwork the design idea places on the front or chest (or does not place on a specific side); if the idea only describes a back print, or no print, keep the front plain.':'No print on the front.');
+    L.push(state.color?`Garment base color: ${state.colorName&&state.colorName!=='custom color'?state.colorName+' ':''}(${state.color}). Apply this color to the garment fabric only — keep graphics, trims, wash and silhouette as specified.`:state.refs['body-front']?'Garment color: keep the color of the body reference unless the notes or design idea say otherwise.':'Garment color: as given in the notes or design idea; otherwise natural off-white.');
     L.push(`Wash: ${WASH_WORDS[F.washType]||'clean'}${F.note.wash?', '+F.note.wash:''}.`);
     L.push(disOn('front')?`Distressing on the front: ${disText('front')}.`:'No distressing — the garment is clean and intact.');
     if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
-    if(state.direction) L.push(`Overall direction: ${state.direction}.`);
-    L.push(state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
+    if(state.direction) L.push(`Design idea: ${state.direction}.`);
+    L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
     L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
     return {prompt:L.join('\n'),images:images.filter(Boolean)};
   })();
@@ -641,11 +709,11 @@ async function backJob(frontUrl){
   if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
   if(B.note.body) L.push(`Back construction: ${B.note.body}.`); else if(!state.refs['body-back']) L.push('Back construction: same as the front, no extra panels.');
   if(B.note.graphic) L.push(`Back graphic notes: ${B.note.graphic}.`);
-  if(!state.refs['graphic-back']&&!B.note.graphic) L.push('Plain back — no print.');
+  if(!state.refs['graphic-back']&&!B.note.graphic) L.push(state.direction?'Back print: only if the design idea explicitly describes a back print; otherwise a plain back with no print.':'Plain back — no print.');
   L.push(`Back wash: ${WASH_WORDS[washType]||'clean'}${B.note.wash?', '+B.note.wash:(B.washType==='same'&&F.note.wash?', '+F.note.wash:'')}.`);
   L.push(disOn('back')?`Distressing on the back: ${disText('back')}.`:'No distressing on the back.');
   L.push(B.trimType!=='none'?`Trims on the back: ${TRIM_WORDS[B.trimType]}${B.note.trim?' — '+B.note.trim:''}.`:'No trims on the back.');
-  if(state.direction) L.push(`Overall direction: ${state.direction}.`);
+  if(state.direction) L.push(`Design idea (back view): ${state.direction}.`);
   L.push(state.refs['graphic-back']||B.note.graphic?'STRICT: The only artwork allowed on the back is from the BACK GRAPHIC reference and the back graphic notes. Do not copy the front print or any artwork from any other reference image onto the back.':'STRICT: Do not copy the front print or any artwork from any reference image onto the back.');
   L.push('Realistic fabric, sharp print detail, square image.');
   return {prompt:L.join('\n'),images};
@@ -675,7 +743,7 @@ async function mockImage(side,i){
   x.fillStyle='rgba(32,29,24,.55)'; x.font='600 22px Outfit, sans-serif'; x.fillText(`PREVIEW MOCK · ${side.toUpperCase()}`,32,52);
   return c.toDataURL('image/png');
 }
-async function mockVariations(){ const out=[]; for(const i of [0,1]) out.push({front:await mockImage('front',i),back:await mockImage('back',i),provider:i?'Gemini (mock)':'ChatGPT (mock)'}); return out; }
+async function mockVariations(){ const out=[]; for(const i of [0,1]) out.push({front:await mockImage('front',i),back:await mockImage('back',i),provider:i?'Gemini':'ChatGPT'}); return out; }
 
 /* ---------- render ---------- */
 function viewEl(v,side,big){
@@ -690,7 +758,7 @@ function viewEl(v,side,big){
 function render(){
   const v=state.variations[state.active]; if(!v) return;
   const hero=$('#hero'); hero.querySelector('.gen,.gar')?.remove(); hero.appendChild(viewEl(v,state.view,true));
-  $('#vlabel').textContent=`Design ${state.active+1}${v.provider?' · '+v.provider:''} · ${cap(state.view)}`;
+  $('#vlabel').textContent=`Design ${state.active+1}${v.provider?' · '+optLabel(v.provider):''} · ${cap(state.view)}`;
   $('#viewSeg').classList.remove('hidden'); $$('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.view));
   const th=$('#thumbs'); th.innerHTML='';
   state.variations.forEach((x,i)=>{
@@ -698,7 +766,7 @@ function render(){
     const g=document.createElement('div'); g.className='pick-imgs';
     SIDES.forEach(side=>{ const f=document.createElement('div'); f.className='pick-img'; f.appendChild(viewEl(x,side,false)); f.insertAdjacentHTML('beforeend',`<span class="tag">${side}</span>`); g.appendChild(f); });
     c.appendChild(g);
-    c.insertAdjacentHTML('beforeend',`<div class="pick-meta"><b>Design ${i+1}</b><span>${(x.provider||'').replace(/</g,'&lt;')}</span><span class="ck" aria-hidden="true"></span></div>`);
+    c.insertAdjacentHTML('beforeend',`<div class="pick-meta"><b>Design ${i+1}</b><span>${optLabel(x.provider)}</span><span class="ck" aria-hidden="true"></span></div>`);
     c.onclick=()=>{ if(state.active!==i){ state.active=i; render(); rememberActive(); } };
     th.appendChild(c);
   });
@@ -709,7 +777,7 @@ $('#hero').addEventListener('click',e=>{ const v=state.variations[state.active];
 function renderRecipe(){
   const parts=[];
   SIDES.forEach(s=>{ if(state.refs[`graphic-${s}`]||state[s].note.graphic) parts.push(`${cap(s)} graphic`); });
-  parts.push('Body: '+bodyName());
+  parts.push('Body: '+bodyName()); if(state.color) parts.push('Color: '+(state.colorName&&state.colorName!=='custom color'?state.colorName:state.color.toUpperCase()));
   SIDES.forEach(s=>{ if(disOn(s)) parts.push(`${cap(s)} distress: ${state[s].dis.level}`); });
   SIDES.forEach(s=>{ if(state[s].trimType!=='none') parts.push(`${cap(s)} trims: ${state[s].trimType}`); });
   $('#recipe').innerHTML=parts.map(x=>`<span>${x.replace(/</g,'&lt;')}</span>`).join('');
@@ -741,8 +809,8 @@ function askEmail(){
 async function create(){
   if(window.SPOOL_AUTH){ const u=await window.SPOOL_AUTH.requireLogin('Sign in to create designs. Everything you make is saved to your account.'); if(!u) return; }
   else if(!getEmail() && !(await askEmail())) return;
-  if(state.bodyMode==='upload'&&!state.refs['body-front']) return toast('Upload a front body reference, or switch to Describe');
-  if(state.bodyMode==='describe'&&!state.front.note.body) return toast('Describe the body in the front notes');
+  const any=state.direction.trim()||Object.values(state.refs).some(Boolean)||SIDES.some(x=>Object.values(state[x].note).some(v=>v&&v.trim())||state[x].trimType!=='none'||disOn(x)||!['none','same'].includes(state[x].washType))||state.color;
+  if(!any){ $('#p-global').focus(); return toast('Describe your idea or add a photo first'); }
   const btn=$('#create'); btn.disabled=true; btn.firstChild.textContent='SPINNING… ';
   const prev=state.variations, prevRecipe=$('#recipe').innerHTML;
   ['#empty','#result','#fail'].forEach(s=>$(s).classList.add('hidden')); $('#viewSeg').classList.add('hidden');
@@ -770,7 +838,7 @@ $('#download').onclick=()=>{
 function specSummary(){
   const s=k=>state[k], dF=state.front.dis, dB=state.back.dis, anyDis=disOn('front')||disOn('back');
   return {
-    body:bodyName(), garment:state.bodyMode==='preset'?state.body:'custom', color:'From references / notes', colorHex:null,
+    body:bodyName(), garment:state.bodyMode==='preset'?state.body:'custom', color:state.color?(state.colorName&&state.colorName!=='custom color'?state.colorName:state.color.toUpperCase()):'From references / notes', colorHex:state.color||null,
     front:{graphic:s('front').note.graphic, graphicUse:s('front').graphicUse, body:s('front').note.body, wash:WASH_WORDS[s('front').washType], washNote:s('front').note.wash, trim:s('front').trimType==='none'?null:s('front').trimType, trimNote:s('front').note.trim},
     back:{graphic:s('back').note.graphic, graphicUse:s('back').graphicUse, body:s('back').note.body, wash:s('back').washType==='same'?'Same as front':WASH_WORDS[s('back').washType], washNote:s('back').note.wash, trim:s('back').trimType==='none'?null:s('back').trimType, trimNote:s('back').note.trim},
     distress:anyDis?{level:SIDES.filter(disOn).map(x=>`${cap(x)} ${state[x].dis.level}`).join(' / '),where:[...new Set([...(disOn('front')?dF.where:[]),...(disOn('back')?dB.where:[])])],side:disOn('front')&&disOn('back')?'both':disOn('front')?'front':'back',note:SIDES.filter(disOn).map(x=>state[x].dis.note?`${cap(x)}: ${state[x].dis.note}`:'').filter(Boolean).join(' / '),front:disOn('front')?disText('front'):null,back:disOn('back')?disText('back'):null}:null,
@@ -792,7 +860,7 @@ $('#sample').onclick=()=>{
     `- Front: ${[sp.front.graphic,sp.front.body,sp.front.wash,sp.front.trim&&('Trims: '+sp.front.trim+(sp.front.trimNote?' '+sp.front.trimNote:''))].filter(Boolean).join(' / ')||'—'}`,
     `- Back: ${[sp.back.graphic,sp.back.body,sp.back.wash,sp.back.trim&&('Trims: '+sp.back.trim+(sp.back.trimNote?' '+sp.back.trimNote:''))].filter(Boolean).join(' / ')||'—'}`,
     sp.distress?`- Distress: ${[sp.distress.front?'Front '+sp.distress.front:'',sp.distress.back?'Back '+sp.distress.back:''].filter(Boolean).join(' / ')}`:'',
-    sp.direction?`- Direction: ${sp.direction}`:'',`- Design: ${state.active+1}${v?.provider?' ('+v.provider+')':''}`,
+    sp.direction?`- Direction: ${sp.direction}`:'',`- Design: ${state.active+1}${v?.provider?' ('+optLabel(v.provider)+')':''}`,
     getEmail()?`- Contact: ${getEmail()}`:'','','(Downloaded front and back images attached)'].filter(Boolean).join('\n');
   location.href='mailto:info@spoolnyc.com?subject='+encodeURIComponent('SPOOL sample request')+'&body='+encodeURIComponent(body);
 };
@@ -802,7 +870,7 @@ const DB=(()=>{let dbp;const open=()=>dbp||(dbp=new Promise((res,rej)=>{if(!wind
   const tx=async(store,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(store,mode);const out=fn(t.objectStore(store));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn('save failed',e);return null;}};
   return{get:k=>tx('kv','readonly',s=>s.get(k)),set:(k,v)=>tx('kv','readwrite',s=>s.put(v,k)),all:()=>tx('designs','readonly',s=>s.getAll()),put:v=>tx('designs','readwrite',s=>s.put(v)),del:id=>tx('designs','readwrite',s=>s.delete(id))};})();
 
-function snapshot(){ return JSON.parse(JSON.stringify({v:2,refs:state.refs,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,direction:state.direction,quality:state.quality,variations:state.variations,active:state.active,view:state.view,recipe:$('#recipe').innerHTML})); }
+function snapshot(){ return JSON.parse(JSON.stringify({v:2,refs:state.refs,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,direction:state.direction,quality:state.quality,color:state.color,colorName:state.colorName,variations:state.variations,active:state.active,view:state.view,recipe:$('#recipe').innerHTML})); }
 let restoring=false, curId=null;
 function restore(s){
   if(!s) return; restoring=true;
@@ -820,8 +888,9 @@ function restore(s){
   if(s.distress&&s.distress.level&&s.distress.level!=='none'){ // older single distress setting → per side
     SIDES.forEach(x=>{ if(!s[x]?.dis && (s.distress.side==='both'||s.distress.side===x)) state[x].dis={level:s.distress.level,where:[...(s.distress.where||[])],note:s.distress.note||''}; }); }
   state.direction=s.direction||''; $('#p-global').value=state.direction;
-  if(s.quality){ state.quality=s.quality; $$('#qualitySeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===s.quality)); }
-  ['graphic','body','wash','trim'].forEach(syncStep);
+  state.quality='low'; state.color=s.color&&/^#[0-9a-f]{6}$/i.test(s.color)?s.color:''; state.colorName=s.colorName||''; syncColor();
+  $$('.step').forEach(el=>el.classList.remove('open'));
+  ['graphic','body','wash','trim'].forEach(syncStep); syncOpen();
   state.variations=s.variations||[]; state.active=Math.min(s.active||0,Math.max(0,state.variations.length-1)); state.view=s.view||'front';
   ['#fail','#spin'].forEach(x=>$(x).classList.add('hidden'));
   if(state.variations.length){ $('#empty').classList.add('hidden'); $('#result').classList.remove('hidden'); $('#recipe').innerHTML=s.recipe||''; render(); }

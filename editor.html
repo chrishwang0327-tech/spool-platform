@@ -127,7 +127,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=a06863d"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -199,6 +199,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
         <button class="btn" id="polishBtn" title="AI cleans up the whole image once; you choose before or after">Polish final (AI)</button>
         <button class="btn" id="dlBtn">Download images</button>
+        <button class="btn" id="hiresBtn" title="Garment images at 2048 px + each boxed graphic as its own large PNG">Export hi-res</button>
         <button class="btn y" id="tpBtn">Tech pack</button>
         <button class="btn dark" id="sampleBtn">Request sample →</button>
         <button class="btn sm" id="resetBtn">Restore original image</button>
@@ -638,6 +639,26 @@ $('#polishBtn').onclick=async()=>{
 async function finalURL(s){ return s.polished||await flatten(s); }
 const dl=(url,name)=>{const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();};
 $('#dlBtn').onclick=async()=>{ for(const sd of ['front','back']){ const s=P.sides[sd]; if(s.base) dl(await finalURL(s),`${slug()}-${sd}.jpg`); } };
+/* export hi-res: no AI, no cost — enlarges what is there (interpolation adds pixels, not new detail) */
+function enlarge(srcImg,sx,sy,sw,sh,f){ const c=canvas(Math.max(1,Math.round(sw*f)),Math.max(1,Math.round(sh*f))), x=c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high';
+  let cur=srcImg, cx=sx, cy=sy, cw=sw, ch=sh; // step up 2x at a time for a smoother result
+  while(c.width/cw>2.01){ const t=canvas(Math.round(cw*2),Math.round(ch*2)), tx=t.getContext('2d'); tx.imageSmoothingEnabled=true; tx.imageSmoothingQuality='high'; tx.drawImage(cur,cx,cy,cw,ch,0,0,t.width,t.height); cur=t; cx=0; cy=0; cw=t.width; ch=t.height; }
+  x.drawImage(cur,cx,cy,cw,ch,0,0,c.width,c.height); return c.toDataURL('image/png'); }
+$('#hiresBtn').onclick=async()=>{
+  const sides=['front','back'].filter(sd=>P.sides[sd].base); if(!sides.length) return toast('Nothing to export yet');
+  const parts=[]; sides.forEach(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='graphic').forEach(p=>parts.push([sd,p])));
+  busy(true,'Exporting hi-res files','Garment images and graphics');
+  try{
+    for(const sd of sides){ const i=await loadImg(await finalURL(P.sides[sd])); dl(enlarge(i,0,0,i.width,i.height,2048/Math.max(i.width,i.height)),`${slug()}-${sd}-2048.png`); await wait(350); }
+    for(const [sd,p] of parts){ const s=P.sides[sd], sep=s.separated&&p.layer;
+      const i=await loadImg(sep?p.layer:await finalURL(s)); const kk=i.width/U;
+      const [sx,sy,sw,sh]=sep?[0,0,i.width,i.height]:[p.b[0]*kk,p.b[1]*kk,p.b[2]*kk,p.b[3]*kk];
+      const f=Math.min(8,Math.max(2,3000/Math.max(sw,sh)));
+      dl(enlarge(i,sx,sy,sw,sh,f),`${slug()}-${sd}-graphic-${lab(p)}${sep?'-transparent':''}.png`); await wait(350); }
+    toast(parts.length?`Exported ${sides.length+parts.length} files. Graphics are enlarged, not redrawn — tidy them up before printing.`:'Exported garment images. Box your graphics (Auto-detect or Select area) to export them as separate files too.');
+  }catch(e){ toast('Export failed: '+e.message); }
+  busy(false);
+};
 const slug=()=>(P.name||'spool-design').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'spool-design';
 $('#resetBtn').onclick=()=>{ if(!S().original||!confirm(`Restore the original ${side} image? Previews and separation on this side are removed; your parts and specs stay.`)) return; snap(); const s=S();
   s.base=s.original; s.separated=false; s.hole=null; s.clean=null; s.polished=null; s.parts.forEach(p=>{p.layer=null;p.hist=[]; if(p.orig) p.b=[...p.orig];}); save(); render(); };
