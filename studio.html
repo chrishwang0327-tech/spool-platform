@@ -256,6 +256,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="auth.js"></script>
+<script src="sample.js"></script>
 </head>
 <body>
 
@@ -816,7 +817,9 @@ async function create(){
   ['#empty','#result','#fail'].forEach(s=>$(s).classList.add('hidden')); $('#viewSeg').classList.add('hidden');
   renderRecipe(); showSpin(true);
   if(window.innerWidth<960) $('#output').scrollIntoView({behavior:'smooth'});
-  let out=null; try{ out=await generate(); }catch(e){ console.error(e); }
+  window.SPOOL_TRACK?.('create_click',{refs:Object.values(state.refs).filter(Boolean).length,idea:!!state.direction});
+  let out=null, failMsg=''; try{ out=await generate(); }catch(e){ console.error(e); failMsg=e.message||''; }
+  window.SPOOL_TRACK?.(out?'create_ok':'create_fail',out?null:{err:String(failMsg).slice(0,120)});
   showSpin(false); btn.disabled=false; btn.firstChild.textContent='CREATE ';
   if(!out){
     if(prev.length){ state.variations=prev; $('#recipe').innerHTML=prevRecipe; $('#result').classList.remove('hidden'); render(); toast('The AI couldn’t finish — your last design is still here'); }
@@ -854,15 +857,14 @@ $('#editDesign').onclick=async()=>{
   location.href='editor.html?from=studio';
 };
 $('#sample').onclick=()=>{
-  const sp=specSummary(), v=state.variations[state.active];
-  const body=['Hi SPOOL team,','','I would like a sample of this design:',
-    `- Body: ${sp.body}`,`- Color: ${sp.color}`,
-    `- Front: ${[sp.front.graphic,sp.front.body,sp.front.wash,sp.front.trim&&('Trims: '+sp.front.trim+(sp.front.trimNote?' '+sp.front.trimNote:''))].filter(Boolean).join(' / ')||'—'}`,
-    `- Back: ${[sp.back.graphic,sp.back.body,sp.back.wash,sp.back.trim&&('Trims: '+sp.back.trim+(sp.back.trimNote?' '+sp.back.trimNote:''))].filter(Boolean).join(' / ')||'—'}`,
-    sp.distress?`- Distress: ${[sp.distress.front?'Front '+sp.distress.front:'',sp.distress.back?'Back '+sp.distress.back:''].filter(Boolean).join(' / ')}`:'',
-    sp.direction?`- Direction: ${sp.direction}`:'',`- Design: ${state.active+1}${v?.provider?' ('+optLabel(v.provider)+')':''}`,
-    getEmail()?`- Contact: ${getEmail()}`:'','','(Downloaded front and back images attached)'].filter(Boolean).join('\n');
-  location.href='mailto:info@spoolnyc.com?subject='+encodeURIComponent('SPOOL sample request')+'&body='+encodeURIComponent(body);
+  const sp=specSummary(), v=state.variations[state.active]; if(!v) return toast('Create a design first');
+  const graphics=SIDES.map(x=>{ const g=state[x].note.graphic||(state.refs['graphic-'+x]?'from reference image':''); return g?`${cap(x)}: ${g}`:''; }).filter(Boolean);
+  const trims=SIDES.map(x=>sp[x].trim?`${cap(x)}: ${sp[x].trim}${sp[x].trimNote?' — '+sp[x].trimNote:''}`:'').filter(Boolean).join(' / ');
+  window.SPOOL_SAMPLE?.open({
+    design:{name:`${(state.direction||bodyName()).slice(0,48)} — Design ${state.active+1}`, body:bodyName()+(state.front.note.body?' — '+state.front.note.body:''), color:sp.color, wash:[sp.front.wash&&'Front '+sp.front.wash,sp.back.wash&&'Back '+sp.back.wash].filter(Boolean).join(' / '),
+      distress:sp.distress?[sp.distress.front&&'Front '+sp.distress.front,sp.distress.back&&'Back '+sp.distress.back].filter(Boolean).join(' / '):'', trims, graphics, idea:state.direction, option:optLabel(v.provider)},
+    images:{front:v.front,back:v.back}
+  });
 };
 
 /* ---------- browser saving (IndexedDB) ---------- */
@@ -913,7 +915,7 @@ $('#saveV').onclick=async()=>{
   const v=state.variations[state.active]; if(!v) return;
   if(v.savedId){ await DB.del(v.savedId); v.savedId=null; toast('Removed from Saved'); }
   else{ const id='s'+Date.now(); v.savedId=id; const snap=snapshot(); snap.variations=[{...v}]; snap.active=0;
-    await DB.put({id,type:'saved',name:bodyName(),date:Date.now(),...snap}); toast('Saved'); }
+    await DB.put({id,type:'saved',name:bodyName(),date:Date.now(),...snap}); toast('Saved'); window.SPOOL_TRACK?.('design_saved'); }
   updateSaveBtn(); saveDraft(); if(curId){ const d=((await DB.all())||[]).find(x=>x.id===curId); if(d){ d.variations=state.variations; DB.put(d);} } renderLists();
 };
 

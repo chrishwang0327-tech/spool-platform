@@ -69,7 +69,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=7ede95e"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <header>
@@ -131,42 +131,14 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
       </div>
       <div class="contact">
         <div><div class="eyebrow">Contact</div><p>Questions about samples, minimums or timing? Email us. Tech packs from the studio come with everything we need to quote.</p></div>
-        <div class="mail"><a href="mailto:info@spoolnyc.com">info@spoolnyc.com</a></div>
-        <form id="inquiryForm" style="display:grid;gap:10px">
-          <label for="inquirySubject" style="font-weight:600">What can we help with?</label>
-          <input id="inquirySubject" name="subject" required maxlength="160" placeholder="Samples, minimums or timing" style="font:inherit;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--soft)">
-          <label for="inquiryMessage" style="font-weight:600">Your message</label>
-          <textarea id="inquiryMessage" name="message" required maxlength="12000" rows="4" placeholder="Tell us about your project" style="font:inherit;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);resize:vertical"></textarea>
-          <p style="font-size:12px">Sign in to send. We will reply to your account email.</p>
-          <button class="btn dark" id="inquirySend" type="submit" style="cursor:pointer">Send inquiry</button>
-          <p id="inquiryStatus" role="status" aria-live="polite" style="font-size:13px;overflow-wrap:anywhere"></p>
-        </form>
+        <div class="mail">info@spoolnyc.com</div>
         <a class="btn dark" href="studio.html" style="text-align:center">Open Reference Studio →</a>
       </div>
     </div>
   </section>
 
-  <footer><span>© <span id="yr"></span> SPOOL NYC</span><span><a href="studio.html">Reference Studio</a><a href="editor.html#projects">My projects</a><a href="mailto:info@spoolnyc.com">Contact</a></span></footer>
+  <footer><span>© <span id="yr"></span> SPOOL NYC</span><span><a href="studio.html">Reference Studio</a><a href="editor.html#projects">My projects</a><a href="mailto:info@spoolnyc.com">Contact</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></span></footer>
 </div>
-<script>document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));
-(() => {
-  const form=document.getElementById('inquiryForm'), status=document.getElementById('inquiryStatus'), button=document.getElementById('inquirySend');
-  let attempt=null;
-  form.addEventListener('submit',async event=>{
-    event.preventDefault(); if(!form.reportValidity()) return;
-    const subject=form.elements.subject.value.trim(), message=form.elements.message.value.trim();
-    if(!subject||!message){status.textContent='Enter a subject and message.';return;}
-    const fingerprint=JSON.stringify([window.SPOOL_AUTH?.email(),subject,message]);
-    if(!attempt||attempt.fingerprint!==fingerprint) attempt={fingerprint,requestId:crypto.randomUUID()};
-    button.disabled=true; status.textContent='Sending your inquiry…';
-    try{
-      const result=await window.SPOOL_AUTH.sendRequest({requestId:attempt.requestId,kind:'inquiry',subject,message});
-      if(result){status.textContent='Inquiry sent. SPOOL will reply to your account email. Reference: '+result.requestId;form.reset();attempt=null;}
-      else status.textContent='Inquiry not sent. Sign in to continue.';
-    }catch(error){status.textContent=error.message||'Could not send your inquiry. Please try again.';}
-    finally{button.disabled=false;}
-  });
-})();
-</script>
+<script>document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));</script>
 </body>
 </html>

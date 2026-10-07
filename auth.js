@@ -34,7 +34,8 @@
         <label for="saEmail" style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a7566">Email</label>
         <input class="sa-in" id="saEmail" type="email" autocomplete="email" placeholder="you@brand.com" style="margin-top:6px">
         <button class="sa-btn" id="saSend" type="submit">Email me a sign-in link</button><div class="sa-err" id="saErr" role="alert"></div>
-        <div class="sa-small">No password needed. New here? The same link creates your account.</div></div>
+        <div class="sa-small">No password needed. New here? The same link creates your account.</div>
+        <div class="sa-small">By continuing you agree to our <a href="terms.html" target="_blank" style="color:inherit">Terms</a> and <a href="privacy.html" target="_blank" style="color:inherit">Privacy Policy</a>.</div></div>
         <div id="saStep2" style="display:none"><h2>Check your email</h2><p>We sent a sign-in link to <b id="saTo"></b>. Open it on this device and you'll come right back here, signed in.</p>
         <button class="sa-btn" type="button" id="saAgain" style="background:#F3F1E8">Use a different email</button></div></form>`;
       document.body.appendChild(back);
@@ -51,6 +52,7 @@
         b.disabled=false;
         if(error){ err.textContent=/rate|seconds/i.test(error.message)?'Too many emails just now. Wait a minute and try again.':error.message; return; }
         try{ localStorage.setItem('spoolEmail',em); }catch(_){}
+        track('signin_sent');
         back.querySelector('#saTo').textContent=em; back.querySelector('#saStep1').style.display='none'; back.querySelector('#saStep2').style.display='';
       };
     }
@@ -85,21 +87,15 @@
     async remove(id){ if(!user) return; await sb.storage.from('projects').remove([`${user.id}/${id}.json`]); await sb.from('projects').delete().eq('id',id); }
   };
 
-  async function sendRequest(payload){
-    await ready;
-    const account=user||await modal('Sign in to send your request to SPOOL. We will reply to your account email.');
-    if(!account) return null;
-    const {data,error}=await sb.functions.invoke('spool-send-request',{body:payload});
-    if(error){
-      let message='We could not send your request. Please try again.';
-      try{const detail=await error.context?.json(); if(detail?.error) message=detail.error;}catch(_){}
-      throw new Error(message);
-    }
-    if(!data?.ok) throw new Error(data?.error||'We could not send your request. Please try again.');
-    return data;
-  }
+  /* ---------- usage events (Supabase table "events", write-only) ---------- */
+  let anon=''; try{ anon=localStorage.getItem('spoolAnon')||''; if(!anon){ anon=Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('spoolAnon',anon); } }catch(_){}
+  function track(name,props){ if(!sb) return; try{ const row={name:String(name).slice(0,40),page:location.pathname.replace(/\.html$/,'')||'/',anon_id:anon,props:props||null}; if(user) row.user_id=user.id;
+    sb.from('events').insert(row).then(()=>{},()=>{}); }catch(_){} }
+  window.SPOOL_TRACK=track;
+  ready.then(()=>track('page_view',{ref:document.referrer?new URL(document.referrer).hostname:null}));
+
   window.SPOOL_AUTH={
-    sb, ready, cloud, sendRequest,
+    sb, ready, cloud,
     get user(){ return user; },
     email(){ return user?.email||''; },
     onChange(f){ subs.push(f); },
@@ -108,16 +104,4 @@
     mount(el){ if(!el) return; chips.push(el); ready.then(renderChips); renderChips(); },
     signIn:modal
   };
-})();
-
-
-/* Crisp support chat, shared by Home, Reference Studio and Design Editor. */
-(function () {
-  if (document.querySelector('script[src="https://client.crisp.chat/l.js"]')) return;
-  window.$crisp = window.$crisp || [];
-  window.CRISP_WEBSITE_ID = 'a2a225a7-bec7-4e21-9b54-6dede084dbf1';
-  const script = document.createElement('script');
-  script.src = 'https://client.crisp.chat/l.js';
-  script.async = true;
-  document.head.appendChild(script);
 })();
