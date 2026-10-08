@@ -137,8 +137,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008b"></script>
-<script src="sample.js?v=20261008b"></script>
+<script src="auth.js?v=20261008c"></script>
+<script src="sample.js?v=20261008c"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -212,10 +212,11 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
         <button class="btn hidden" id="polishBtn" title="AI cleans up the whole image once; you choose before or after">Polish final (AI)</button>
         <button class="btn hidden" id="dlBtn">Download images</button>
-        <button class="btn" id="hiresBtn" title="Front and back at 2048 px + each boxed graphic as its own large PNG">Download files</button>
+        <button class="btn" id="hiresBtn" title="Front and back garment images, 2048 px PNG">Download images</button>
         <button class="btn y" id="tpBtn">Tech pack</button>
         <button class="btn dark" id="sampleBtn">Request sample →</button>
       </div>
+      <div class="note">Vector artwork and production files are prepared by SPOOL and included with your sample.</div>
       <div class="note" id="saved">Saved in this browser</div>
     </div>
   </aside>
@@ -691,16 +692,14 @@ function enlarge(srcImg,sx,sy,sw,sh,f){ const c=canvas(Math.max(1,Math.round(sw*
   x.drawImage(cur,cx,cy,cw,ch,0,0,c.width,c.height); return c.toDataURL('image/png'); }
 $('#hiresBtn').onclick=async()=>{
   const sides=['front','back'].filter(sd=>P.sides[sd].base); if(!sides.length) return toast('Nothing to export yet');
-  const parts=[]; sides.forEach(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='graphic').forEach(p=>parts.push([sd,p])));
-  busy(true,'Exporting hi-res files','Garment images and graphics');
+  busy(true,'Exporting images','Front and back, 2048 px');
   try{
-    for(const sd of sides){ const i=await loadImg(await finalURL(P.sides[sd])); dl(enlarge(i,0,0,i.width,i.height,2048/Math.max(i.width,i.height)),`${slug()}-${sd}-2048.png`); await wait(350); }
-    for(const [sd,p] of parts){ const s=P.sides[sd], sep=s.separated&&p.layer;
-      const i=await loadImg(sep?p.layer:await finalURL(s)); const kk=i.width/U;
-      const [sx,sy,sw,sh]=sep?[0,0,i.width,i.height]:[p.b[0]*kk,p.b[1]*kk,p.b[2]*kk,p.b[3]*kk];
-      const f=Math.min(8,Math.max(2,3000/Math.max(sw,sh)));
-      dl(enlarge(i,sx,sy,sw,sh,f),`${slug()}-${sd}-graphic-${lab(p)}${sep?'-transparent':''}.png`); await wait(350); }
-    toast(parts.length?`Exported ${sides.length+parts.length} files. Graphics are enlarged, not redrawn — tidy them up before printing.`:'Exported garment images. Box your graphics (Auto-detect or Select area) to export them as separate files too.');
+    for(const sd of sides){ const i=await loadImg(await finalURL(P.sides[sd])); const big=await loadImg(enlarge(i,0,0,i.width,i.height,2048/Math.max(i.width,i.height)));
+      const c=canvas(big.width,big.height), x=c.getContext('2d'); x.drawImage(big,0,0); const fs=Math.round(c.width*.016);
+      x.font=`600 ${fs}px Helvetica, Arial, sans-serif`; x.textAlign='right'; x.textBaseline='bottom'; x.fillStyle='rgba(32,29,24,.45)'; x.fillText('Made with SPOOL · spoolnyc.com',c.width-fs*1.4,c.height-fs*1.2);
+      dl(c.toDataURL('image/png'),`${slug()}-${sd}.png`); await wait(350); }
+    toast('Images downloaded. Vector artwork and production files come with your sample.');
+    window.SPOOL_TRACK?.('download_images');
   }catch(e){ toast('Export failed: '+e.message); }
   busy(false);
 };
@@ -720,6 +719,32 @@ function bodyColorOf(c,s){ // most common color on the torso (the fabric)
   for(let i=0;i<d.length;i+=4){ const key=(d[i]>>4)+'-'+(d[i+1]>>4)+'-'+(d[i+2]>>4); const o=bins.get(key)||{n:0,r:0,g:0,b:0}; o.n++;o.r+=d[i];o.g+=d[i+1];o.b+=d[i+2]; bins.set(key,o); }
   const o=[...bins.values()].sort((a,b)=>b.n-a.n)[0]; return [o.r/o.n,o.g/o.n,o.b/o.n].map(Math.round); }
 const hex=c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+/* vector drafts for SPOOL (sent with a sample request, never downloaded by the customer) */
+let tracerP=null;
+const loadTracer=()=>tracerP||(tracerP=new Promise((res,rej)=>{ if(window.ImageTracer) return res(window.ImageTracer); const sc=document.createElement('script');
+  sc.src='https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js'; sc.onload=()=>res(window.ImageTracer); sc.onerror=()=>{ tracerP=null; rej(new Error('Vector library failed to load')); }; document.head.appendChild(sc); }));
+async function vectorFiles(){ // graphics with 1–3 flat ink colors → SVG at spec size; photo-like art is skipped
+  const IT=await loadTracer(), out=[], rgbOf=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), D=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]);
+  for(const sd of ['front','back']){ const s=P.sides[sd]; if(!s.base) continue; const parts=s.parts.filter(p=>kindOf(p)==='graphic'); if(!parts.length) continue;
+    const fc=canvas(PX); fc.getContext('2d').drawImage(await img(await finalURL(s)),0,0,PX,PX); const body=bodyColorOf(fc,s), ip=(+P.chestIn||21)/Math.max(40,s.cal.x2-s.cal.x1);
+    for(const p of parts){ try{
+      const inks=artColors(fc,p,body).map(rgbOf); if(!inks.length||inks.length>3) continue;
+      const sw=p.b[2]*k, sh=p.b[3]*k, sc=Math.min(4,1000/Math.max(sw,sh)), W=Math.max(8,Math.round(sw*sc)), H=Math.max(8,Math.round(sh*sc));
+      const c=canvas(W,H), x=c.getContext('2d',{willReadFrequently:true}); x.imageSmoothingQuality='high'; x.drawImage(fc,p.b[0]*k,p.b[1]*k,sw,sh,0,0,W,H);
+      const im=x.getImageData(0,0,W,H); let pal=[body,...inks], near=0, n=0; const cnt=pal.map(()=>0);
+      for(let i=0;i<im.data.length;i+=16){ const c3=[im.data[i],im.data[i+1],im.data[i+2]]; n++; const ds=pal.map(q=>D(c3,q)), m=Math.min(...ds); cnt[ds.indexOf(m)]++; if(m<75) near++; }
+      if(near/n<.8) continue; // gradients / photo-like art: SPOOL redraws by hand
+      const inkN=cnt.slice(1).reduce((a,b)=>a+b,0)||1; pal=[body,...inks.filter((_,i)=>cnt[i+1]/inkN>=.15)]; // drop edge shading / highlights
+      if(pal.length<2) continue;
+      const opts={pal:pal.map(([r,g,b])=>({r,g,b,a:255})),colorsampling:0,numberofcolors:pal.length,colorquantcycles:1,mincolorratio:0,ltres:1,qtres:1,pathomit:12,blurradius:0,strokewidth:0,linefilter:true,roundcoords:1,viewbox:true,desc:false};
+      const td=IT.imagedataToTracedata(im,opts); td.layers[0]=[]; // drop the fabric color
+      const wIn=p.specW||p.b[2]*ip, hIn=wIn*p.b[3]/p.b[2];
+      let svg=IT.getsvgstring(td,opts).replace(/<svg\b[^>]*?>/,m=>m.replace(/\s(width|height)="[^"]*"/g,'').replace('<svg',`<svg width="${f1(wIn)}in" height="${f1(hIn)}in"`));
+      svg=svg.replace(/>/,`>\n<!-- SPOOL vector draft · ${sd} part ${lab(p)} · ${String(p.name).replace(/--/g,'-')} · ${TECH[p.tech]||''} · ${f1(wIn)} × ${f1(hIn)} in · inks ${pal.slice(1).map(hex).join(' ')} · auto-traced, check before production -->`);
+      out.push({name:`vector-${sd}-${lab(p)}.svg`,blob:new Blob([svg],{type:'image/svg+xml'})});
+    }catch(e){ console.warn('vector',p.name,e); } } }
+  return out;
+}
 function artColors(c,p,body){ // up to 4 dominant ink colors inside a box (approx.)
   const w=48,h=48,t=canvas(w,h); t.getContext('2d').drawImage(c,p.b[0]*k,p.b[1]*k,p.b[2]*k,p.b[3]*k,0,0,w,h);
   const d=t.getContext('2d').getImageData(0,0,w,h).data, bins=new Map();
@@ -838,7 +863,7 @@ $('#sampleBtn').onclick=async()=>{
   const sp=P.spec||{}, B=Object.assign(blankBody(),P.bodySpec||{}), images={};
   for(const sd of sides) images[sd]=await finalURL(P.sides[sd]);
   const graphics=[]; ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; graphics.push(`${sd} #${lab(p)} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))} × ${f1(heightIn(p))} in, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
-  window.SPOOL_SAMPLE?.open({ design:{name:P.name, body:`${(P.spec?.garment&&P.spec.garment!=='custom'&&sp.body?sp.body:'')||GARMENT_NAME[P.body]||P.body} (chest ≈ ${f1(+P.chestIn)} in)`+(()=>{ const g=B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM'), a=[B.fabric,g,B.fit].filter(Boolean); return a.length?' — '+a.join(', '):''; })(),
+  window.SPOOL_SAMPLE?.open({ vectors:vectorFiles, design:{name:P.name, body:`${(P.spec?.garment&&P.spec.garment!=='custom'&&sp.body?sp.body:'')||GARMENT_NAME[P.body]||P.body} (chest ≈ ${f1(+P.chestIn)} in)`+(()=>{ const g=B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM'), a=[B.fabric,g,B.fit].filter(Boolean); return a.length?' — '+a.join(', '):''; })(),
     color:[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' / ')||sp.color||'', wash:sp.front?.wash||'', distress:sp.distress?.level||'', trims:'', graphics, idea:sp.direction||''}, images, prefill:{fabric:[B.fabric,B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM')].filter(Boolean).join(', ')} });
 };
 

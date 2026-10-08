@@ -122,7 +122,7 @@
         <div class="sr-f"><label for="srPrice">Target price per unit <i>(optional)</i></label><input class="sr-in" id="srPrice" placeholder="e.g. $18"></div>
         <div class="sr-f full"><label for="srFabric">Fabric / weight <i>(optional)</i></label><input class="sr-in" id="srFabric" placeholder="e.g. 100% cotton fleece, 400 GSM" value="${esc(cur.prefill?.fabric||'')}"></div>
         <div class="sr-f full"><label for="srNotes">Notes <i>(optional)</i></label><textarea class="sr-in" id="srNotes" placeholder="Anything else we should know — labels, packaging, changes from the design"></textarea></div>
-        <div class="sr-f full"><label for="srFiles">Extra files <i>(optional, up to 2 images)</i></label><input class="sr-in" id="srFiles" type="file" accept="image/*" multiple></div>
+        <div class="sr-f full"><label for="srFiles">Have your logo file? <i>(optional — AI, PDF, SVG, EPS or PNG · up to 5 files, 20 MB each)</i></label><input class="sr-in" id="srFiles" type="file" accept=".ai,.pdf,.svg,.eps,.png,.jpg,.jpeg,application/pdf,image/svg+xml,image/png,image/jpeg,application/postscript" multiple><div class="sr-small" style="text-align:left;margin-top:4px">Your exact logo keeps it accurate. SPOOL prepares the production artwork.</div></div>
       </div>
       <label class="sr-check"><input type="checkbox" id="srRights"><span>I own or have permission to use the artwork, logos and references in this design.</span></label>
       <button class="sr-btn" type="submit" id="srSend">Send request</button>
@@ -145,6 +145,10 @@
     if(!f.city||!f.zip) return err.textContent='Add a city and ZIP code so we can quote shipping.';
     if(!f.production_qty) return err.textContent='Pick an estimated production quantity.';
     if(!f.rights) return err.textContent='Please confirm you have the rights to the artwork.';
+    const logos=[...(back.querySelector('#srFiles').files||[])];
+    if(logos.length>5) return err.textContent='Add up to 5 logo files.';
+    if(logos.some(x=>x.size>20*1024*1024)) return err.textContent='Each file must be 20 MB or less.';
+    if(logos.some(x=>!/\.(ai|pdf|svg|eps|png|jpe?g)$/i.test(x.name))) return err.textContent='Logo files must be AI, PDF, SVG, EPS, PNG or JPG.';
     const A=window.SPOOL_AUTH; const u=await A?.requireLogin?.('Sign in to request a sample.'); if(!u) return err.textContent='Sign in to send your request.';
     btn.disabled=true; btn.textContent='Sending…';
     try{
@@ -155,9 +159,13 @@
       await add('front',cur.images?.front); await add('back',cur.images?.back);
       try{ const pdf=await orderSheet(id,f,cur.design||{},cur.images||{}); const path=`${uid}/${id}/order-sheet.pdf`;
         const {error:pe}=await A.sb.storage.from('samples').upload(path,pdf,{contentType:'application/pdf',upsert:false}); if(!pe) images['order-sheet']=path; else console.warn(pe); }catch(pe){ console.warn('order sheet failed',pe); }
-      const files=[...(back.querySelector('#srFiles').files||[])].slice(0,2);
-      for(let i=0;i<files.length;i++) await add('extra-'+(i+1),await fileURL(files[i]));
-      const {error}=await A.sb.from('sample_requests').insert({id,user_id:uid,...f,design:cur.design||null,images});
+      const files={}, put=async(name,blob,type)=>{ const path=`${uid}/${id}/${name}`; const {error}=await A.sb.storage.from('samples').upload(path,blob,{contentType:type||'application/octet-stream',upsert:false}); if(error) throw error; files[name]=path; };
+      for(let i=0;i<logos.length;i++){ const ext=(logos[i].name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,''); btn.textContent=`Uploading logo ${i+1} of ${logos.length}…`; await put(`logo-${i+1}.${ext}`,logos[i],logos[i].type||({ai:'application/postscript',eps:'application/postscript',svg:'image/svg+xml',pdf:'application/pdf'}[ext])); }
+      if(typeof cur.vectors==='function'){ btn.textContent='Preparing artwork…'; try{ for(const v of await cur.vectors()) await put(v.name,v.blob,'image/svg+xml'); }catch(ve){ console.warn('vectors skipped',ve); } }
+      btn.textContent='Sending…';
+      const row={id,user_id:uid,...f,design:cur.design||null,images}; if(Object.keys(files).length) row.files=files;
+      let {error}=await A.sb.from('sample_requests').insert(row);
+      if(error&&row.files&&/files/.test(error.message||'')){ delete row.files; row.notes=[f.notes,'Files: '+Object.keys(files).join(', ')].filter(Boolean).join('\n'); ({error}=await A.sb.from('sample_requests').insert(row)); }
       if(error) throw error;
       let mailed=true;
       try{ const tk=await A.token(); const r=await fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({task:'sample',id})}); if(!r.ok) mailed=false; }catch(_){ mailed=false; }

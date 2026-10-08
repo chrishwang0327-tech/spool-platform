@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(-
 </main>
 <div id="lb"><img alt=""></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008b"></script>
+<script src="auth.js?v=20261008c"></script>
 <script>
 (async()=>{
 'use strict';
@@ -58,12 +58,12 @@ async function samples(){
   if(error) return out.innerHTML=`<div class="msg">${esc(error.message)}</div>`;
   const rows=(data||[]).filter(r=>!filt()||(r.email||'').toLowerCase().includes(filt()));
   if(!rows.length) return out.innerHTML='<div class="msg">No sample requests yet.</div>';
-  const urls=await signed('samples',rows.flatMap(r=>Object.values(r.images||{})));
+  const urls=await signed('samples',rows.flatMap(r=>[...Object.values(r.images||{}),...Object.values(r.files||{})]));
   out.innerHTML=`<div class="wrap"><table><tr><th>Date</th><th>Customer</th><th>Design</th><th>Sample</th><th>Production</th><th>Files</th><th>Status</th></tr>${rows.map(r=>`<tr>
     <td>${when(r.created_at)}</td><td><b>${esc(r.name)}</b>${r.brand?' · '+esc(r.brand):''}<br>${esc(r.email)}${r.phone?'<br>'+esc(r.phone):''}<br><span class="meta">${esc([r.city,r.state,r.zip,r.country].filter(Boolean).join(', '))}</span></td>
     <td>${esc(r.design?.name||'')}<br><span class="meta">${esc([r.design?.body,r.design?.color].filter(Boolean).join(' · '))}</span></td>
     <td>${esc(r.sample_size)} × ${esc(r.sample_qty)}</td><td>${esc(r.production_qty)}${r.needed_by?'<br>by '+esc(r.needed_by):''}${r.target_price?'<br>target '+esc(r.target_price):''}</td>
-    <td class="files">${Object.entries(r.images||{}).map(([k,p])=>urls[p]?`<a href="${urls[p]}" target="_blank" rel="noopener">${esc(k)}</a>`:'').join('')}</td><td><span class="pill">${esc(r.status)}</span></td></tr>`).join('')}</table></div>
+    <td class="files">${Object.entries({...(r.images||{}),...(r.files||{})}).map(([k,p])=>urls[p]?`<a href="${urls[p]}" target="_blank" rel="noopener" download="${esc(k)}">${esc(k)}</a>`:'').join('')}</td><td><span class="pill">${esc(r.status)}</span></td></tr>`).join('')}</table></div>
     <p class="meta" style="margin-top:10px">To change a status, edit the <b>status</b> column in Supabase → Table Editor → sample_requests.</p>`;
 }
 async function users(){
@@ -77,7 +77,7 @@ async function users(){
 async function funnel(){
   const {data,error}=await A.sb.rpc('admin_funnel');
   if(error) return out.innerHTML=`<div class="msg">${esc(error.message)}</div>`;
-  const cols=['day','visitors','signins_sent','creates','creates_ok','saves','editor_opens','techpacks','sample_forms','samples_sent'];
+  const cols=['day','visitors','signins_sent','creates','creates_ok','saves','editor_opens','downloads','techpacks','sample_forms','samples_sent'];
   out.innerHTML=`<div class="wrap"><table><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr>${(data||[]).map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</table></div>`;
 }
 const views={designs,samples,users,funnel};
