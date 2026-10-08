@@ -99,7 +99,7 @@
   if(!/admin/.test(location.pathname)){
     window.$crisp=window.$crisp||[]; window.CRISP_WEBSITE_ID='a2a225a7-bec7-4e21-9b54-6dede084dbf1'; window.CRISP_RUNTIME_CONFIG={locale:'en'};
     let noted=false; window.$crisp.push(['on','chat:opened',function(){ if(noted) return; noted=true;
-      window.$crisp.push(['do','message:show',['text',"Hi! Questions about your design, samples or production? Send us a message — we'll reply as soon as we're available."]]); }]);
+      window.$crisp.push(['do','message:show',['text',"Hi! Questions about your design, samples or production? Send us a message — we'll reply as soon as we're available."]]); setTimeout(()=>window.$crisp.push(['do','message:read']),400); }]);
     const tagUser=u=>{ try{ if(u&&u.email) window.$crisp.push(['set','user:email',[u.email]]); }catch(_){} };
     ready.then(tagUser); subs.push(tagUser);
     const cs=document.createElement('script'); cs.src='https://client.crisp.chat/l.js'; cs.async=true; document.head.appendChild(cs);

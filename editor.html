@@ -137,8 +137,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261007e"></script>
-<script src="sample.js?v=20261007e"></script>
+<script src="auth.js?v=20261008a"></script>
+<script src="sample.js?v=20261008a"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -331,6 +331,21 @@ const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'
 
 /* ================= state ================= */
 const defCal=()=>({x1:270,x2:730,y:430,hps:120});
+const GARMENT_NAME={tee:'Tee',hoodie:'Hoodie',zip:'Zip hoodie',crew:'Crewneck',trucker:'Jacket',sweatpant:'Sweatpants',denim:'Denim pants',shorts:'Shorts'};
+const guessBody=t=>{ t=String(t||'').toLowerCase(); return /zip/.test(t)?'zip':/hood/.test(t)?'hoodie':/crew|sweatshirt/.test(t)?'crew':/jacket|trucker|coach/.test(t)?'trucker':/sweatpant|jogger/.test(t)?'sweatpant':/short/.test(t)?'shorts':/jean|denim pant|trouser/.test(t)?'denim':/tee|t-shirt|shirt/.test(t)?'tee':''; };
+// garment proportions on a front/back product photo: chest width vs. full silhouette width, armpit line and HPS vs. silhouette height
+const CAL_SHAPE={tee:{w:.63,y:.28,h:.03},hoodie:{w:.63,y:.38,h:.16},zip:{w:.63,y:.38,h:.16},crew:{w:.63,y:.31,h:.04},trucker:{w:.62,y:.32,h:.06}};
+async function autoCal(s,body){ // find the garment outline and place the chest line + HPS on it
+  const shape=CAL_SHAPE[body]; if(!shape||!s?.base) return false;
+  try{ const N=200, c=canvas(N), x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(await img(s.base),0,0,N,N);
+    const d=x.getImageData(0,0,N,N).data, px=i=>i*4, dist=(i,j)=>Math.abs(d[px(i)]-d[px(j)])+Math.abs(d[px(i)+1]-d[px(j)+1])+Math.abs(d[px(i)+2]-d[px(j)+2]);
+    const border=[]; for(let i=0;i<N;i++) border.push(i,(N-1)*N+i,i*N,i*N+N-1);
+    const bg=new Uint8Array(N*N), q=[]; border.forEach(i=>{ if(!bg[i]){ bg[i]=1; q.push(i); } });
+    while(q.length){ const i=q.pop(), xx=i%N, yy=(i/N)|0; for(const j of [xx>0?i-1:-1,xx<N-1?i+1:-1,yy>0?i-N:-1,yy<N-1?i+N:-1]) if(j>=0&&!bg[j]&&dist(i,j)<=12){ bg[j]=1; q.push(j); } }
+    let x0=N,x1=-1,y0=N,y1=-1; for(let yy=0;yy<N;yy++){ let n=0; for(let xx=0;xx<N;xx++) if(!bg[yy*N+xx]) n++; if(n<N*.04) continue; y0=Math.min(y0,yy); y1=Math.max(y1,yy); for(let xx=0;xx<N;xx++) if(!bg[yy*N+xx]){ x0=Math.min(x0,xx); x1=Math.max(x1,xx); } }
+    const gw=x1-x0, gh=y1-y0; if(gw<N*.3||gh<N*.3||gw>N*.995) return false;
+    const u=U/N, cx=(x0+x1)/2*u, cw=gw*shape.w*u; s.cal={x1:Math.round(cx-cw/2),x2:Math.round(cx+cw/2),y:Math.round((y0+gh*shape.y)*u),hps:Math.round((y0+gh*shape.h)*u)}; s.calAuto=true; return true;
+  }catch(e){ console.warn('autoCal',e); return false; } }
 const blankSide=()=>({original:null,base:null,hole:null,separated:false,cal:defCal(),parts:[]});
 const blankBody=()=>({fabric:'',gsm:'',color:'',pantone:'',fit:'',neck:'',sleeve:'',hem:'',notes:''});
 const blankStyle=()=>({no:'',season:'',brand:'',designer:'',size:'M',category:''});
@@ -387,7 +402,7 @@ function renderMeas(){
    <span class="knob" data-k="x2" style="left:${pct(c.x2)};top:${pct(c.y)}"></span>
    <span class="knob" data-k="hps" style="left:${pct(c.x1-60)};top:${pct(c.hps)}"></span>`;
   m.querySelectorAll('.knob').forEach(kn=>kn.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); const key=kn.dataset.k; snap();
-    const mv=ev=>{const [x,y]=toU(ev); if(key==='hps') c.hps=Math.max(0,Math.min(U,y)); else { c[key]=Math.max(0,Math.min(U,x)); c.y=Math.max(0,Math.min(U,y)); } renderMeas(); renderList(); };
+    const mv=ev=>{const [x,y]=toU(ev); if(key==='hps') c.hps=Math.max(0,Math.min(U,y)); else { c[key]=Math.max(0,Math.min(U,x)); c.y=Math.max(0,Math.min(U,y)); } S().calSet=true; renderMeas(); renderList(); };
     const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);renderDetail();save();};
     addEventListener('pointermove',mv); addEventListener('pointerup',up); }));
 }
@@ -589,16 +604,22 @@ async function detectAPI(dataUrl){
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'Detect failed'); return d.parts||[];
 }
 const iou=(a,b)=>{const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])), y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])); const i=x*y; return i/(a[2]*a[3]+b[2]*b[3]-i);};
+async function detectSide(s){ // returns how many parts were added on this side
+  const c=canvas(768); c.getContext('2d').drawImage(await (async()=>{const f=canvas(PX); await composite(f,s); return f;})(),0,0,768,768);
+  const found=await detectAPI(c.toDataURL('image/jpeg',.85)); let added=0;
+  for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5)) continue;
+    const p={id:'a'+Date.now()+added+(s===P.sides.back?'b':'f'),kind:'graphic',num:0,name:f.label||'Graphic',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
+    s.parts.push(p); renumber(s); if(s.separated) await extractInto(p); added++; }
+  return added;
+}
 $('#detBtn').onclick=async()=>{ if(isBusy()) return; snap();
-  if(isBusy()) return; const s=S(); busy(true,'Finding the graphics','AI looks at the image and draws the boxes');
+  const s=S(), other=P.sides[side==='front'?'back':'front'], both=!!other.base&&!other.parts.length;
+  busy(true,'Finding the graphics',both?'AI looks at the front and the back and draws the boxes':'AI looks at the image and draws the boxes');
   try{
-    const c=canvas(768); c.getContext('2d').drawImage(await (async()=>{const f=canvas(PX); await composite(f,s); return f;})(),0,0,768,768);
-    const found=await detectAPI(c.toDataURL('image/jpeg',.85)); let added=0;
-    for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5)) continue;
-      const p={id:'a'+Date.now()+added,kind:'graphic',num:0,name:f.label||'Graphic',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
-      s.parts.push(p); renumber(s); if(s.separated) await extractInto(p); added++; }
-    sel=s.parts[s.parts.length-added]||sel;
-    toast(added?`Found ${added} part${added>1?'s':''} — fix any box by dragging it, or add more with “＋ Select area”`:'No new graphics found. Add them with “＋ Select area”.');
+    const added=await detectSide(s); sel=s.parts[s.parts.length-added]||sel;
+    let addedOther=0; if(both){ try{ addedOther=await detectSide(other); }catch(e){ console.warn(e); } }
+    const otherName=side==='front'?'back':'front';
+    toast(added||addedOther?`Found ${added} part${added===1?'':'s'} here${both?` and ${addedOther} on the ${otherName}`:''} — fix any box by dragging it, or add more with “＋ Select area”`:'No new graphics found. Add them with “＋ Select area”.');
   }catch(e){ console.error(e); toast('Auto-detect failed: '+e.message); }
   busy(false); save(); render();
 };
@@ -713,13 +734,13 @@ async function annotated(s,sd){ // garment with red leader-line callouts in the 
   x.fillStyle=RED; x.font='700 26px Helvetica, Arial'; x.textAlign='center'; x.fillText(sd==='front'?'CF':'CB',cxp,30);
   const L=[], R=[];
   s.parts.forEach(p=>{ x.strokeStyle=RED; x.lineWidth=3; if(kindOf(p)==='detail') x.setLineDash([10,7]); x.strokeRect(M+p.b[0]*k,p.b[1]*k,p.b[2]*k,p.b[3]*k); x.setLineDash([]); ((p.b[0]+p.b[2]/2)<(s.cal.x1+s.cal.x2)/2?L:R).push(p); });
-  const lay=arr=>{ arr.sort((a,b)=>(a.b[1]+a.b[3]/2)-(b.b[1]+b.b[3]/2)); let y=70; return arr.map(p=>{ const want=(p.b[1]+p.b[3]/2)*k; y=Math.max(y,Math.min(want,H-140)); const at=y; y+=165; return [p,at]; }); };
+  const lay=arr=>{ arr.sort((a,b)=>(a.b[1]+a.b[3]/2)-(b.b[1]+b.b[3]/2)); let y=70; return arr.map(p=>{ const want=(p.b[1]+p.b[3]/2)*k; y=Math.max(y,Math.min(want,H-170)); const at=y; y+=190; return [p,at]; }); };
   const draw1=(p,ly,left)=>{ const tx=left?16:W-16, bx=left?M+p.b[0]*k:M+(p.b[0]+p.b[2])*k, by=(p.b[1]+p.b[3]/2)*k, ex=left?M-10:W-MR+10;
     x.strokeStyle=RED; x.lineWidth=2; x.beginPath(); x.moveTo(left?tx+310:tx-310,ly+8); x.lineTo(ex,ly+8); x.lineTo(bx,by); x.stroke();
     x.fillStyle=RED; x.beginPath(); x.arc(bx,by,6,0,Math.PI*2); x.fill();
-    x.textAlign=left?'left':'right'; x.fillStyle='#111'; x.font='700 28px Helvetica, Arial'; x.fillText(`${lab(p)}  ${p.name.toUpperCase()}`.slice(0,20),tx,ly);
-    x.font='600 22px Helvetica, Arial'; x.fillText((TECH[p.tech]+' · '+(OPTS[p.tech][0]?optOf(p,OPTS[p.tech][0][0]):'')).toUpperCase(),tx,ly+34);
-    x.fillStyle=RED; x.font='22px Helvetica, Arial'; const pl=placeTxt(s,p); x.fillText(sizeTxt(s,p),tx,ly+64); x.fillText(pl[0],tx,ly+92); x.fillText(pl[1],tx,ly+120); };
+    x.textAlign=left?'left':'right'; x.fillStyle='#111'; let o=0; { x.font='700 28px Helvetica, Arial'; const words=`${lab(p)}  ${p.name.toUpperCase()}`.split(' '); let l1=''; while(words.length&&x.measureText((l1+' '+words[0]).trim()).width<=312) l1=(l1+' '+words.shift()).trim(); if(!l1) l1=words.shift(); let l2=words.join(' '); while(l2&&x.measureText(l2).width>312) l2=l2.slice(0,-2).trim()+'…'; x.fillText(l1,tx,ly); if(l2){ x.fillText(l2,tx,ly+30); o=30; } }
+    x.font='600 22px Helvetica, Arial'; x.fillText((TECH[p.tech]+' · '+(OPTS[p.tech][0]?optOf(p,OPTS[p.tech][0][0]):'')).toUpperCase(),tx,ly+o+34);
+    x.fillStyle=RED; x.font='22px Helvetica, Arial'; const pl=placeTxt(s,p); x.fillText(sizeTxt(s,p),tx,ly+o+64); x.fillText(pl[0],tx,ly+o+92); x.fillText(pl[1],tx,ly+o+120); };
   lay(L).forEach(([p,y])=>draw1(p,y,true)); lay(R).forEach(([p,y])=>draw1(p,y,false));
   return {src:c.toDataURL('image/jpeg',.9),w:W};
 }
@@ -816,7 +837,7 @@ $('#sampleBtn').onclick=async()=>{
   const sp=P.spec||{}, B=Object.assign(blankBody(),P.bodySpec||{}), images={};
   for(const sd of sides) images[sd]=await finalURL(P.sides[sd]);
   const graphics=[]; ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; graphics.push(`${sd} #${lab(p)} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))} × ${f1(heightIn(p))} in, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
-  window.SPOOL_SAMPLE?.open({ design:{name:P.name, body:`${sp.body||P.body} (chest ≈ ${f1(+P.chestIn)} in)`+([B.fabric,B.gsm&&B.gsm+' GSM',B.fit].filter(Boolean).length?' — '+[B.fabric,B.gsm&&B.gsm+' GSM',B.fit].filter(Boolean).join(', '):''),
+  window.SPOOL_SAMPLE?.open({ design:{name:P.name, body:`${(P.spec?.garment&&P.spec.garment!=='custom'&&sp.body?sp.body:'')||GARMENT_NAME[P.body]||P.body} (chest ≈ ${f1(+P.chestIn)} in)`+(()=>{ const g=B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM'), a=[B.fabric,g,B.fit].filter(Boolean); return a.length?' — '+a.join(', '):''; })(),
     color:[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' / ')||sp.color||'', wash:sp.front?.wash||'', distress:sp.distress?.level||'', trims:'', graphics, idea:sp.direction||''}, images, prefill:{fabric:[B.fabric,B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM')].filter(Boolean).join(', ')} });
 };
 
@@ -832,7 +853,7 @@ function upgrade(p){ // older editor projects → v3
   ['front','back'].forEach(sd=>{ const o=p.sides?.[sd]; const src=o?.original||o?.base||null; q.sides[sd].original=src; q.sides[sd].base=src; });
   return q;
 }
-async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=['sweatpant','denim','shorts'].includes(P.body)?'Bottom':'Top'; ['front','back'].forEach(sd=>renumber(P.sides[sd])); side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
+async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>renumber(P.sides[sd])); for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
   $('#pname').value=P.name; $('#chest').value=P.chestIn; render(); }
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
 $('#projBtn').onclick=openProjects;
@@ -857,10 +878,12 @@ $$('.modal').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.class
 async function fromStudio(){
   const h=await studioDB.get('kv','handoff'); if(!h||!h.ai) return false;
   busy(true,'Opening your design','Loading front and back');
-  try{ const p=newProject(); p.name=(h.spec?.body&&!/custom|described/i.test(h.spec.body)?h.spec.body:'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'});
-    p.body=h.body||'tee'; p.chestIn=BODY_CHEST[p.body]||21; p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
+  try{ const p=newProject(); 
+    const custom=!h.spec||h.spec.garment==='custom'; p.body=custom?(guessBody([h.spec?.front?.body,h.spec?.back?.body,h.direction].join(' '))||h.body||'tee'):(h.body||'tee'); p.chestIn=BODY_CHEST[p.body]||21; p.spec=h.spec||null; p.name=(!custom&&h.spec?.body?h.spec.body:GARMENT_NAME[p.body]||'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'}); p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
     p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
-    for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
+    if(h.spec?.color&&!/from references/i.test(h.spec.color)) p.bodySpec.color=h.spec.color;
+    p.style=Object.assign(blankStyle(),{category:GARMENT_NAME[p.body]||''});
+    for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; await autoCal(p.sides[sd],p.body); } }
     await studioDB.put('kv',null,'handoff'); await openProject(p); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
   } finally { busy(false); }
   return true;

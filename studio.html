@@ -256,8 +256,8 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261007e"></script>
-<script src="sample.js?v=20261007e"></script>
+<script src="auth.js?v=20261008a"></script>
+<script src="sample.js?v=20261008a"></script>
 </head>
 <body>
 
@@ -517,6 +517,7 @@ const BODIES = {
   denim:{name:'5-Pocket',top:false,path:'M62 12 L138 12 L148 206 L112 206 L100 70 L88 206 L52 206 Z',detail:'M62 24 L138 24 M100 24 L100 62'},
   shorts:{name:'Shorts',top:false,path:'M56 30 L144 30 L156 138 L110 142 L100 84 L90 142 L44 138 Z',detail:'M56 42 L144 42'}
 };
+const BRAND_SAFE='BRAND SAFETY: Do not copy any real brand name, logo, trademark, sponsor mark, team, event or place name, or person\'s name from the reference images. Where a reference shows such text or marks, replace it with wording from the design idea or notes, or with invented generic words and shapes. Text the user wrote in the idea or notes may be used exactly as written.';
 const COLORS=[['#f2efe6','Natural'],['#ffffff','White'],['#1c1c1c','Black'],['#8f8f8a','Heather grey'],['#2f3a4f','Navy'],['#5a6146','Olive'],['#7a5338','Brown'],['#b4c2cf','Sky blue']];
 const GARMENT_WORDS={tee:'short-sleeve crewneck t-shirt',hoodie:'pullover hoodie with kangaroo pocket',zip:'full-zip hoodie',crew:'crewneck sweatshirt',trucker:'trucker jacket',sweatpant:'sweatpants',denim:'5-pocket jeans',shorts:'shorts'};
 const USE_WORDS={full:'reproduce the full printed artwork faithfully',logo:'use only the logo / wordmark from it',style:'use only its illustration style and mood — create new artwork',colors:'use only its color palette — create new artwork'};
@@ -698,6 +699,7 @@ function frontJob(){
     if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
     if(state.direction) L.push(`Design idea: ${state.direction}.`);
     L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
+    L.push(BRAND_SAFE);
     L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
     return {prompt:L.join('\n'),images:images.filter(Boolean)};
   })();
@@ -719,6 +721,7 @@ async function backJob(frontUrl){
   L.push(B.trimType!=='none'?`Trims on the back: ${TRIM_WORDS[B.trimType]}${B.note.trim?' — '+B.note.trim:''}.`:'No trims on the back.');
   if(state.direction) L.push(`Design idea (back view): ${state.direction}.`);
   L.push(state.refs['graphic-back']||B.note.graphic?'STRICT: The only artwork allowed on the back is from the BACK GRAPHIC reference and the back graphic notes. Do not copy the front print or any artwork from any other reference image onto the back.':'STRICT: Do not copy the front print or any artwork from any reference image onto the back.');
+  L.push(BRAND_SAFE);
   L.push('Realistic fabric, sharp print detail, square image.');
   return {prompt:L.join('\n'),images};
 }
