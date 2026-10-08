@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPOOL — Idea to sample. Sample to shelf.</title>
+<meta name="description" content="Upload references, get AI designs, edit every part, and send a tech pack to SPOOL for samples and production.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FDFDF9;--k:#201D18;--muted:#6b665a;--line:#201D1814;--soft:#F3F1E8;--ol:#877928;--y:#FEE32B;--y2:#FBEF9C}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--k);font-size:15px;line-height:1.55}
+a{color:inherit}
+.wrap{max-width:1360px;margin:0 auto;padding:0 32px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 32px;max-width:1360px;margin:0 auto}
+.logo img{width:112px;display:block}
+nav{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+nav a{font:500 13px Outfit,sans-serif;letter-spacing:.02em;padding:9px 16px;border-radius:99px;text-decoration:none}
+nav a:hover{background:var(--y2)}
+nav a[aria-current="page"]{box-shadow:inset 0 -2px 0 var(--k);border-radius:0}
+nav a.cta{background:var(--k);color:#FDFDF9;padding:9px 18px}
+nav a.cta:hover{background:var(--ol)}
+
+.sp-hero{position:relative;overflow:hidden;background:var(--y);border-radius:28px;min-height:460px;display:flex;align-items:flex-end;justify-content:flex-end;padding:48px 52px;isolation:isolate}
+.sp-hero svg.sp-mark{position:absolute;left:-2%;top:-14%;height:132%;width:auto;z-index:-1}
+.sp-hero-copy{max-width:900px;text-align:right}
+.sp-hero h1 span{display:block;white-space:nowrap}
+.eyebrow{font:600 11px Outfit,sans-serif;letter-spacing:.24em;text-transform:uppercase;opacity:.7;margin-bottom:18px}
+.sp-hero h1{font:600 clamp(40px,6vw,82px)/.95 Outfit,sans-serif;letter-spacing:-.035em;text-transform:uppercase}
+.sp-hero p{font-size:15px;opacity:.78;margin:22px 0 28px auto;max-width:440px}
+.ctas{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.btn{font:600 13px Outfit,sans-serif;letter-spacing:.04em;padding:14px 24px;border-radius:99px;text-decoration:none;border:1.5px solid var(--k);transition:.2s;display:inline-block}
+.btn.dark{background:var(--k);color:#FDFDF9}.btn.dark:hover{background:var(--ol);border-color:var(--ol)}
+.btn.ghost{background:transparent}.btn.ghost:hover{background:#FDFDF9}
+.sp-arrow{position:absolute;left:52px;bottom:44px;font:500 12px Outfit,sans-serif;letter-spacing:.18em;text-transform:uppercase;text-decoration:none}
+
+section.block{margin-top:72px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.head h2{font:600 clamp(28px,3.4vw,40px)/1 Outfit,sans-serif;letter-spacing:-.03em}
+.head p{color:var(--muted);font-size:14px;max-width:460px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.stepc{background:var(--soft);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.ill{height:96px;margin-bottom:6px}.ill svg{height:100%;width:auto;display:block}
+.stepc .n{width:34px;height:34px;border-radius:50%;background:var(--y);display:grid;place-items:center;font-weight:600;font-size:13px}
+.stepc h3{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.stepc p{color:var(--muted);font-size:13.5px}
+.stepc.k{background:var(--k);color:#FDFDF9}.stepc.k p{color:#cfcabb}
+
+.prod{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:stretch}
+.prod .card{background:var(--y2);border-radius:24px;padding:32px}
+.prod .card h3{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin-bottom:12px}
+.prod ul{list-style:none;display:grid;gap:10px;margin-top:16px}
+.prod li{display:flex;gap:10px;align-items:baseline}
+.prod li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--k);flex:none;transform:translateY(-1px)}
+.prod .contact{border:1px solid var(--line);border-radius:24px;padding:32px;display:flex;flex-direction:column;justify-content:space-between;gap:20px}
+.prod .contact p{color:var(--muted)}
+.mail{font-size:18px;font-weight:600;word-break:break-all}
+
+footer{margin-top:80px;padding:28px 0 40px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--k);outline-offset:3px}
+
+
+.ex{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.exc{background:var(--soft);border-radius:22px;overflow:hidden;display:flex;flex-direction:column}
+.exc .im{aspect-ratio:1;background:#ECE9DE;display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:16px}
+.exc .im img{width:100%;height:100%;object-fit:cover;display:block}
+.exc.next{text-decoration:none;color:inherit}.exc.next .im{background:var(--y);color:var(--k);font:600 clamp(22px,2.4vw,30px)/1.05 Outfit,sans-serif;letter-spacing:-.02em;text-transform:uppercase}.exc.next:hover .im{background:var(--y2)}
+.exc .cap{padding:14px 18px 18px;font-size:13.5px;color:var(--muted)}.exc .cap b{color:var(--k);display:block;font-size:15px}
+.tag{display:inline-block;font:600 10.5px Outfit,sans-serif;letter-spacing:.14em;text-transform:uppercase;background:var(--y);padding:4px 10px;border-radius:99px;margin-bottom:10px}
+.sample{display:grid;grid-template-columns:1.1fr 1fr;gap:24px}
+.sample .make{background:var(--y2);border-radius:24px;padding:32px}.sample .make h3{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin-bottom:12px}
+.sample .card{background:var(--k);color:#FDFDF9;border-radius:24px;padding:32px}
+.sample .card h3{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin-bottom:10px}
+.sample .card p{color:#cfcabb}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:22px}
+.fact{background:#2c2822;border-radius:16px;padding:14px 16px}.fact small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a9a38f;margin-bottom:4px}.fact b{font-size:17px}
+.faq{display:grid;gap:10px}
+.faq details{background:var(--soft);border-radius:16px;padding:16px 20px}
+.faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-weight:400;font-size:20px;line-height:1}.faq details[open] summary::after{content:"–"}
+.faq p{color:var(--muted);margin-top:8px;font-size:14px}
+.final{margin-top:72px;background:var(--y);border-radius:28px;padding:44px 40px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.final h2{font:600 clamp(28px,3.6vw,44px)/1 Outfit,sans-serif;letter-spacing:-.03em;text-transform:uppercase}
+.steps.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.film{position:relative;border-radius:24px;overflow:hidden;background:var(--k);margin-bottom:16px;aspect-ratio:16/9;box-shadow:0 30px 70px -40px rgba(32,29,24,.6)}
+.film video{width:100%;height:100%;display:block;object-fit:cover}
+.film .sound{position:absolute;left:20px;bottom:20px;display:inline-flex;align-items:center;gap:10px;background:var(--y);color:var(--k);border:0;border-radius:99px;padding:12px 20px 12px 14px;font:600 14px Outfit,sans-serif;cursor:pointer;box-shadow:0 10px 30px -10px rgba(0,0,0,.4);transition:transform .2s}
+.film .sound:hover{transform:translateY(-2px)}
+.film .sound i{width:26px;height:26px;border-radius:50%;background:var(--k);display:grid;place-items:center}
+.film .sound i:before{content:"";border-left:9px solid var(--y);border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:2px}
+.film.playing .sound{opacity:0;pointer-events:none}
+@media(max-width:640px){.film{border-radius:16px}.film .sound{left:10px;bottom:10px;padding:7px 12px 7px 7px;font-size:12px;gap:7px}.film .sound i{width:20px;height:20px}.film .sound i:before{border-left-width:7px;border-top-width:5px;border-bottom-width:5px}.film .sound .lg{display:none}}
+.stepc .t{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--k);opacity:.6;margin-top:auto}
+.stepc.k .t{color:#FEE32B;opacity:1}
+@media(max-width:960px){.prod,.sample{grid-template-columns:1fr}.steps.four{grid-template-columns:repeat(2,minmax(0,1fr))}.ex{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){
+  header{padding:18px 16px}.wrap{padding:0 16px}
+  .sp-hero{min-height:400px;padding:32px 24px;border-radius:22px}
+  .sp-hero h1{font-size:8.6vw}
+  .sp-hero .eyebrow{font-size:10px;letter-spacing:.12em}
+  .sp-hero svg.sp-mark{height:100%;top:0;left:-20%;opacity:.55}
+  .sp-arrow{display:none}.steps,.steps.four,.ex,.facts{grid-template-columns:1fr}
+  .final{padding:32px 24px}
+  nav{flex-wrap:nowrap}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="auth.js?v=20261008d"></script>
+</head>
+<body>
+<header>
+  <a class="logo" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"></a>
+  <nav aria-label="Main">
+    <a class="cta" href="studio.html">Design Studio</a>
+    <span id="acct"></span>
+  </nav>
+</header>
+
+<div class="wrap">
+  <section class="sp-hero" aria-label="SPOOL">
+    <svg class="sp-mark" viewBox="0 0 900 700" fill="none" stroke="#FDFDF9" stroke-width="16" aria-hidden="true"><path d="M360 150 C 330 80 250 50 180 50 C 90 50 30 105 30 180 C 30 260 95 290 190 320 C 300 355 370 390 370 480 C 370 570 295 640 190 640 C 100 640 30 595 10 520"/><path d="M470 640 L470 60 L640 60 C 760 60 830 130 830 230 C 830 330 760 400 640 400 L470 400"/></svg>
+    <div class="sp-hero-copy">
+      <div class="eyebrow">SPOOL NYC · Design studio + production</div>
+      <h1><span>Idea to sample.</span><span>Sample to shelf.</span></h1>
+      <p>Design it with AI, get production-ready artwork and a tech pack, then we sample it and produce it through our factory network.</p>
+      <div class="ctas">
+        <a class="btn dark" href="studio.html">Start designing — 10 free →</a>
+        <a class="btn ghost" href="#how">See how it works</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="how">
+    <div class="head"><h2>How it works.</h2><p>One flow, from idea to a garment in your hands.</p></div>
+    <div class="film" id="film"><video id="filmV" muted loop playsinline preload="metadata" poster="assets/spool-how-it-works.jpg" aria-label="How SPOOL works, in 52 seconds"><source src="assets/spool-how-it-works.mp4" type="video/mp4"></video>
+      <button class="sound" id="filmBtn" type="button"><i></i><span class="lg">Watch with sound · </span>0:52</button></div>
+    <div class="steps four">
+      <div class="stepc">
+        <div class="ill" aria-hidden="true"><svg viewBox="0 0 120 90"><rect x="18" y="14" width="56" height="62" rx="8" fill="#FDFDF9" stroke="#201D18" stroke-width="3"/><circle cx="36" cy="34" r="7" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><path d="M24 66l16-16 10 10 8-8 12 14" fill="none" stroke="#201D18" stroke-width="3" stroke-linejoin="round"/><circle cx="90" cy="58" r="16" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><path d="M90 50v16M82 58h16" stroke="#201D18" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <span class="n">01</span><h3>Design</h3><p>Start with a sentence or a photo. Get two designs, front and back.</p><span class="t">Minutes · Design Studio</span>
+      </div>
+      <div class="stepc">
+        <div class="ill" aria-hidden="true"><svg viewBox="0 0 120 90"><path d="M14 26l12-8h10q4 6 9 0h10l12 8-6 10-6-4v40H26V32l-6 4z" fill="#FDFDF9" stroke="#201D18" stroke-width="3" stroke-linejoin="round"/><rect x="32" y="40" width="16" height="12" rx="2" fill="#FEE32B" stroke="#201D18" stroke-width="2.5"/><rect x="66" y="14" width="44" height="60" rx="5" fill="#FDFDF9" stroke="#201D18" stroke-width="3"/><path d="M74 28h28M74 38h22M74 48h26M74 58h16" stroke="#201D18" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <span class="n">02</span><h3>Artwork &amp; tech pack</h3><p>Pick techniques and sizes for every graphic, add body specs, export the tech pack.</p><span class="t">Design Editor</span>
+      </div>
+      <div class="stepc k">
+        <div class="ill" aria-hidden="true"><svg viewBox="0 0 120 90"><rect x="30" y="10" width="60" height="72" rx="6" fill="#FDFDF9" stroke="#FDFDF9" stroke-width="3"/><path d="M40 26h30M40 36h40M40 46h34M40 56h22" stroke="#201D18" stroke-width="3" stroke-linecap="round"/><circle cx="84" cy="66" r="14" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><path d="M78 66l4 4 8-8" fill="none" stroke="#201D18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span class="n" style="color:#201D18">03</span><h3>Sample</h3><p>Request a sample. We quote in 1–2 business days, then make it.</p><span class="t">Start here — one piece</span>
+      </div>
+      <div class="stepc">
+        <div class="ill" aria-hidden="true"><svg viewBox="0 0 120 90"><rect x="12" y="44" width="30" height="30" rx="4" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><rect x="46" y="44" width="30" height="30" rx="4" fill="#FDFDF9" stroke="#201D18" stroke-width="3"/><rect x="80" y="44" width="30" height="30" rx="4" fill="#FEE32B" stroke="#201D18" stroke-width="3"/><rect x="29" y="12" width="30" height="30" rx="4" fill="#FDFDF9" stroke="#201D18" stroke-width="3"/><rect x="63" y="12" width="30" height="30" rx="4" fill="#FDFDF9" stroke="#201D18" stroke-width="3"/></svg></div>
+        <span class="n">04</span><h3>Production</h3><p>Love the sample? We take it to production with the same factory partners.</p><span class="t">After your sample</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="examples">
+    <div class="head"><h2>Made in the Design Studio.</h2><p>Real outputs from SPOOL. Physical samples coming soon.</p></div>
+    <div class="ex">
+      <div class="exc"><div class="im"><img src="assets/example-hoodie.jpg" alt="Washed charcoal hoodie with rhinestone old-English chest logo" loading="lazy"></div><div class="cap"><b>Vintage rhinestone hoodie</b>Washed charcoal, cracked chest logo, frayed hem</div></div>
+      <div class="exc"><div class="im"><img src="assets/example-racing.jpg" alt="Cream racing hoodie with checkered flag, puff-print SPOOL logo and sleeve numbers" loading="lazy"></div><div class="cap"><b>Racing hoodie</b>Cream French terry, puff-print chest logo, sleeve numbers</div></div>
+      <a class="exc next" href="studio.html"><div class="im"><span>Your design<br>goes here.</span></div><div class="cap"><b>Start designing — 10 free →</b>Describe it or add a photo. Two designs in about a minute.</div></a>
+    </div>
+  </section>
+
+  <section class="block" id="sample">
+    <div class="sample">
+      <div class="card">
+        <span class="tag">Step 03 · Sample</span>
+        <h3>Start with one sample.</h3>
+        <p>No big order, no commitment. See and feel your design before anything else.</p>
+        <div class="facts">
+          <div class="fact"><small>You get</small><b>Physical sample + tech pack</b></div>
+          <div class="fact"><small>Quote</small><b>1–2 business days</b></div>
+          <div class="fact"><small>Sample time</small><b>Set in your quote</b></div>
+          <div class="fact"><small>Sample cost</small><b>Quoted per design</b></div>
+        </div>
+        <p style="margin-top:18px;font-size:13px">You own your design. Production is quoted after you approve the sample.</p>
+      </div>
+      <div class="prod" style="display:block">
+        <div class="make" style="height:100%">
+          <div class="eyebrow">What we make</div>
+          <h3>Finishes other platforms can't do.</h3>
+          <ul>
+            <li>Denim washing and garment dye</li>
+            <li>Rhinestones, embroidery, chenille and patches</li>
+            <li>Distressing and vintage finishing</li>
+            <li>Cut &amp; sew, custom fits and trims</li>
+            <li>Tees, hoodies, crewnecks, zip-ups, denim, pants</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="faq">
+    <div class="head"><h2>Questions.</h2><p>Anything else? Tap the chat button — we reply as soon as we can.</p></div>
+    <div class="faq">
+      <details><summary>Is it free to try?</summary><p>Yes. Every account gets 10 free designs in the Design Studio. Editing, image downloads and tech packs are free. Production files come with your sample.</p></details>
+      <details><summary>How much does a sample cost?</summary><p>It depends on the garment and techniques. Send a sample request and we'll reply with a quote within 1–2 business days. Nothing is charged until you accept.</p></details>
+      <details><summary>What's the minimum for production?</summary><p>We quote production after your sample is approved, based on your design, techniques and quantities.</p></details>
+      <details><summary>Do I get print-ready files?</summary><p>Production artwork — vector files, color separations and embroidery files — is prepared by SPOOL and included with your sample. Have your own logo file? Add it to your sample request so we match it exactly.</p></details>
+      <details><summary>Who owns the design?</summary><p>You do. We use your files only to make your samples and orders. See our <a href="terms.html">Terms</a>.</p></details>
+      <details><summary>Where do you ship?</summary><p>We currently ship samples within the United States. Ask us in chat about other countries.</p></details>
+    </div>
+  </section>
+
+  <section class="final">
+    <h2>Start with one design.</h2>
+    <a class="btn dark" href="studio.html">Open Design Studio →</a>
+  </section>
+
+  <footer><span>© <span id="yr"></span> SPOOL NYC</span><span><a href="studio.html">Design Studio</a><a href="editor.html#projects">My projects</a><a href="mailto:info@spoolnyc.com" id="footContact">Contact</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></span></footer>
+</div>
+<script>document.getElementById('footContact').addEventListener('click',e=>{ if(window.$crisp){ e.preventDefault(); window.$crisp.push(['do','chat:open']); window.SPOOL_TRACK?.('contact_open'); } });
+(()=>{ const f=document.getElementById('film'), v=document.getElementById('filmV'), b=document.getElementById('filmBtn'); if(!v) return;
+  if('IntersectionObserver' in window){ new IntersectionObserver(es=>es.forEach(e=>{ if(f.classList.contains('playing')) return; if(e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }),{threshold:.4}).observe(v); }
+  b.onclick=()=>{ f.classList.add('playing'); v.loop=false; v.muted=false; v.currentTime=0; v.controls=true; v.play().catch(()=>{}); window.SPOOL_TRACK?.('video_play'); };
+  v.addEventListener('ended',()=>{ f.classList.remove('playing'); v.controls=false; v.muted=true; v.loop=true; v.play().catch(()=>{}); });
+})();
+document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));</script>
+</body>
+</html>
