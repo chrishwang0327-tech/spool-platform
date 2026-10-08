@@ -137,8 +137,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008c"></script>
-<script src="sample.js?v=20261008c"></script>
+<script src="auth.js?v=20261008d"></script>
+<script src="sample.js?v=20261008d"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -901,21 +901,40 @@ async function openProjects(){
 }
 $$('[data-close]').forEach(b=>b.onclick=()=>b.closest('.modal').classList.add('hidden'));
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.add('hidden'); }));
+const GARMENTS=['tee','hoodie','zip','crew','trucker','sweatpant','denim','shorts'];
+async function garmentFromImage(src){ // ask the detect AI what kind of garment this is (old workers return no garment → null)
+  if(MOCK||!src) return null;
+  try{ const c=canvas(768); c.getContext('2d').drawImage(await img(src),0,0,768,768);
+    const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({task:'detect',prompt:'detect',images:[{dataUrl:c.toDataURL('image/jpeg',.85)}]})});
+    const d=await r.json().catch(()=>({})); const g=String(d.garment||'').toLowerCase(); return GARMENTS.includes(g)?g:null;
+  }catch(e){ console.warn('garment',e); return null; } }
+function applyBody(p,body,named){ p.body=body; p.chestIn=BODY_CHEST[body]||21; p.style=Object.assign(blankStyle(),p.style||{},{category:GARMENT_NAME[body]||''});
+  if(!named) p.name=(GARMENT_NAME[body]||'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'}); }
 async function fromStudio(){
   const h=await studioDB.get('kv','handoff'); if(!h||!h.ai) return false;
   busy(true,'Opening your design','Loading front and back');
-  try{ const p=newProject(); 
-    const custom=!h.spec||h.spec.garment==='custom'; p.body=custom?(guessBody([h.spec?.front?.body,h.spec?.back?.body,h.direction].join(' '))||h.body||'tee'):(h.body||'tee'); p.chestIn=BODY_CHEST[p.body]||21; p.spec=h.spec||null; p.name=(!custom&&h.spec?.body?h.spec.body:GARMENT_NAME[p.body]||'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'}); p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
+  try{ const p=newProject();
+    const custom=!h.spec||h.spec.garment==='custom';
+    p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
     p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
     if(h.spec?.color&&!/from references/i.test(h.spec.color)) p.bodySpec.color=h.spec.color;
-    p.style=Object.assign(blankStyle(),{category:GARMENT_NAME[p.body]||''});
-    for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; await autoCal(p.sides[sd],p.body); } }
+    for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
+    // garment type: preset body > words in the notes/idea > AI looking at the design > tee
+    let body=custom?guessBody([h.spec?.front?.body,h.spec?.back?.body,h.direction].join(' ')):(h.body||'tee');
+    if(!body){ busy(true,'Opening your design','Checking the garment type'); body=await garmentFromImage(p.sides.front.base||p.sides.back.base)||h.body||'tee'; }
+    applyBody(p,body,false); if(!custom&&h.spec?.body) p.name=h.spec.body+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'});
+    for(const sd of ['front','back']) if(p.sides[sd].base) await autoCal(p.sides[sd],p.body);
     await studioDB.put('kv',null,'handoff'); await openProject(p); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
   } finally { busy(false); }
   return true;
 }
-$('#upPhotos').onchange=async e=>{ const fs=[...e.target.files]; e.target.value=''; if(!fs.length) return; const p=newProject(); p.name='My photos · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'});
-  for(const [i,sd] of [[0,'front'],[1,'back']]){ if(!fs[i]) continue; const d=await squareURL(await fileURL(fs[i])); p.sides[sd].original=d; p.sides[sd].base=d; } await openProject(p); save(); };
+$('#upPhotos').onchange=async e=>{ const fs=[...e.target.files]; e.target.value=''; if(!fs.length) return; const p=newProject();
+  busy(true,'Opening your photos','Checking the garment type');
+  try{ for(const [i,sd] of [[0,'front'],[1,'back']]){ if(!fs[i]) continue; const d=await squareURL(await fileURL(fs[i])); p.sides[sd].original=d; p.sides[sd].base=d; }
+    applyBody(p,await garmentFromImage(p.sides.front.base||p.sides.back.base)||'tee',false); p.name=p.name.replace(/^[^·]+/,(GARMENT_NAME[p.body]||'My photos')+' ');
+    for(const sd of ['front','back']) if(p.sides[sd].base) await autoCal(p.sides[sd],p.body);
+  } finally { busy(false); }
+  await openProject(p); save(); };
 
 /* ================= boot ================= */
 window.SPOOL_AUTH?.mount($('#acct'));
