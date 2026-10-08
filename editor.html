@@ -137,8 +137,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008a"></script>
-<script src="sample.js?v=20261008a"></script>
+<script src="auth.js?v=20261008b"></script>
+<script src="sample.js?v=20261008b"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -443,7 +443,7 @@ function renderDetail(){
    <div class="kv">
      <label>Width (in)<input class="field" id="wIn" type="number" step="0.1" min="0.2" value="${f1(widthIn(p))}"></label>
      <label>Height (in)<input class="field" value="${f1(heightIn(p))}" disabled></label>
-     <label>Below HPS<input class="field" value="${f1(fromHps)}&quot;" disabled></label>
+     <label>${fromHps<0?'Above':'Below'} HPS<input class="field" value="${f1(Math.abs(fromHps))}&quot;" disabled></label>
      <label>From center<input class="field" value="${Math.abs(fromC)<0.15?'Centered':(fromC>0?'R ':'L ')+f1(Math.abs(fromC))+'&quot;'}" disabled></label>
    </div>
    <div class="est">${kindOf(p)==='detail'?'Drag the box or its corner to mark the exact area.':S().separated&&p.layer?'Drag the box to move the artwork, pull the corner to resize it.':'Width changes the spec only. To resize the artwork itself, use “Separate graphics”.'}</div>
@@ -711,7 +711,8 @@ $('#resetBtn').onclick=()=>{ if(!S().original||!confirm(`Restore the original ${
 /* tech pack: industry-style printable pages (landscape) */
 const RED='#D0312D';
 const placeTxt=(s,p)=>{ const ip=(+P.chestIn||21)/Math.max(40,s.cal.x2-s.cal.x1); const fh=(p.b[1]-s.cal.hps)*ip, fc=(p.b[0]+p.b[2]/2-(s.cal.x1+s.cal.x2)/2)*ip;
-  return [`${f1(fh)} in down from HPS`, Math.abs(fc)<0.15?'Centered':`${f1(Math.abs(fc))} in ${fc>0?'right':'left'} of center`]; };
+  const cxU=p.b[0]+p.b[2]/2, sleeve=cxU<s.cal.x1||cxU>s.cal.x2;
+  return [fh<0?`${f1(-fh)} in above HPS`:`${f1(fh)} in down from HPS`, sleeve?`On the ${fc>0?'right':'left'} sleeve (as shown)`:Math.abs(fc)<0.15?'Centered':`${f1(Math.abs(fc))} in ${fc>0?'right':'left'} of center`]; };
 const sizeTxt=(s,p)=>{ const sv=side; side=s===P.sides.back?'back':'front'; const t=`${f1(widthIn(p))} × ${f1(heightIn(p))} in`; side=sv; return t; };
 function bodyColorOf(c,s){ // most common color on the torso (the fabric)
   const t=canvas(64,64), tx=t.getContext('2d'), x0=s.cal.x1*k, y0=s.cal.hps*k, w=(s.cal.x2-s.cal.x1)*k, h=Math.min(PX-y0,(s.cal.y-s.cal.hps)*k*2.2);

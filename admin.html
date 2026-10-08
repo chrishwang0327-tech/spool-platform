@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(-
 </main>
 <div id="lb"><img alt=""></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008a"></script>
+<script src="auth.js?v=20261008b"></script>
 <script>
 (async()=>{
 'use strict';
@@ -36,11 +36,12 @@ const A=window.SPOOL_AUTH, $=s=>document.querySelector(s), out=$('#out');
 const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const when=t=>new Date(t).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
 A.mount($('#acct'));
+let tab='designs', ready=false, load=()=>{};
+$('#tabs').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); if(ready) load(); };
 const u=await A.requireLogin('Sign in with the SPOOL owner account.');
 if(!u){ out.innerHTML='<div class="msg">Sign in to continue.</div>'; return; }
 const {data:isAdmin}=await A.sb.rpc('is_admin');
 if(isAdmin!==true){ out.innerHTML='<div class="msg">This page is for the SPOOL team only.</div>'; return; }
-let tab='designs';
 const signed=async(bucket,paths)=>{ if(!paths.length) return {}; const {data}=await A.sb.storage.from(bucket).createSignedUrls(paths,3600); const m={}; (data||[]).forEach(x=>{ if(x.signedUrl) m[x.path]=x.signedUrl; }); return m; };
 const filt=()=>$('#q').value.trim().toLowerCase();
 async function designs(){
@@ -80,11 +81,10 @@ async function funnel(){
   out.innerHTML=`<div class="wrap"><table><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr>${(data||[]).map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</table></div>`;
 }
 const views={designs,samples,users,funnel};
-const load=()=>{ out.innerHTML='<div class="msg">Loading…</div>'; views[tab]().catch(e=>out.innerHTML=`<div class="msg">${esc(e.message)}</div>`); };
-$('#tabs').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); load(); };
+load=()=>{ out.innerHTML='<div class="msg">Loading…</div>'; views[tab]().catch(e=>out.innerHTML=`<div class="msg">${esc(e.message)}</div>`); };
 let qt; $('#q').oninput=()=>{ clearTimeout(qt); qt=setTimeout(load,300); };
 out.addEventListener('click',e=>{ const i=e.target.closest('.thumbs img'); if(!i) return; $('#lb img').src=i.src; $('#lb').classList.add('open'); });
 $('#lb').onclick=()=>$('#lb').classList.remove('open');
-load();
+ready=true; load();
 })();
 </script></body></html>

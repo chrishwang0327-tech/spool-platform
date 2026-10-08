@@ -148,8 +148,8 @@
     const A=window.SPOOL_AUTH; const u=await A?.requireLogin?.('Sign in to request a sample.'); if(!u) return err.textContent='Sign in to send your request.';
     btn.disabled=true; btn.textContent='Sending…';
     try{
-      try{ localStorage.setItem('spoolSampleContact:'+uid,JSON.stringify({name:f.name,brand:f.brand,phone:f.phone,city:f.city,state:f.state,zip:f.zip,country:f.country,email:f.email})); }catch(_){}
       const id=uuid(), uid=u.id||A.user?.id, images={};
+      try{ localStorage.setItem('spoolSampleContact:'+uid,JSON.stringify({name:f.name,brand:f.brand,phone:f.phone,city:f.city,state:f.state,zip:f.zip,country:f.country,email:f.email})); }catch(_){}
       const add=async(label,src)=>{ const blob=await toJpeg(src); if(!blob) return; const path=`${uid}/${id}/${label}.jpg`;
         const {error}=await A.sb.storage.from('samples').upload(path,blob,{contentType:'image/jpeg',upsert:false}); if(error) throw error; images[label]=path; };
       await add('front',cur.images?.front); await add('back',cur.images?.back);
