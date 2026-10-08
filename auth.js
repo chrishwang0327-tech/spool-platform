@@ -95,6 +95,15 @@
   function track(name,props){ if(!sb) return; try{ const row={name:String(name).slice(0,40),page:location.pathname.replace(/\.html$/,'')||'/',anon_id:anon,props:props||null}; if(user) row.user_id=user.id;
     sb.from('events').insert(row).then(()=>{},()=>{}); }catch(_){} }
   window.SPOOL_TRACK=track;
+  /* ---------- live chat (Crisp) on every page except admin ---------- */
+  if(!/admin/.test(location.pathname)){
+    window.$crisp=window.$crisp||[]; window.CRISP_WEBSITE_ID='a2a225a7-bec7-4e21-9b54-6dede084dbf1'; window.CRISP_RUNTIME_CONFIG={locale:'en'};
+    let noted=false; window.$crisp.push(['on','chat:opened',function(){ if(noted) return; noted=true;
+      window.$crisp.push(['do','message:show',['text',"Hi! Questions about your design, samples or production? Send us a message — we'll reply as soon as we're available."]]); }]);
+    const tagUser=u=>{ try{ if(u&&u.email) window.$crisp.push(['set','user:email',[u.email]]); }catch(_){} };
+    ready.then(tagUser); subs.push(tagUser);
+    const cs=document.createElement('script'); cs.src='https://client.crisp.chat/l.js'; cs.async=true; document.head.appendChild(cs);
+  }
   /* header: make the small label under the SPOOL logo exactly as wide as the logo */
   function fitBrand(){ document.querySelectorAll('.brand').forEach(b=>{ const img=b.querySelector('img'), sp=b.querySelector('span'); if(!img||!sp||!img.offsetWidth) return;
     sp.style.display='inline-block'; sp.style.letterSpacing='0px'; sp.style.marginRight='0px'; sp.style.whiteSpace='nowrap'; const n=Math.max(1,sp.textContent.length-1), w=sp.getBoundingClientRect().width; const ls=(img.offsetWidth-w)/n;
