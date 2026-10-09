@@ -803,11 +803,12 @@ async function detectAPI(dataUrl){
   const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({task:'detect',prompt:'detect',images:[{dataUrl}]})});
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'Detect failed'); return d.parts||[];
 }
+const inside=(a,b)=>{const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])), y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])); return (x*y)/(a[2]*a[3]||1);}; // share of box a that lies inside box b
 const iou=(a,b)=>{const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])), y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])); const i=x*y; return i/(a[2]*a[3]+b[2]*b[3]-i);};
 async function detectSide(s){ // returns how many parts were added on this side
   const c=canvas(768); c.getContext('2d').drawImage(await (async()=>{const f=canvas(PX); await composite(f,s); return f;})(),0,0,768,768);
   const found=await detectAPI(c.toDataURL('image/jpeg',.85)); let added=0;
-  for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5)||(s.ignored||[]).some(q=>iou(q,b)>.4)) continue;
+  for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5||inside(b,q.b)>.6||(q.orig&&inside(b,q.orig)>.6))||(s.ignored||[]).some(q=>iou(q,b)>.4)) continue;
     const p={id:'a'+Date.now()+added+(s===P.sides.back?'b':'f'),kind:'graphic',num:0,name:f.label||'Artwork',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
     s.parts.push(p); renumber(s); added++; }
   return added;
