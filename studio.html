@@ -256,8 +256,8 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008c"></script>
-<script src="sample.js?v=20261008c"></script>
+<script src="auth.js?v=20261009a"></script>
+<script src="sample.js?v=20261009a"></script>
 </head>
 <body>
 
@@ -448,6 +448,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       <div class="spin-h" style="font-size:22px" id="failH">Thread snapped.</div>
       <p id="failP">The AI couldn't finish this one. Nothing was saved — try again.</p>
       <button class="btn dark" id="retry">Try again</button>
+      <button class="btn dark hidden" id="failUpgrade">Upgrade — $29/month</button>
       <button class="btn hidden" id="failContact">Contact us</button>
     </div>
 
@@ -828,7 +829,7 @@ async function create(){
   window.SPOOL_TRACK?.(out?'create_ok':'create_fail',out?null:{err:String(failMsg).slice(0,120)});
   showSpin(false); btn.disabled=false; btn.firstChild.textContent='CREATE ';
   if(!out){
-    if(failCode==='free_limit'||failCode==='daily_limit'){ showLimit(failMsg); if(prev.length){ state.variations=prev; $('#recipe').innerHTML=prevRecipe; $('#result').classList.remove('hidden'); render(); $('#fail').classList.add('hidden'); toast(failMsg); } refreshQuota(); return; }
+    if(failCode==='free_limit'||failCode==='daily_limit'){ showLimit(failMsg,failCode); if(prev.length){ state.variations=prev; $('#recipe').innerHTML=prevRecipe; $('#result').classList.remove('hidden'); render(); $('#fail').classList.add('hidden'); toast(failMsg); } refreshQuota(); return; }
     if(prev.length){ state.variations=prev; $('#recipe').innerHTML=prevRecipe; $('#result').classList.remove('hidden'); render(); toast('The AI couldn’t finish — your last design is still here'); }
     else $('#fail').classList.remove('hidden');
     return;
@@ -841,13 +842,17 @@ async function refreshQuota(){
   const el=$('#quota'); if(!el||!AI_ENDPOINT||!window.SPOOL_AUTH) return; await window.SPOOL_AUTH.ready; if(!window.SPOOL_AUTH.user){ el.textContent=''; return; }
   try{ const tk=await window.SPOOL_AUTH.token(); const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({task:'quota'})}); const q=await r.json();
     if(q.admin){ el.innerHTML='Admin · unlimited'; return; }
+    if(q.pro){ el.innerHTML='<b>SPOOL Studio</b> · unlimited designs'; return; }
     if(q.designsLeft==null){ el.textContent=''; return; }
-    el.innerHTML=q.designsLeft>0?`<b>${q.designsLeft}</b> free design${q.designsLeft===1?'':'s'} left`:`No free designs left · <a href="#" id="quotaContact">Contact us for more</a>`;
-    $('#quotaContact')?.addEventListener('click',e=>{e.preventDefault(); openContact();});
+    el.innerHTML=q.designsLeft>0?`<b>${q.designsLeft}</b> free design${q.designsLeft===1?'':'s'} left · <a href="#" id="quotaUp">Go unlimited</a>`:`No free designs left · <a href="#" id="quotaUp">Upgrade for unlimited</a>`;
+    $('#quotaUp')?.addEventListener('click',e=>{e.preventDefault(); window.SPOOL_AUTH?.upgrade(q.designsLeft>0?'Unlimited designs, tech packs and production files.':'You’ve used your free designs. Keep creating with SPOOL Studio.',{why:'quota'});});
   }catch(e){ el.textContent=''; } }
 function openContact(){ if(window.$crisp){ window.$crisp.push(['do','chat:open']); } else location.href='mailto:info@spoolnyc.com'; }
-function showLimit(msg){ $('#failH').textContent='That’s all the free designs.'; $('#failP').textContent=msg; $('#retry').classList.add('hidden'); $('#failContact').classList.remove('hidden'); $('#fail').classList.remove('hidden'); }
+function showLimit(msg,code){ $('#failH').textContent=code==='daily_limit'?'That’s all for today.':'That’s all the free designs.'; $('#failP').textContent=msg; $('#retry').classList.add('hidden'); $('#failContact').classList.remove('hidden'); $('#failUpgrade').classList.toggle('hidden',code==='daily_limit'); $('#fail').classList.remove('hidden');
+  if(code!=='daily_limit') window.SPOOL_AUTH?.upgrade('You’ve used your free designs. Keep creating with SPOOL Studio.',{why:'free_limit'}); }
 $('#failContact').onclick=openContact;
+$('#failUpgrade').onclick=()=>window.SPOOL_AUTH?.upgrade('You’ve used your free designs. Keep creating with SPOOL Studio.',{why:'free_limit'});
+window.SPOOL_AUTH?.onChange(()=>refreshQuota());
 window.SPOOL_AUTH?.ready.then(()=>refreshQuota());
 /* ---------- save small thumbnails of each Create (so the SPOOL team can review designs) ---------- */
 async function saveCreation(out){
@@ -859,7 +864,7 @@ async function saveCreation(out){
     await A.sb.from('creations').insert({user_id:uid,email:A.email(),idea:(state.direction||'').slice(0,500),recipe:$('#recipe').innerText.replace(/\s+/g,' ').slice(0,500),thumbs});
   }catch(e){ console.warn('creation save failed',e); } }
 $('#create').onclick=create; $('#regen').onclick=create; $('#retry').onclick=create;
-$('#create').addEventListener('click',()=>{ $('#failH').textContent='Thread snapped.'; $('#failP').textContent='The AI couldn’t finish this one. Nothing was saved — try again.'; $('#retry').classList.remove('hidden'); $('#failContact').classList.add('hidden'); },true);
+$('#create').addEventListener('click',()=>{ $('#failH').textContent='Thread snapped.'; $('#failP').textContent='The AI couldn’t finish this one. Nothing was saved — try again.'; $('#retry').classList.remove('hidden'); $('#failContact').classList.add('hidden'); $('#failUpgrade').classList.add('hidden'); },true);
 
 /* ---------- download / tech pack / sample ---------- */
 $('#download').onclick=()=>{

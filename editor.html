@@ -137,8 +137,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008d"></script>
-<script src="sample.js?v=20261008d"></script>
+<script src="auth.js?v=20261009a"></script>
+<script src="sample.js?v=20261009a"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -214,9 +214,10 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
         <button class="btn hidden" id="dlBtn">Download images</button>
         <button class="btn" id="hiresBtn" title="Front and back garment images, 2048 px PNG">Download images</button>
         <button class="btn y" id="tpBtn">Tech pack</button>
+        <button class="btn" id="prodBtn" title="Vector SVG artwork at print size (SPOOL Studio)">Production files</button>
         <button class="btn dark" id="sampleBtn">Request sample →</button>
       </div>
-      <div class="note">Vector artwork and production files are prepared by SPOOL and included with your sample.</div>
+      <div class="note" id="planNote">Free plan: your first tech pack is free. Production files come with SPOOL Studio or with your sample.</div>
       <div class="note" id="saved">Saved in this browser</div>
     </div>
   </aside>
@@ -692,13 +693,14 @@ function enlarge(srcImg,sx,sy,sw,sh,f){ const c=canvas(Math.max(1,Math.round(sw*
   x.drawImage(cur,cx,cy,cw,ch,0,0,c.width,c.height); return c.toDataURL('image/png'); }
 $('#hiresBtn').onclick=async()=>{
   const sides=['front','back'].filter(sd=>P.sides[sd].base); if(!sides.length) return toast('Nothing to export yet');
+  const pl0=window.SPOOL_AUTH?.user?await window.SPOOL_AUTH.plan().catch(()=>({})):{}, pro=!!(pl0.pro||pl0.techpacks?.admin);
   busy(true,'Exporting images','Front and back, 2048 px');
   try{
     for(const sd of sides){ const i=await loadImg(await finalURL(P.sides[sd])); const big=await loadImg(enlarge(i,0,0,i.width,i.height,2048/Math.max(i.width,i.height)));
       const c=canvas(big.width,big.height), x=c.getContext('2d'); x.drawImage(big,0,0); const fs=Math.round(c.width*.016);
-      x.font=`600 ${fs}px Helvetica, Arial, sans-serif`; x.textAlign='right'; x.textBaseline='bottom'; x.fillStyle='rgba(32,29,24,.45)'; x.fillText('Made with SPOOL · spoolnyc.com',c.width-fs*1.4,c.height-fs*1.2);
+      if(!pro){ x.font=`600 ${fs}px Helvetica, Arial, sans-serif`; x.textAlign='right'; x.textBaseline='bottom'; x.fillStyle='rgba(32,29,24,.45)'; x.fillText('Made with SPOOL · spoolnyc.com',c.width-fs*1.4,c.height-fs*1.2); }
       dl(c.toDataURL('image/png'),`${slug()}-${sd}.png`); await wait(350); }
-    toast('Images downloaded. Vector artwork and production files come with your sample.');
+    toast(pro?'Images downloaded.':'Images downloaded. Production files come with SPOOL Studio or with your sample.');
     window.SPOOL_TRACK?.('download_images');
   }catch(e){ toast('Export failed: '+e.message); }
   busy(false);
@@ -783,10 +785,36 @@ async function artDetail(full,s,p){ // artwork crop with red dimension lines
   x.save(); x.translate(pad+dw+58,pad+dh/2); x.rotate(-Math.PI/2); x.fillText(`${f1(hI)} in`,0,0); x.restore();
   return c.toDataURL('image/jpeg',.9);
 }
+/* plan gate: free = 1 tech pack (+1 per sample request); SPOOL Studio = unlimited (checked by the Worker) */
+const upsell=(why,code)=>window.SPOOL_AUTH?.upgrade(why,{why:code,sample:()=>$('#sampleBtn').click()});
+async function techpackAllowed(){
+  const A=window.SPOOL_AUTH; if(!A) return true;
+  try{ const j=await A.call('techpack',{project:P.id}); if(j.ok) return true;
+    if(j.code==='techpack_limit'){ upsell(j.error,'techpack'); return false; } return true; }
+  catch(e){ console.warn('techpack check',e); return true; } // never block on a network hiccup
+}
+$('#prodBtn').onclick=async()=>{
+  const A=window.SPOOL_AUTH; if(!A) return; if(!A.user){ await A.requireLogin('Sign in to get production files.'); if(!A.user) return; }
+  if(!['front','back'].some(sd=>P.sides[sd].parts.some(p=>kindOf(p)==='graphic'))) return toast('Mark your graphics first (Artwork tab)');
+  const pl=await A.plan(); if(!pl.pro&&!pl.techpacks?.admin){ upsell('Production files — vector artwork at print size — come with SPOOL Studio, or with a sample request.','files'); return; }
+  busy(true,'Building production files','Vector SVG at print size');
+  try{ const files=await vectorFiles();
+    if(!files.length) toast('No flat-color graphics to vectorize. Photo-like art is redrawn by SPOOL — request a sample.');
+    else { for(const f of files){ const u=URL.createObjectURL(f.blob); dl(u,`${slug()}-${f.name}`); await wait(300); setTimeout(()=>URL.revokeObjectURL(u),4000); }
+      toast(`${files.length} vector file${files.length>1?'s':''} downloaded. Auto-traced — check before production.`); window.SPOOL_TRACK?.('download_vectors'); } }
+  catch(e){ toast('Production files failed: '+e.message); }
+  busy(false);
+};
+window.SPOOL_AUTH?.ready.then(async u=>{ if(!u) return; const pl=await window.SPOOL_AUTH.plan(); const n=$('#planNote'); if(!n) return;
+  if(pl.pro) n.textContent='SPOOL Studio: unlimited tech packs and production files.';
+  else if(pl.techpacks&&!pl.techpacks.admin) n.textContent=`Free plan: ${pl.techpacks.left} tech pack${pl.techpacks.left===1?'':'s'} left. Production files come with SPOOL Studio or with your sample.`;
+  else if(pl.techpacks?.admin) n.textContent='Admin: unlimited tech packs and production files.'; });
 $('#tpBtn').onclick=async()=>{
-  window.SPOOL_TRACK?.('techpack');
+  const A=window.SPOOL_AUTH; if(A&&!A.user){ await A.requireLogin('Sign in to download your tech pack.'); if(!A.user) return; }
   const w=window.open('','_blank'); if(!w) return toast('Allow pop-ups to open the tech pack');
   w.document.write('<p style="font-family:sans-serif;padding:20px">Building tech pack…</p>');
+  if(!(await techpackAllowed())){ w.close(); return; }
+  window.SPOOL_TRACK?.('techpack');
   const sp=P.spec||{}, f=sp.front||{}, bk=sp.back||{}, B=Object.assign(blankBody(),P.bodySpec||{}), Lb=Object.assign(blankLabels(),P.labels||{}), St=Object.assign(blankStyle(),P.style||{});
   const sides=['front','back'].filter(sd=>P.sides[sd].base);
   const fulls={}, bodyRGB={}, ann={};

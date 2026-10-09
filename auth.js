@@ -26,7 +26,11 @@
   .sa-av{width:24px;height:24px;border-radius:50%;background:#FEE32B;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
   .sa-menu{position:absolute;right:0;top:calc(100% + 6px);background:#FDFDF9;border:1px solid #201D1822;border-radius:14px;box-shadow:0 14px 40px -16px rgba(0,0,0,.35);padding:6px;min-width:200px;display:none;z-index:150;text-align:left}
   .sa-menu.open{display:block}.sa-menu a,.sa-menu button{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:10px;border:0;background:none;font:inherit;color:#201D18;text-decoration:none;cursor:pointer}
-  .sa-menu a:hover,.sa-menu button:hover{background:#FBEF9C}.sa-menu small{display:block;padding:6px 12px 8px;color:#7a7566;border-bottom:1px solid #201D1414;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis}`;
+  .sa-menu a:hover,.sa-menu button:hover{background:#FBEF9C}.sa-menu .sa-plan{font-weight:600}.sa-menu .sa-plan i{font-style:normal;font-weight:400;color:#7a7566}
+  .sa-pw ul{list-style:none;padding:0;margin:4px 0 14px;display:grid;gap:8px;font-size:14.5px}.sa-pw li{display:flex;gap:10px;align-items:flex-start}.sa-pw li:before{content:"✓";font-weight:700;background:#FEE32B;border-radius:50%;width:20px;height:20px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px}
+  .sa-price{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:2px 0 2px}.sa-price span{font-size:14px;font-weight:500;color:#7a7566}
+  .sa-btn.dark{background:#201D18;color:#FEE32B}.sa-btn.dark:hover{background:#FEE32B;color:#201D18}.sa-link{display:block;width:100%;margin-top:10px;border:0;background:none;font:inherit;font-size:14px;color:#201D18;text-decoration:underline;cursor:pointer}
+  .sa-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#201D18;color:#FDFDF9;padding:12px 18px;border-radius:99px;font:500 14px Outfit,system-ui,sans-serif;z-index:300;box-shadow:0 14px 40px -16px rgba(0,0,0,.5);max-width:calc(100% - 32px)}.sa-menu small{display:block;padding:6px 12px 8px;color:#7a7566;border-bottom:1px solid #201D1414;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis}`;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
   let back=null, pending=[];
   function modal(reason){
@@ -72,11 +76,13 @@
   function renderChips(){ chips.forEach(el=>{
     if(!user){ el.innerHTML=`<button type="button" class="sa-chip out">Sign in</button>`; el.firstChild.onclick=()=>modal(); return; }
     const em=user.email||''; el.innerHTML=`<button type="button" class="sa-chip" aria-haspopup="menu"><span class="sa-av">${(em[0]||'?').toUpperCase()}</span>Account</button>
-      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><a href="editor.html#projects" role="menuitem">My projects</a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
+      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><button type="button" role="menuitem" class="sa-plan" data-plan>Plan: Free <i>· Upgrade</i></button><a href="editor.html#projects" role="menuitem">My projects</a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
     const btn=el.querySelector('.sa-chip'), menu=el.querySelector('.sa-menu'); el.style.position='relative';
     btn.onclick=e=>{ e.stopPropagation(); menu.classList.toggle('open'); if(menu.classList.contains('open')){ menu.style.left=''; menu.style.right=''; const r=menu.getBoundingClientRect(); if(r.left<8){ menu.style.right='auto'; menu.style.left='0'; } else if(r.right>innerWidth-8){ menu.style.left='auto'; menu.style.right='0'; } } };
     document.addEventListener('click',()=>menu.classList.remove('open'));
     el.querySelector('[data-out]').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
+    const pb=el.querySelector('[data-plan]'); pb.onclick=()=>{ menu.classList.remove('open'); upgrade(); };
+    plan().then(p=>{ if(p&&p.pro){ pb.innerHTML='SPOOL Studio <i>· Manage billing</i>'; pb.onclick=()=>{ menu.classList.remove('open'); manage(); }; } });
   }); }
 
   /* ---------- cloud projects (table "projects" + private bucket "projects") ---------- */
@@ -113,6 +119,45 @@
   addEventListener('load',fitSoon); addEventListener('resize',fitSoon); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitSoon);
   ready.then(()=>track('page_view',{ref:document.referrer?new URL(document.referrer).hostname:null}));
 
+  /* ---------- SPOOL Studio subscription (checkout + portal live on the Worker, Stripe) ---------- */
+  const WORKER='https://spool-studio-ai.chrishwang0327.workers.dev';
+  const PRICE_TXT='$29';
+  async function tokenNow(){ if(!sb) return ''; const {data}=await sb.auth.getSession(); return data.session?.access_token||''; }
+  async function call(task,extra){ const tk=await tokenNow(); const r=await fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({task,...(extra||{})})});
+    const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||'Something went wrong. Try again.'); return j; }
+  let planP=null;
+  function plan(force){ return ready.then(()=>{ if(!user) return {pro:false}; if(force||!planP) planP=call('plan',force?{fresh:true}:{}).catch(e=>{ planP=null; return {pro:false,error:e.message}; }); return planP; }); }
+  function toast(msg,ms){ const t=document.createElement('div'); t.className='sa-toast'; t.setAttribute('role','status'); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),ms||4200); }
+  async function manage(){ try{ const j=await call('portal'); location.href=j.url; }catch(e){ toast(e.message); } }
+  let pw=null;
+  async function upgrade(reason,opts){
+    opts=opts||{};
+    if(!(await ready)&&!user){ const u=await modal('Sign in first, then upgrade to SPOOL Studio.'); if(!u) return; }
+    const p=await plan(); if(p.pro){ toast('You’re already on SPOOL Studio.'); return; }
+    if(!pw){ pw=document.createElement('div'); pw.className='sa-back'; pw.setAttribute('role','dialog'); pw.setAttribute('aria-modal','true'); pw.setAttribute('aria-labelledby','saPwH'); document.body.appendChild(pw);
+      pw.addEventListener('click',e=>{ if(e.target===pw) pw.classList.remove('open'); }); document.addEventListener('keydown',e=>{ if(e.key==='Escape') pw.classList.remove('open'); }); }
+    pw.innerHTML=`<div class="sa-card sa-pw"><button type="button" class="sa-x" aria-label="Close">✕</button>
+      <h2 id="saPwH">Upgrade to SPOOL Studio</h2><p id="saPwWhy"></p>
+      <div class="sa-price">${PRICE_TXT}<span> / month · cancel anytime</span></div>
+      <ul><li>Unlimited designs in the Design Studio</li><li>Unlimited tech pack PDFs</li><li>Production files — vector SVG artwork at print size</li><li>Images without the SPOOL watermark</li></ul>
+      <button type="button" class="sa-btn dark" id="saPwGo">Upgrade — ${PRICE_TXT}/month</button>
+      ${opts.sample?'<button type="button" class="sa-link" id="saPwSample">Or request a sample of this design instead</button>':''}
+      <div class="sa-err" id="saPwErr" role="alert"></div><div class="sa-small">Secure checkout by Stripe. Manage or cancel anytime from your account menu.</div></div>`;
+    pw.querySelector('#saPwWhy').textContent=reason||'Keep designing without limits and get factory-ready files.';
+    pw.querySelector('.sa-x').onclick=()=>pw.classList.remove('open');
+    const go=pw.querySelector('#saPwGo'); go.onclick=async()=>{ go.disabled=true; go.textContent='Opening secure checkout…'; track('checkout_start');
+      try{ const j=await call('checkout'); location.href=j.url; }catch(e){ go.disabled=false; go.textContent=`Upgrade — ${PRICE_TXT}/month`; pw.querySelector('#saPwErr').textContent=e.message; } };
+    const sm=pw.querySelector('#saPwSample'); if(sm) sm.onclick=()=>{ pw.classList.remove('open'); opts.sample(); };
+    track('paywall_view',{reason:opts.why||null});
+    pw.classList.add('open'); setTimeout(()=>go.focus(),50);
+  }
+  // back from Stripe Checkout
+  (function(){ const q=new URLSearchParams(location.search); if(!q.has('upgraded')&&!q.has('upgrade')) return;
+    const ok=q.has('upgraded'); q.delete('upgraded'); q.delete('upgrade'); history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);
+    if(!ok) return; ready.then(async()=>{ let p={pro:false}; for(let i=0;i<6&&!p.pro;i++){ p=await plan(true); if(!p.pro) await new Promise(r=>setTimeout(r,2500)); }
+      if(p.pro){ track('upgraded'); toast('Welcome to SPOOL Studio — unlimited designs and tech packs are on.',6000); renderChips(); subs.forEach(f=>{try{f(user)}catch(e){}}); }
+      else toast('Payment received. Your plan will switch on in a minute — refresh the page if it doesn’t.',7000); }); })();
+
   window.SPOOL_AUTH={
     sb, ready, cloud,
     get user(){ return user; },
@@ -122,6 +167,7 @@
     scope(){ return ready.then(u=>u?u.id:'guest'); },
     async token(){ if(!sb) return ''; const {data}=await sb.auth.getSession(); return data.session?.access_token||''; },
     mount(el){ if(!el) return; chips.push(el); ready.then(renderChips); renderChips(); },
+    plan, upgrade, manage, call, toast,
     signIn:modal
   };
 })();

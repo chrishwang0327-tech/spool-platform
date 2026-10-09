@@ -94,7 +94,13 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
 @media(max-width:640px){.film{border-radius:16px}.film .sound{left:10px;bottom:10px;padding:7px 12px 7px 7px;font-size:12px;gap:7px}.film .sound i{width:20px;height:20px}.film .sound i:before{border-left-width:7px;border-top-width:5px;border-bottom-width:5px}.film .sound .lg{display:none}}
 .stepc .t{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--k);opacity:.6;margin-top:auto}
 .stepc.k .t{color:#FEE32B;opacity:1}
-@media(max-width:960px){.prod,.sample{grid-template-columns:1fr}.steps.four{grid-template-columns:repeat(2,minmax(0,1fr))}.ex{grid-template-columns:1fr 1fr}}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.plan{background:var(--soft);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:6px}
+.plan h3{font-size:19px;font-weight:600}.plan .pr{font:600 40px/1.05 Outfit,sans-serif;letter-spacing:-.03em;margin:4px 0}.plan .pr span{font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0}
+.plan.k .pr span{color:#cfcabb}.plan>p{color:var(--muted);font-size:13.5px}.plan.k{background:var(--k);color:#FDFDF9}.plan.k>p{color:#cfcabb}
+.plan ul{list-style:none;display:grid;gap:8px;margin:14px 0 22px;font-size:14px}.plan li{display:flex;gap:10px;align-items:baseline}.plan li::before{content:"✓";font-weight:700;flex:none}
+.plan .btn{margin-top:auto;text-align:center;cursor:pointer}.plan.k .btn{background:var(--y);color:var(--k);border-color:var(--y)}.plan.k .btn:hover{background:#FDFDF9;border-color:#FDFDF9}
+@media(max-width:960px){.plans{grid-template-columns:1fr}.prod,.sample{grid-template-columns:1fr}.steps.four{grid-template-columns:repeat(2,minmax(0,1fr))}.ex{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){
   header{padding:18px 16px}.wrap{padding:0 16px}
   .sp-hero{min-height:400px;padding:32px 24px;border-radius:22px}
@@ -103,16 +109,17 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
   .sp-hero svg.sp-mark{height:100%;top:0;left:-20%;opacity:.55}
   .sp-arrow{display:none}.steps,.steps.four,.ex,.facts{grid-template-columns:1fr}
   .final{padding:32px 24px}
-  nav{flex-wrap:nowrap}
+  nav{flex-wrap:nowrap}.navp{display:none}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261008d"></script>
+<script src="auth.js?v=20261009a"></script>
 </head>
 <body>
 <header>
   <a class="logo" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"></a>
   <nav aria-label="Main">
+    <a href="#pricing" class="navp">Pricing</a>
     <a class="cta" href="studio.html">Design Studio</a>
     <span id="acct"></span>
   </nav>
@@ -195,13 +202,35 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
     </div>
   </section>
 
+  <section class="block" id="pricing">
+    <div class="head"><h2>Pricing.</h2><p>Start free. Upgrade when you need more designs and factory-ready files. Samples and production are quoted per design.</p></div>
+    <div class="plans">
+      <div class="plan">
+        <h3>Free</h3><div class="pr">$0</div><p>Try the full flow on your first ideas.</p>
+        <ul><li>10 AI designs, front and back</li><li>Full editor: techniques, sizes, placement</li><li>1 tech pack PDF</li><li>Image downloads (with SPOOL mark)</li></ul>
+        <a class="btn ghost" href="studio.html">Start free →</a>
+      </div>
+      <div class="plan k">
+        <h3>SPOOL Studio</h3><div class="pr">$29<span> / month</span></div><p>For brands designing every week. Cancel anytime.</p>
+        <ul><li>Unlimited AI designs</li><li>Unlimited tech pack PDFs</li><li>Production files — vector SVG at print size</li><li>Clean images, no watermark</li></ul>
+        <button type="button" class="btn" id="goStudio">Go Studio — $29/mo</button>
+      </div>
+      <div class="plan">
+        <h3>Sample &amp; production</h3><div class="pr">Quote</div><p>Real factory sampling, then bulk with the same partners.</p>
+        <ul><li>Quote in 1–2 business days</li><li>One sample, no big minimum to try</li><li>Production artwork prepared by SPOOL</li><li>Every sample request adds a free tech pack</li></ul>
+        <a class="btn ghost" href="#sample">How sampling works</a>
+      </div>
+    </div>
+  </section>
+
   <section class="block" id="faq">
     <div class="head"><h2>Questions.</h2><p>Anything else? Tap the chat button — we reply as soon as we can.</p></div>
     <div class="faq">
-      <details><summary>Is it free to try?</summary><p>Yes. Every account gets 10 free designs in the Design Studio. Editing, image downloads and tech packs are free. Production files come with your sample.</p></details>
+      <details><summary>Is it free to try?</summary><p>Yes. Every account gets 10 free designs, the full editor, image downloads and your first tech pack free. SPOOL Studio ($29/month) unlocks unlimited designs, tech packs and production files.</p></details>
       <details><summary>How much does a sample cost?</summary><p>It depends on the garment and techniques. Send a sample request and we'll reply with a quote within 1–2 business days. Nothing is charged until you accept.</p></details>
       <details><summary>What's the minimum for production?</summary><p>We quote production after your sample is approved, based on your design, techniques and quantities.</p></details>
-      <details><summary>Do I get print-ready files?</summary><p>Production artwork — vector files, color separations and embroidery files — is prepared by SPOOL and included with your sample. Have your own logo file? Add it to your sample request so we match it exactly.</p></details>
+      <details><summary>Do I get print-ready files?</summary><p>SPOOL Studio members can download vector SVG artwork at print size for flat-color graphics. With a sample, SPOOL prepares the full production artwork — vector files, color separations and embroidery files. Have your own logo file? Add it to your sample request so we match it exactly.</p></details>
+      <details><summary>Can I cancel SPOOL Studio?</summary><p>Anytime, from the account menu → Manage billing. You keep Studio until the end of the month you paid for.</p></details>
       <details><summary>Who owns the design?</summary><p>You do. We use your files only to make your samples and orders. See our <a href="terms.html">Terms</a>.</p></details>
       <details><summary>Where do you ship?</summary><p>We currently ship samples within the United States. Ask us in chat about other countries.</p></details>
     </div>
@@ -220,6 +249,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
   b.onclick=()=>{ f.classList.add('playing'); v.loop=false; v.muted=false; v.currentTime=0; v.controls=true; v.play().catch(()=>{}); window.SPOOL_TRACK?.('video_play'); };
   v.addEventListener('ended',()=>{ f.classList.remove('playing'); v.controls=false; v.muted=true; v.loop=true; v.play().catch(()=>{}); });
 })();
-document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));</script>
+document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));
+document.getElementById('goStudio').addEventListener('click',()=>window.SPOOL_AUTH?.upgrade('Unlimited designs, tech packs and production files.',{why:'pricing'}));</script>
 </body>
 </html>
