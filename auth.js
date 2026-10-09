@@ -130,12 +130,14 @@
   function toast(msg,ms){ const t=document.createElement('div'); t.className='sa-toast'; t.setAttribute('role','status'); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),ms||4200); }
   async function manage(){ try{ const j=await call('portal'); location.href=j.url; }catch(e){ toast(e.message); } }
   let pw=null;
+  const chat=on=>{ try{ window.$crisp&&window.$crisp.push(['do',on?'chat:show':'chat:hide']); }catch(_){} }; // chat bubble would cover the paywall on phones
+  function closePw(){ if(!pw) return; pw.classList.remove('open'); chat(true); }
   async function upgrade(reason,opts){
     opts=opts||{};
     if(!(await ready)&&!user){ const u=await modal('Sign in first, then upgrade to SPOOL Studio.'); if(!u) return; }
     const p=await plan(); if(p.pro){ toast('You’re already on SPOOL Studio.'); return; }
     if(!pw){ pw=document.createElement('div'); pw.className='sa-back'; pw.setAttribute('role','dialog'); pw.setAttribute('aria-modal','true'); pw.setAttribute('aria-labelledby','saPwH'); document.body.appendChild(pw);
-      pw.addEventListener('click',e=>{ if(e.target===pw) pw.classList.remove('open'); }); document.addEventListener('keydown',e=>{ if(e.key==='Escape') pw.classList.remove('open'); }); }
+      pw.addEventListener('click',e=>{ if(e.target===pw) closePw(); }); document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&pw.classList.contains('open')) closePw(); }); }
     pw.innerHTML=`<div class="sa-card sa-pw"><button type="button" class="sa-x" aria-label="Close">✕</button>
       <h2 id="saPwH">Upgrade to SPOOL Studio</h2><p id="saPwWhy"></p>
       <div class="sa-price">${PRICE_TXT}<span> / month · cancel anytime</span></div>
@@ -144,12 +146,12 @@
       ${opts.sample?'<button type="button" class="sa-link" id="saPwSample">Or request a sample of this design instead</button>':''}
       <div class="sa-err" id="saPwErr" role="alert"></div><div class="sa-small">Secure checkout by Stripe. Manage or cancel anytime from your account menu.</div></div>`;
     pw.querySelector('#saPwWhy').textContent=reason||'Keep designing without limits and get factory-ready files.';
-    pw.querySelector('.sa-x').onclick=()=>pw.classList.remove('open');
+    pw.querySelector('.sa-x').onclick=closePw;
     const go=pw.querySelector('#saPwGo'); go.onclick=async()=>{ go.disabled=true; go.textContent='Opening secure checkout…'; track('checkout_start');
       try{ const j=await call('checkout'); location.href=j.url; }catch(e){ go.disabled=false; go.textContent=`Upgrade — ${PRICE_TXT}/month`; pw.querySelector('#saPwErr').textContent=e.message; } };
-    const sm=pw.querySelector('#saPwSample'); if(sm) sm.onclick=()=>{ pw.classList.remove('open'); opts.sample(); };
+    const sm=pw.querySelector('#saPwSample'); if(sm) sm.onclick=()=>{ closePw(); opts.sample(); };
     track('paywall_view',{reason:opts.why||null});
-    pw.classList.add('open'); setTimeout(()=>go.focus(),50);
+    pw.classList.add('open'); chat(false); setTimeout(()=>go.focus(),50);
   }
   // back from Stripe Checkout
   (function(){ const q=new URLSearchParams(location.search); if(!q.has('upgraded')&&!q.has('upgrade')) return;

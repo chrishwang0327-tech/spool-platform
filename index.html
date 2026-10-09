@@ -16,7 +16,7 @@ a{color:inherit}
 header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 32px;max-width:1360px;margin:0 auto}
 .logo img{width:112px;display:block}
 nav{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-nav a{font:500 13px Outfit,sans-serif;letter-spacing:.02em;padding:9px 16px;border-radius:99px;text-decoration:none}
+nav a{font:500 13px Outfit,sans-serif;letter-spacing:.02em;padding:9px 16px;border-radius:99px;text-decoration:none;white-space:nowrap}
 nav a:hover{background:var(--y2)}
 nav a[aria-current="page"]{box-shadow:inset 0 -2px 0 var(--k);border-radius:0}
 nav a.cta{background:var(--k);color:#FDFDF9;padding:9px 18px}
@@ -58,7 +58,7 @@ section.block{margin-top:72px}
 .mail{font-size:18px;font-weight:600;word-break:break-all}
 
 footer{margin-top:80px;padding:28px 0 40px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
-footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{text-decoration:underline}
+footer a{color:var(--k);text-decoration:none;margin-left:18px;white-space:nowrap}footer>span:last-child{display:flex;flex-wrap:wrap;gap:8px 18px}footer>span:last-child a{margin-left:0}footer a:hover{text-decoration:underline}
 :focus-visible{outline:2px solid var(--k);outline-offset:3px}
 
 
@@ -109,11 +109,12 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
   .sp-hero svg.sp-mark{height:100%;top:0;left:-20%;opacity:.55}
   .sp-arrow{display:none}.steps,.steps.four,.ex,.facts{grid-template-columns:1fr}
   .final{padding:32px 24px}
-  nav{flex-wrap:nowrap}.navp{display:none}
+  nav{flex-wrap:nowrap;gap:6px}.navp{display:none}nav a.cta{padding:9px 14px}.logo img{width:96px}
 }
+@media(max-width:360px){nav a.cta{padding:8px 11px;font-size:12px}.logo img{width:84px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261009a"></script>
+<script src="auth.js?v=20261009b"></script>
 </head>
 <body>
 <header>
@@ -133,7 +134,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
       <h1><span>Idea to sample.</span><span>Sample to shelf.</span></h1>
       <p>Design it with AI, get production-ready artwork and a tech pack, then we sample it and produce it through our factory network.</p>
       <div class="ctas">
-        <a class="btn dark" href="studio.html">Start designing — 10 free →</a>
+        <a class="btn dark" href="studio.html" data-free-cta>Start designing — 10 free →</a>
         <a class="btn ghost" href="#how">See how it works</a>
       </div>
     </div>
@@ -168,7 +169,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
     <div class="ex">
       <div class="exc"><div class="im"><img src="assets/example-hoodie.jpg" alt="Washed charcoal hoodie with rhinestone old-English chest logo" loading="lazy"></div><div class="cap"><b>Vintage rhinestone hoodie</b>Washed charcoal, cracked chest logo, frayed hem</div></div>
       <div class="exc"><div class="im"><img src="assets/example-racing.jpg" alt="Cream racing hoodie with checkered flag, puff-print SPOOL logo and sleeve numbers" loading="lazy"></div><div class="cap"><b>Racing hoodie</b>Cream French terry, puff-print chest logo, sleeve numbers</div></div>
-      <a class="exc next" href="studio.html"><div class="im"><span>Your design<br>goes here.</span></div><div class="cap"><b>Start designing — 10 free →</b>Describe it or add a photo. Two designs in about a minute.</div></a>
+      <a class="exc next" href="studio.html"><div class="im"><span>Your design<br>goes here.</span></div><div class="cap"><b data-free-cta>Start designing — 10 free →</b>Describe it or add a photo. Two designs in about a minute.</div></a>
     </div>
   </section>
 
@@ -250,6 +251,9 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px}footer a:hover{tex
   v.addEventListener('ended',()=>{ f.classList.remove('playing'); v.controls=false; v.muted=true; v.loop=true; v.play().catch(()=>{}); });
 })();
 document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));
-document.getElementById('goStudio').addEventListener('click',()=>window.SPOOL_AUTH?.upgrade('Unlimited designs, tech packs and production files.',{why:'pricing'}));</script>
+const goS=document.getElementById('goStudio'); goS.addEventListener('click',()=>{ if(goS.dataset.pro) window.SPOOL_AUTH?.manage(); else window.SPOOL_AUTH?.upgrade('Unlimited designs, tech packs and production files.',{why:'pricing'}); });
+// subscribers: no "10 free" wording, Studio card becomes "Manage billing"
+window.SPOOL_AUTH?.ready.then(async u=>{ if(!u) return; const p=await window.SPOOL_AUTH.plan(); if(!p.pro) return;
+  document.querySelectorAll('[data-free-cta]').forEach(el=>el.textContent='Open Design Studio →'); goS.dataset.pro='1'; goS.textContent='You’re on Studio · Manage billing'; });</script>
 </body>
 </html>
