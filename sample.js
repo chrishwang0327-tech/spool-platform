@@ -161,6 +161,7 @@
         const {error:pe}=await A.sb.storage.from('samples').upload(path,pdf,{contentType:'application/pdf',upsert:false}); if(!pe) images['order-sheet']=path; else console.warn(pe); }catch(pe){ console.warn('order sheet failed',pe); }
       const files={}, put=async(name,blob,type)=>{ const path=`${uid}/${id}/${name}`; const {error}=await A.sb.storage.from('samples').upload(path,blob,{contentType:type||'application/octet-stream',upsert:false}); if(error) throw error; files[name]=path; };
       for(let i=0;i<logos.length;i++){ const ext=(logos[i].name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,''); btn.textContent=`Uploading logo ${i+1} of ${logos.length}…`; await put(`logo-${i+1}.${ext}`,logos[i],logos[i].type||({ai:'application/postscript',eps:'application/postscript',svg:'image/svg+xml',pdf:'application/pdf'}[ext])); }
+      for(const f of (cur.files||[])) if(f&&f.name&&f.path&&String(f.path).startsWith(uid+'/')) files[f.name]=f.path; // trims & packaging files already uploaded from the editor
       if(typeof cur.vectors==='function'){ btn.textContent='Preparing artwork…'; try{ for(const v of await cur.vectors()) await put(v.name,v.blob,'image/svg+xml'); }catch(ve){ console.warn('vectors skipped',ve); } }
       btn.textContent='Sending…';
       const row={id,user_id:uid,...f,design:cur.design||null,images}; if(Object.keys(files).length) row.files=files;
@@ -169,7 +170,7 @@
       if(error) throw error;
       let mailed=true;
       try{ const tk=await A.token(); const r=await fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({task:'sample',id})}); if(!r.ok) mailed=false; }catch(_){ mailed=false; }
-      window.SPOOL_TRACK?.('sample_sent',{qty:f.production_qty,mailed});
+      window.SPOOL_TRACK?.('sample_sent',{qty:f.production_qty,mailed}); try{ cur.onSent&&cur.onSent(); }catch(_){}
       back.querySelector('#srBody').innerHTML=`<div class="sr-done"><div class="ok">✓</div><h2>Request sent</h2>
         <p class="sr-sub" style="margin:8px auto 0;max-width:380px">Thanks, ${esc(f.name.split(' ')[0])}. We'll review your design and email a quote to <b>${esc(f.email)}</b> within 1–2 business days.${mailed?'':' (If you don\'t hear from us, email info@spoolnyc.com.)'}</p>
         <button type="button" class="sr-btn" style="max-width:240px" id="srOk">Done</button></div>`;

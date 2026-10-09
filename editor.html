@@ -118,6 +118,17 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .vieworig #asidePanel{pointer-events:none;opacity:.45}
 .vieworig #detBtn,.vieworig #drawBtn,.vieworig #undoBtn,.vieworig #redoBtn,.vieworig #hideBtn{pointer-events:none;opacity:.4}
 .stage.holdorig .box{display:none}
+.trims{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.trim{border:1px solid var(--line2);border-radius:12px;background:#fff}
+.trim-h{display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;text-align:left;font-size:13px;flex-wrap:wrap}
+.trim-h b{font-weight:600}.trim-h i{margin-left:auto;font-style:normal;color:var(--muted);font-size:16px;line-height:1}
+.trim-h small{font-size:11px;color:var(--muted)}.trim-h .only{color:#8a6a00}
+.ttag{font-size:10px;font-weight:700;letter-spacing:.06em;border-radius:99px;padding:2px 8px}
+.ttag.std{background:var(--soft);color:var(--muted)}.ttag.ok{background:#e4f3e7;color:#2a7a3b}.ttag.kit{background:var(--y);color:var(--ink)}.ttag.nu{background:#fff;color:#999;border:1px dashed #ccc}
+.trim.open{border-color:var(--ink)}.trim-b{padding:0 12px 12px}.trim-b .seg{margin-bottom:6px}
+.tfiles{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.tfile{display:inline-flex;align-items:center;gap:4px;background:var(--soft);border-radius:99px;padding:3px 4px 3px 10px;font-size:12px;max-width:100%}
+.tfile .lnk{text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}.tfile [data-fdel]{width:20px;height:20px;border-radius:50%;color:var(--muted)}
 .pc .act{position:absolute;top:6px;background:rgba(253,253,249,.92);border-radius:99px;font-size:11px;padding:2px 8px}
 .pc .dup{right:62px}
 .pc .del{position:absolute;top:6px;right:6px;background:rgba(253,253,249,.92);border-radius:99px;font-size:11px;padding:2px 8px}
@@ -158,7 +169,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="auth.js?v=20261010a"></script>
-<script src="sample.js?v=20261010a"></script>
+<script src="sample.js?v=20261016c"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -167,7 +178,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
   <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Design Editor</span></a>
   <div class="hdr-r">
     <input class="pname" id="pname" value="Untitled design" aria-label="Project name">
-    <button class="savechip hidden" id="saveChip" type="button" title="Click to save now"></button>
+    <span id="chgBadge" title="You changed this design after sending a sample request. Send a new request or email info@spoolnyc.com so the factory has the latest." style="display:none;font-size:11px;background:#fff3cd;color:#8a5a00;border:1px solid #f0d58a;border-radius:99px;padding:3px 9px;white-space:nowrap">Changed since sample request</span><button class="savechip hidden" id="saveChip" type="button" title="Click to save now"></button>
     <div class="seg hidden" id="verSeg" title="Switch between your design and the original AI design"><button class="on" data-v="cur">Current</button><button data-v="orig">Original</button></div>
     <button class="btn sm" id="projBtn">My projects</button>
     <span id="acct"></span>
@@ -183,7 +194,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
       <button class="btn sm" id="cmpBtn" title="Press and hold to see the original design" style="touch-action:none;user-select:none;-webkit-user-select:none">Hold for original</button>
       <span class="sp"></span>
-      <button class="btn sm" id="detBtn" title="AI finds the graphics and draws the boxes for you">Auto-detect</button>
+      <button class="btn sm" id="detBtn" title="AI finds the artwork and draws the boxes for you">Auto-detect</button>
       <button class="btn sm" id="drawBtn">＋ Select area</button>
     </div>
     <div class="hint" id="hint">Drag “＋ Select area” over a part of the design, then pick its technique on the right.</div>
@@ -203,28 +214,23 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
         </div>
       </div>
     </div>
-    <div class="mob-more"><button type="button" onclick="document.getElementById('asidePanel').scrollIntoView({behavior:'smooth'})">Graphic · Body · Trims specs ↓</button></div>
+    <div class="mob-more"><button type="button" onclick="document.getElementById('asidePanel').scrollIntoView({behavior:'smooth'})">Artwork · Body · Trims &amp; Packaging ↓</button></div>
   </section>
 
   <aside id="asidePanel">
     <div class="tabs" id="tabs" role="tablist">
-      <button class="on" data-t="graphic" role="tab"><i>01</i>Graphic</button>
+      <button class="on" data-t="graphic" role="tab"><i>01</i>Artwork</button>
       <button data-t="body" role="tab"><i>02</i>Body</button>
-      <button data-t="details" role="tab"><i>03</i>Trims &amp; Branding</button>
+      <button data-t="details" role="tab"><i>03</i>Trims &amp; Packaging</button>
     </div>
     <div id="tabIntro" class="sub"></div>
     <div id="partsPane" style="display:flex;flex-direction:column;gap:16px">
+    <div class="card hidden" id="labelsCard"></div>
     <div>
-      <div class="lbl">Sizing</div>
-      <div class="row" style="margin-top:8px"><span style="font-size:13px;white-space:nowrap">Chest width</span><input class="field" id="chest" type="number" min="8" max="40" step="0.5" value="21" style="width:90px"><span>in</span></div>
-      <div class="note">Your blank's chest width, laid flat. Every inch on the tech pack is measured from it.</div>
-    </div>
-    <div>
-      <div class="row" style="justify-content:space-between"><div class="lbl">Parts</div><span class="hint" id="partCount"></span></div>
+      <div class="row" style="justify-content:space-between"><div class="lbl" id="listLbl">Artwork</div><span class="hint" id="partCount"></span></div>
       <div class="list" id="list"></div>
     </div>
     <div class="card" id="detail"></div>
-    <div class="card hidden" id="labelsCard"></div>
     </div>
     <div class="card hidden" id="bodyPane"></div>
     <div class="card">
@@ -314,11 +320,13 @@ async function ai(prompt,images){
 async function mockAI(prompt,images){
   await wait(900);
   const i=await loadImg(images[0]); const c=canvas(PX), x=c.getContext('2d'); x.drawImage(i,0,0,PX,PX);
-  if(/REMOVE ALL PRINTS/.test(prompt)){ x.filter='blur(28px)'; x.drawImage(i,0,0,PX,PX); x.filter='none'; }
+  if(/FLAT TECHNICAL/.test(prompt)){ x.fillStyle='#fff'; x.fillRect(0,0,PX,PX); x.filter='grayscale(1) contrast(4) brightness(1.7)'; x.drawImage(i,0,0,PX,PX); x.filter='none'; }
+  else if(/REMOVE ALL PRINTS/.test(prompt)){ x.filter='blur(28px)'; x.drawImage(i,0,0,PX,PX); x.filter='none'; }
   else if(/LOCAL EDIT/.test(prompt)){ x.globalCompositeOperation='multiply'; x.fillStyle='rgba(254,227,43,.35)'; x.fillRect(PX*.18,PX*.18,PX*.64,PX*.64); x.globalCompositeOperation='source-over'; x.strokeStyle='#201D18'; x.setLineDash([14,10]); x.lineWidth=6; x.strokeRect(PX*.18,PX*.18,PX*.64,PX*.64); }
   else { x.filter='contrast(1.05) saturate(1.05)'; x.drawImage(c,0,0); }
   return c.toDataURL('image/png');
 }
+const P_FLAT='FLAT TECHNICAL SKETCH: Redraw this blank garment as a clean black-line technical flat sketch (fashion CAD style) on a pure white background. Trace the exact silhouette, proportions, seams, stitching, pockets, hood, cuffs, hem and collar exactly as in the photo. Construction detail lines only: no shading, no color fill, no artwork, no text, no model, no shadow. Same camera angle as the photo.';
 const P_CLEAN='REMOVE ALL PRINTS: Edit this garment product photo. Remove every printed graphic, logo, text, patch and trim from the garment so it is completely blank. Keep the garment type, color, wash, fabric texture, folds, distressing, camera angle and background exactly the same.';
 const P_POLISH='POLISH: Clean up this garment product photo so every printed, stitched and attached detail looks naturally lit and consistent. Do not change the design, layout, sizes, colors, techniques or garment in any way. Same framing and background.';
 
@@ -344,7 +352,11 @@ async function autoCal(s,body){ // find the garment outline and place the chest 
     while(q.length){ const i=q.pop(), xx=i%N, yy=(i/N)|0; for(const j of [xx>0?i-1:-1,xx<N-1?i+1:-1,yy>0?i-N:-1,yy<N-1?i+N:-1]) if(j>=0&&!bg[j]&&dist(i,j)<=12){ bg[j]=1; q.push(j); } }
     let x0=N,x1=-1,y0=N,y1=-1; for(let yy=0;yy<N;yy++){ let n=0; for(let xx=0;xx<N;xx++) if(!bg[yy*N+xx]) n++; if(n<N*.04) continue; y0=Math.min(y0,yy); y1=Math.max(y1,yy); for(let xx=0;xx<N;xx++) if(!bg[yy*N+xx]){ x0=Math.min(x0,xx); x1=Math.max(x1,xx); } }
     const gw=x1-x0, gh=y1-y0; if(gw<N*.3||gh<N*.3||gw>N*.995) return false;
-    const u=U/N, cx=(x0+x1)/2*u, cw=gw*shape.w*u; s.cal={x1:Math.round(cx-cw/2),x2:Math.round(cx+cw/2),y:Math.round((y0+gh*shape.y)*u),hps:Math.round((y0+gh*shape.h)*u)}; s.calAuto=true; return true;
+    let hpsF=shape.h;
+    if(body==='hoodie'||body==='zip'){ // hood sits above the shoulders: find the row where the silhouette reaches ~60% of its max width
+      const wr=[]; let mx=0; for(let yy=y0;yy<=y1;yy++){ let a=N,b=-1; for(let xx=0;xx<N;xx++) if(!bg[yy*N+xx]){ if(xx<a)a=xx; b=xx; } const w=b>=a?b-a:0; wr.push(w); if(w>mx) mx=w; }
+      const r=wr.findIndex(w=>w>=mx*.6); if(r>=0){ const f=r/gh; if(f>=.05&&f<=.32) hpsF=f; } }
+    const u=U/N, cx=(x0+x1)/2*u, cw=gw*shape.w*u; s.cal={x1:Math.round(cx-cw/2),x2:Math.round(cx+cw/2),y:Math.round((y0+gh*shape.y)*u),hps:Math.round((y0+gh*hpsF)*u)}; s.calAuto=true; s.calV=2; return true;
   }catch(e){ console.warn('autoCal',e); return false; } }
 const blankSide=()=>({original:null,base:null,hole:null,separated:false,cal:defCal(),parts:[]});
 const blankBody=()=>({fabric:'',gsm:'',color:'',pantone:'',fit:'',neck:'',sleeve:'',hem:'',notes:''});
@@ -421,12 +433,12 @@ function renderTop(){
   $('#saveChip').classList.toggle('hidden',!P||!saveState||saveState==='none');
   $('#detBtn').classList.toggle('hidden',tab!=='graphic'); $('#drawBtn').disabled=!has||tab==='body';
   $$('#sideSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.v===side); b.querySelector('.dot')?.remove(); if(P&&P.sides[b.dataset.v].parts.length&&b.dataset.v!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');});
-  $('#hint').textContent=tab==='body'?'Body specs apply to the whole garment. Fill them in on the right; preview a new body color with AI if you like.':tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':edgeEdit?'Fit the box around the whole graphic, then press “Done” on the right.':(tab==='details'?'Drag “＋ Select area” over where rhinestones, studs, distressing or hardware go. Labels and trims are below the parts list.':P&&visParts().length?'Select a graphic to set its technique. Drag it to move it, pull the yellow corner to resize it.':'Press “Auto-detect” to box the graphics automatically, or drag “＋ Select area” yourself.');
+  $('#hint').textContent=tab==='body'?'Body specs apply to the whole garment. Fill them in on the right; preview a new body color with AI if you like.':tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':edgeEdit?'Fit the box around the whole artwork, then press “Done” on the right.':(tab==='details'?'Drag “＋ Select area” over where rhinestones, studs, distressing or hardware go. Labels and trims are below the parts list.':P&&visParts().length?'Select an artwork to set its technique. Drag it to move it, pull the yellow corner to resize it.':'Press “Auto-detect” to box the artwork automatically, or drag “＋ Select area” yourself.');
 }
 function renderList(){
   const L=$('#list'); L.innerHTML=''; if(!P) return;
   const parts=visParts(); $('#partCount').textContent=parts.length?`${parts.length} on ${side}`:'';
-  if(!parts.length){ L.innerHTML=`<div class="muted">${tab==='details'?'No trims yet. Use “＋ Select area” to mark where they go.':'No graphics yet. Use “Auto-detect” or “＋ Select area”.'}</div>`; return; }
+  if(!parts.length){ L.innerHTML=`<div class="muted">${tab==='details'?'No trims yet. Use “＋ Select area” to mark where they go.':'No artwork yet. Use “Auto-detect” or “＋ Select area”.'}</div>`; return; }
   const gs=parts.filter(q=>kindOf(q)==='graphic');
   parts.forEach(p=>{const b=document.createElement('div'); b.className='li'+(sel===p?' on':''); b.setAttribute('role','button'); b.tabIndex=0;
     const arrows=sel===p&&kindOf(p)==='graphic'&&gs.length>1?`<span class="lyr"><button data-l="-1" title="Bring forward" ${gs[0]===p?'disabled':''}>↑</button><button data-l="1" title="Send backward" ${gs[gs.length-1]===p?'disabled':''}>↓</button></span>`:'';
@@ -438,7 +450,7 @@ const widthIn=p=>p.specW||p.b[2]*ipu();
 const heightIn=p=>p.specW?p.specW*p.b[3]/p.b[2]:p.b[3]*ipu();
 function renderDetail(){
   const d=$('#detail'); const p=sel; if(edgeEdit&&(!p||p.id!==edgeEdit)) edgeEdit=null;
-  if(!P||!p||tab==='body'){ d.innerHTML=`<div class="lbl">${tab==='details'?'Trim':'Graphic'}</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>`; return; }
+  if(!P||!p||tab==='body'){ d.innerHTML=`<div class="lbl">${tab==='details'?'Trim':'Artwork'}</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>`; return; }
   const fromHps=(p.b[1]-S().cal.hps)*ipu(), fromC=(p.b[0]+p.b[2]/2-cx())*ipu();
   const opts=OPTS[p.tech].map(([key,vals])=>`<div style="margin-top:10px"><div class="lbl">${key}</div><div class="chips">${vals.map(v=>`<button class="chip${optOf(p,key)===v?' on':''}" data-o="${key}" data-v="${v}">${v}</button>`).join('')}</div></div>`).join('');
   d.innerHTML=`<div class="row" style="justify-content:space-between"><input class="field" id="pName" value="${esc(p.name)}" style="font-weight:600;max-width:230px"><button class="btn sm" id="pDel">Delete</button></div>
@@ -466,15 +478,16 @@ function renderDetail(){
 }
 
 /* ================= tabs ================= */
-const TAB_INTRO={graphic:'Artwork: mark each graphic, pick its technique (print, embroidery, rhinestones, studs…) and size.',body:'The garment itself: fabric, color, fit and finishing. All optional — fill in what you know; it goes on the tech pack.',details:'Trims & branding: labels, hang tags, zippers, drawcords, grommets, chains and distress areas.'};
+const TAB_INTRO={graphic:'Mark each artwork, pick its technique (print, embroidery, rhinestones, studs…), colors and size.',body:'The garment itself: size, fabric, color, fit and finishing. All optional — fill in what you know; it goes on the tech pack.',details:'Labels, trims and packaging. Anything you don’t change ships as SPOOL STANDARD (unbranded). Mark where they go with “＋ Select area”.'};
 $('#tabs').onclick=e=>{const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; sel=null; tool=null; render(); if(window.innerWidth<960) setTimeout(()=>$('#asidePanel').scrollIntoView({behavior:'smooth',block:'start'}),60);};
 const chipRow=(key,vals,cur)=>`<div class="chips">${vals.map(v=>`<button class="chip${cur===v?' on':''}" data-k="${key}" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`;
 function renderTabs(){
   $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   $('#tabIntro').textContent=TAB_INTRO[tab];
-  $('#partsPane').classList.toggle('hidden',tab==='body'); $('#bodyPane').classList.toggle('hidden',tab!=='body'); $('#labelsCard').classList.toggle('hidden',tab!=='details');
+  $('#partsPane').classList.toggle('hidden',tab==='body'); $('#bodyPane').classList.toggle('hidden',tab!=='body'); $('#labelsCard').classList.toggle('hidden',tab!=='details'||!P);
+  $('#listLbl').textContent=tab==='details'?'Marked on garment':'Artwork';
   if(!P) return;
-  if(tab==='body') renderBody(); if(tab==='details') renderLabels();
+  if(tab==='body') renderBody(); if(tab==='details') renderTrims();
 }
 function bindForm(root,obj){
   root.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ obj[b.dataset.k]=obj[b.dataset.k]===b.dataset.v?'':b.dataset.v; save(); renderTabs(); });
@@ -484,7 +497,13 @@ function renderBody(){
   const B=P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); const s=S();
   const el=$('#bodyPane');
   const St=P.style;
-  el.innerHTML=`<div class="lbl">Style info (tech pack header)</div>
+  const Ms=B.meas=Object.assign({length:'',sleeve:'',shoulder:'',hem:''},B.meas||{});
+  el.innerHTML=`<div class="lbl">Size</div>
+   <div class="row" style="margin-top:8px"><span style="font-size:13px;white-space:nowrap">Chest width</span><input class="field" id="chest" type="number" min="8" max="40" step="0.5" value="${esc(P.chestIn)}" style="width:90px"><span>in</span></div>
+   <div class="note">Your blank's chest width, laid flat. Every inch on the tech pack is measured from it.</div>
+   <div class="kv" style="margin-top:8px">${[['length','Body length (HPS to hem)'],['sleeve','Sleeve length'],['shoulder','Shoulder width'],['hem','Hem width']].map(([k2,l])=>`<label>${l}<input class="field" data-m="${k2}" value="${esc(Ms[k2])}" placeholder="in — optional"></label>`).join('')}</div>
+   <div class="note">Sample size measurements, laid flat. Leave blank and the factory uses their standard for your size.</div>
+   <div class="lbl" style="margin-top:16px">Style info (tech pack header)</div>
    <div class="kv"><label>Style no.<input class="field" data-s="no" value="${esc(St.no)}"></label><label>Season<input class="field" data-s="season" value="${esc(St.season)}" placeholder="e.g. SS27"></label>
    <label>Brand<input class="field" data-s="brand" value="${esc(St.brand)}" placeholder="Your brand"></label><label>Designer<input class="field" data-s="designer" value="${esc(St.designer)}" placeholder="Name"></label>
    <label>Sample size<input class="field" data-s="size" value="${esc(St.size)}" placeholder="e.g. M"></label><label>Category<input class="field" data-s="category" value="${esc(St.category)}" placeholder="Top / Bottom"></label></div>
@@ -494,27 +513,107 @@ function renderBody(){
    <div class="lbl" style="margin-top:14px">Color</div>
    <div class="kv"><label>Color name<input class="field" data-f="color" value="${esc(B.color)}" placeholder="e.g. Washed black"></label><label>Pantone (optional)<input class="field" data-f="pantone" value="${esc(B.pantone)}" placeholder="e.g. 19-4007 TCX"></label></div>
    <div class="row" style="margin-top:10px;gap:6px;flex-wrap:wrap"><button class="btn y sm" id="bodyFx">Preview color on ${side}</button><button class="btn sm" id="bodyUndo" ${s.bodyHist?.length?'':'disabled'}>Undo color</button></div>
-   <div class="note">AI recolors the ${side} photo once. Graphics should stay the same; use Undo if anything else changed.</div>
+   <div class="note">AI recolors the ${side} photo once. Artwork should stay the same; use Undo if anything else changed.</div>
    <div class="lbl" style="margin-top:14px">Fit</div>
    ${chipRow('fit',['Regular','Oversized','Boxy','Slim','Cropped'],B.fit)}
    <div class="lbl" style="margin-top:14px">Finishing</div>
    <div class="kv"><label>Neck / collar<input class="field" data-f="neck" value="${esc(B.neck)}" placeholder="e.g. 1x1 rib, 2.5 cm"></label><label>Sleeve / cuff<input class="field" data-f="sleeve" value="${esc(B.sleeve)}" placeholder="e.g. raw edge"></label>
    <label>Hem<input class="field" data-f="hem" value="${esc(B.hem)}" placeholder="e.g. double needle"></label><label>Sample size<input class="field" value="Chest ${f1(+P.chestIn)}&quot;" disabled></label></div>
    <label class="lbl" style="display:block;margin-top:14px">Body notes</label>
-   <textarea class="field" data-f="notes" rows="3" style="margin-top:6px" placeholder="e.g. side-seam pockets, contrast back yoke">${esc(B.notes)}</textarea>`;
+   <textarea class="field" data-f="notes" rows="3" style="margin-top:6px" placeholder="e.g. side-seam pockets, contrast back yoke">${esc(B.notes)}</textarea>
+   <div class="lbl" style="margin-top:16px">Construction flats</div>
+   <div class="note">AI flat sketches for the tech pack's Construction page. Artwork is never drawn on them.</div>
+   <div class="row" style="gap:8px;margin-top:8px">${['front','back'].filter(sd=>P.sides[sd].base).map(sd=>{ const f=P.flats?.[sd], ok=flatReady(sd); return `<div style="flex:1;text-align:center;font-size:11px"><div style="border:1px solid #ddd;border-radius:8px;background:#fff;height:90px;display:flex;align-items:center;justify-content:center;overflow:hidden">${ok?`<img src="${f.src}" style="max-width:100%;max-height:100%">`:'<span style="color:#888">Drawn when you open the tech pack</span>'}</div>${sd.toUpperCase()}${ok&&f.flag?' · <b style="color:#b45309">Check this flat</b>':''}${ok&&f.user?' · yours':''}<div class="row" style="gap:4px;justify-content:center;margin-top:4px"><button class="btn sm" data-flatre="${sd}">Redraw</button><label class="btn sm" style="cursor:pointer">Upload<input type="file" accept="image/png,image/jpeg" data-flatup="${sd}" hidden></label></div></div>`; }).join('')}</div>
+`;
   bindForm(el,B); el.querySelectorAll('[data-s]').forEach(i=>i.oninput=()=>{ P.style[i.dataset.s]=i.value; save(); });
+  el.querySelectorAll('[data-m]').forEach(i=>i.oninput=()=>{ Ms[i.dataset.m]=i.value; save(); });
+  el.querySelectorAll('[data-flatre]').forEach(b=>b.onclick=async()=>{ const sd=b.dataset.flatre; if(P.flats?.[sd]?.user&&!confirm('Replace your uploaded flat with an AI drawing?')) return; if(P.flats?.[sd]) P.flats[sd].user=false; b.disabled=true; b.textContent='Drawing…'; const ok=await ensureFlat(sd,true); toast(ok?'Flat redrawn':'Couldn’t draw the flat. Try again in a moment.'); renderBody(); });
+  el.querySelectorAll('[data-flatup]').forEach(i=>i.onchange=()=>userFlat(i.dataset.flatup,i.files[0]));
+  $('#chest').oninput=e=>{ P.chestIn=+e.target.value||21; renderMeas(); save(); };
   $('#bodyFx').onclick=previewBody; $('#bodyUndo').onclick=()=>{ const h=s.bodyHist?.pop(); if(!h) return; Object.assign(s,h); save(); render(); };
 }
-function renderLabels(){
-  const Lb=P.labels=Object.assign(blankLabels(),P.labels||{}); const el=$('#labelsCard');
-  el.innerHTML=`<div class="lbl">Labels & trims (whole garment)</div>
-   <div class="lbl" style="margin-top:12px">Neck label</div>${chipRow('neck',['Printed','Woven','Heat transfer','None'],Lb.neck)}
-   <div class="lbl" style="margin-top:12px">Care label</div>${chipRow('care',['Side seam','Neck','None'],Lb.care)}
-   <div class="lbl" style="margin-top:12px">Hang tag</div>${chipRow('hangtag',['Yes','No'],Lb.hangtag)}
-   <div class="kv"><label>Stitch / thread color<input class="field" data-f="stitch" value="${esc(Lb.stitch)}" placeholder="e.g. tonal"></label><label>Hardware<input class="field" data-f="hardware" value="${esc(Lb.hardware)}" placeholder="e.g. matte black snaps"></label></div>
-   <label class="lbl" style="display:block;margin-top:12px">Notes</label><input class="field" data-f="notes" style="margin-top:6px" value="${esc(Lb.notes)}" placeholder="e.g. brand logo on neck label, size 1 in">`;
-  bindForm(el,Lb);
+/* ================= trims & packaging + Brand Kit ================= */
+const TRIM_ITEMS=[{k:'neck',g:'t',n:'Neck label'},{k:'care',g:'t',n:'Care label'},{k:'drawcord',g:'t',n:'Drawcord'},{k:'zipper',g:'t',n:'Zipper'},{k:'eyelet',g:'t',n:'Eyelets'},{k:'thread',g:'t',n:'Thread'},
+  {k:'hangtag',g:'p',n:'Hang tag'},{k:'polybag',g:'p',n:'Polybag'},{k:'sticker',g:'p',n:'Sticker / barcode'}];
+const TRIM_FIELDS=[['type','Type'],['size','Size'],['color','Color / material'],['attach','Placement / attach'],['note','Notes']];
+const TRIM_STD={
+  neck:{type:'Printed (heat transfer)',size:'Size only, about 1.5 × 1 in',color:'Black or white ink, contrast to body',attach:'Inside back neck',note:'No brand name'},
+  care:{type:'Printed satin label',size:'1 × 3 in',color:'White',attach:'Left side seam, 4 in above hem',note:'Fiber content, care symbols, country of origin'},
+  drawcord:{type:'Flat cotton cord',size:'1 cm wide',color:'Match body',attach:'Through hood channel',note:'Metal aglets'},
+  zipper:{type:'Metal #5',size:'Full length',color:'Silver',attach:'Center front',note:''},
+  eyelet:{type:'Metal eyelets',size:'8 mm',color:'Silver',attach:'Hood drawcord exits',note:''},
+  thread:{type:'Polyester core-spun',size:'—',color:'Tonal (match body)',attach:'All seams',note:''},
+  hangtag:{type:'Paper tag',size:'2 × 3.5 in',color:'White',attach:'Safety pin through care label',note:'No brand name'},
+  polybag:{type:'Clear self-seal polybag',size:'12 × 15 in',color:'Clear',attach:'Folded, one piece per bag',note:'Suffocation warning printed'},
+  sticker:{type:'Size sticker',size:'1 × 1 in',color:'White',attach:'Outside of polybag',note:'Barcode optional'}};
+const TRIM_EXT=/\.(pdf|ai|svg|eps|png|jpe?g)$/i;
+function stdTrim(k,body){ const hood=['hoodie','zip'].includes(body); return {use:k==='zipper'?body==='zip':(k==='drawcord'||k==='eyelet')?hood:true,spec:{...TRIM_STD[k]},files:[],st:'std'}; }
+function initTrims(p){ const t={};
+  for(const it of TRIM_ITEMS){ const kt=KIT?.items?.[it.k], sd=stdTrim(it.k,p.body), byBody=['drawcord','zipper','eyelet'].includes(it.k); // drawcord / zipper / eyelets follow the garment, not the kit
+    t[it.k]=kt?{use:byBody?sd.use:!!kt.use,spec:Object.assign({...TRIM_STD[it.k]},kt.spec||{}),files:[...(kt.files||[])],st:byBody&&!sd.use?'std':'kit'}:sd; }
+  const L=p.labels||{}; // picks made with the older Labels card
+  if(L.neck&&L.neck!=='Printed'){ if(L.neck==='None') t.neck.use=false; else t.neck.spec.type=L.neck+' label'; t.neck.st='set'; }
+  if(L.care&&L.care!=='Side seam'){ if(L.care==='None') t.care.use=false; else t.care.spec.attach='Back neck'; t.care.st='set'; }
+  if(L.hangtag==='No'){ t.hangtag.use=false; t.hangtag.st='set'; }
+  if(L.stitch){ t.thread.spec.color=L.stitch; t.thread.st='set'; }
+  return {items:t,note:[L.hardware&&'Hardware: '+L.hardware,L.notes].filter(Boolean).join(' / ')||KIT?.note||''}; }
+const trimTag=t=>!t.use?['NOT USED','nu']:t.st==='std'?['SPOOL STANDARD','std']:t.st==='kit'?['BRAND KIT','kit']:['CONFIRMED','ok'];
+let trimOpen=null;
+function renderTrims(){
+  const T=P.trims, el=$('#labelsCard');
+  const row=it=>{ const t=T.items[it.k], [tx,cl]=trimTag(t), open=trimOpen===it.k;
+    return `<div class="trim${open?' open':''}" data-k="${it.k}"><button type="button" class="trim-h" data-open="${it.k}"><b>${it.n}</b><span class="ttag ${cl}">${tx}</span>${t.st==='set'&&KIT?'<small class="only">this design only</small>':''}${t.files?.length?`<small class="fc">${t.files.length} file${t.files.length>1?'s':''}</small>`:''}<i>${open?'−':'+'}</i></button>
+    ${open?`<div class="trim-b"><div class="seg"><button type="button" data-use="1" class="${t.use?'on':''}">Use</button><button type="button" data-use="0" class="${t.use?'':'on'}">Not used</button></div>
+      ${t.use?`<div class="kv">${TRIM_FIELDS.map(([f,l])=>`<label>${l}<input class="field" data-tf="${f}" value="${esc(t.spec[f]||'')}" placeholder="${esc(TRIM_STD[it.k][f]||'')}"></label>`).join('')}</div>
+      <div class="tfiles">${(t.files||[]).map((f,i)=>`<span class="tfile"><button type="button" class="lnk" data-fopen="${i}">${esc(f.name)}</button><button type="button" data-fdel="${i}" title="Remove from this item" aria-label="Remove">×</button></span>`).join('')}
+        <label class="btn sm">＋ Add file<input type="file" data-fadd hidden multiple accept=".pdf,.ai,.svg,.eps,.png,.jpg,.jpeg"></label></div>
+      <div class="note">Your logo, artwork or a photo of the trim you want. PDF, AI, SVG, EPS, PNG or JPG, up to 20 MB each.</div>`:''}</div>`:''}</div>`; };
+  el.innerHTML=`<div class="lbl">Trims</div><div class="trims">${TRIM_ITEMS.filter(i=>i.g==='t').map(row).join('')}</div>
+    <div class="lbl" style="margin-top:14px">Packaging</div><div class="trims">${TRIM_ITEMS.filter(i=>i.g==='p').map(row).join('')}</div>
+    <label class="lbl" style="display:block;margin-top:14px" for="trimNote">Notes for the factory</label><input class="field" id="trimNote" style="margin-top:6px" value="${esc(T.note||'')}" placeholder="e.g. fold with tissue, size sticker on bag">
+    <div class="row" style="margin-top:12px;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm" id="kitSave">Save as my Brand Kit</button>${KIT?'<button type="button" class="btn sm" id="kitApply">Use my Brand Kit here</button>':''}</div>
+    <div class="note">${KIT?'Your Brand Kit fills in every new project. Changes here stay in this design unless you save them to the kit.':'Set your labels and packaging once and save them as your Brand Kit — every new project starts with them.'}</div>`;
+  el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ trimOpen=trimOpen===b.dataset.open?null:b.dataset.open; renderTrims(); });
+  el.querySelectorAll('.trim.open').forEach(box=>{ const k=box.dataset.k, t=T.items[k];
+    box.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{ const u=b.dataset.use==='1'; if(t.use===u) return; t.use=u; t.st='set'; save(); renderTrims(); });
+    box.querySelectorAll('[data-tf]').forEach(i=>i.oninput=()=>{ t.spec[i.dataset.tf]=i.value; if(t.st!=='set'){ t.st='set'; const [tx,cl]=trimTag(t), tg=box.querySelector('.ttag'); tg.textContent=tx; tg.className='ttag '+cl; } save(); });
+    box.querySelectorAll('[data-fdel]').forEach(b=>b.onclick=()=>{ t.files.splice(+b.dataset.fdel,1); t.st='set'; save(); renderTrims(); });
+    box.querySelectorAll('[data-fopen]').forEach(b=>b.onclick=()=>openTrimFile(t.files[+b.dataset.fopen]));
+    const fi=box.querySelector('[data-fadd]'); if(fi) fi.onchange=()=>addTrimFiles(k,[...fi.files]); });
+  $('#trimNote').oninput=e=>{ T.note=e.target.value; save(); };
+  $('#kitSave').onclick=saveKit; $('#kitApply')?.addEventListener('click',applyKit);
 }
+async function addTrimFiles(k,fs){ if(!fs.length) return; const t=P.trims.items[k], pid=P.id;
+  const bad=fs.find(f=>!TRIM_EXT.test(f.name)); if(bad) return toast(`${bad.name}: use PDF, AI, SVG, EPS, PNG or JPG`);
+  const big=fs.find(f=>f.size>20*1024*1024); if(big) return toast(`${big.name} is over 20 MB`);
+  const A=window.SPOOL_AUTH; let uid='mock';
+  if(!MOCK){ const u=A?.user||await A?.requireLogin?.('Sign in to attach files — they go to the factory with your sample.'); if(!u) return; uid=u.id; }
+  for(const [i,f] of fs.entries()){ toast(`Uploading ${i+1} of ${fs.length}…`);
+    const safe=f.name.replace(/[^\w.\-]+/g,'_').slice(-80), path=`${uid}/trims/${pid}/${k}-${Date.now()}-${safe}`;
+    if(!MOCK){ const {error}=await A.sb.storage.from('samples').upload(path,f,{contentType:f.type||'application/octet-stream',upsert:false}); if(error){ console.warn(error); toast('Upload failed: '+(error.message||'try again')); return; } }
+    if(!P||P.id!==pid) return; t.files=t.files||[]; t.files.push({name:f.name,path,size:f.size}); t.st='set'; }
+  save(); if(tab==='details') renderTrims(); toast(fs.length>1?'Files added':'File added'); }
+async function openTrimFile(f){ if(!f) return; const A=window.SPOOL_AUTH; if(MOCK||!A?.sb) return toast(f.name);
+  const w=window.open('','_blank'); try{ const {data,error}=await A.sb.storage.from('samples').createSignedUrl(f.path,600); if(error) throw error; if(w) w.location=data.signedUrl; else location.href=data.signedUrl; }catch(e){ w?.close(); toast('Could not open the file'); } }
+let KIT=null, kitP=null;
+const kitKey=()=>'spoolKit:'+(window.SPOOL_AUTH?.user?.id||'guest');
+function loadKit(){ return kitP=(async()=>{ const A=window.SPOOL_AUTH; KIT=null; try{ const v=localStorage.getItem(kitKey()); if(v) KIT=JSON.parse(v); }catch(_){}
+  if(A?.user&&A.sb){ try{ const {data,error}=await A.sb.from('brand_kits').select('kit').eq('user_id',A.user.id).maybeSingle(); if(!error&&data?.kit){ KIT=data.kit; try{ localStorage.setItem(kitKey(),JSON.stringify(KIT)); }catch(_){} } }catch(e){ console.warn('kit',e); } }
+  return KIT; })(); }
+async function saveKit(){ if(!P) return; const A=window.SPOOL_AUTH;
+  if(!MOCK&&A&&!A.user){ const u=await A.requireLogin('Sign in to save your Brand Kit to your account.'); if(!u) return; }
+  if(KIT&&!confirm('Replace your Brand Kit with the labels and packaging of this design?')) return;
+  const items={}; for(const it of TRIM_ITEMS){ const t=P.trims.items[it.k]; items[it.k]={use:t.use,spec:{...t.spec},files:[...(t.files||[])]}; }
+  KIT={items,note:P.trims.note||'',updated:Date.now()}; try{ localStorage.setItem(kitKey(),JSON.stringify(KIT)); }catch(_){}
+  let cloud=false; if(A?.user&&A.sb){ const {error}=await A.sb.from('brand_kits').upsert({user_id:A.user.id,kit:KIT,updated_at:new Date().toISOString()}); cloud=!error; if(error) console.warn(error); }
+  for(const it of TRIM_ITEMS) P.trims.items[it.k].st='kit'; save(); renderTrims();
+  toast(cloud||MOCK?'Brand Kit saved — new projects start with it':'Brand Kit saved on this device'); window.SPOOL_TRACK?.('brand_kit_saved'); }
+function applyKit(){ if(!KIT||!P) return; if(Object.values(P.trims.items).some(t=>t.st==='set')&&!confirm('Replace the labels and packaging of this design with your Brand Kit?')) return;
+  snap(); const note=P.trims.note; P.trims=initTrims({body:P.body}); P.trims.note=note||KIT.note||''; save(); renderTrims(); toast('Brand Kit applied'); }
+const trimsUsed=()=>TRIM_ITEMS.map(it=>({...it,t:P.trims.items[it.k]})).filter(x=>x.t.use);
+const trimLine=x=>[x.t.spec.type,x.t.spec.size,x.t.spec.color,x.t.spec.attach,x.t.spec.note].filter(v=>v&&v!=='—').join(' · ');
+function trimsText(){ return trimsUsed().map(x=>`${x.n} [${trimTag(x.t)[0]}]: ${trimLine(x)}${x.t.files?.length?` (${x.t.files.length} file${x.t.files.length>1?'s':''})`:''}`).join('\n')+(P.trims.note?'\nNotes: '+P.trims.note:''); }
+function trimFiles(){ const out=[]; for(const x of trimsUsed()) (x.t.files||[]).forEach((f,i)=>{ const ext=(f.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,''); out.push({name:`${x.k}-${i+1}.${ext}`,path:f.path}); }); return out; }
 const bodyPrompt=B=>`BODY COLOR EDIT: Edit this garment product photo. Change ONLY the color of the garment fabric to ${B.color}${B.pantone?' (Pantone '+B.pantone+')':''}. Keep every print, graphic, text, patch, trim, label, wash, distressing, fold, seam, the framing and the background exactly the same.`;
 async function previewBody(){
   const B=P.bodySpec; if(isBusy()) return; if(!B.color) return toast('Enter a color name first'); snap(); const s=S();
@@ -559,7 +658,7 @@ stage.addEventListener('pointerdown',e=>{
   const up=ev=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up); d.remove(); const [x,y]=toU(ev); const b=rect(x,y); tool=null;
     if(b[2]<12||b[3]<12){ render(); return toast('Drag a bigger area'); }
     snap(); const s=S(), kind=curKind(), n=s.parts.filter(q=>kindOf(q)===kind).length+1;
-    const p={id:'a'+Date.now(),kind,num:n,name:(kind==='detail'?'Trim ':'Graphic ')+n,b:clampB(b),tech:kind==='detail'?'label':'print',opts:{},note:'',layer:null,hist:[]};
+    const p={id:'a'+Date.now(),kind,num:n,name:(kind==='detail'?'Trim ':'Artwork ')+n,b:clampB(b),tech:kind==='detail'?'label':'print',opts:{},note:'',layer:null,hist:[]};
     s.parts.push(p); renumber(s); sel=p;
     save(); render(); };
   addEventListener('pointermove',mv); addEventListener('pointerup',up);
@@ -568,7 +667,6 @@ $('#drawBtn').onclick=()=>{tool=tool==='draw'?null:'draw'; render();};
 $('#undoBtn').onclick=undo; $('#redoBtn').onclick=redo;
 $('#hideBtn').onclick=()=>{ view=view==='final'?'spec':'final'; if(view==='final') tool=null; render(); };
 $('#sideSeg').onclick=e=>{const b=e.target.closest('button'); if(!b||!P) return; side=b.dataset.v; sel=null; tool=null; render(); if(!S().base) toast(`No ${side} image in this project`);};
-$('#chest').oninput=e=>{ if(!P) return; P.chestIn=+e.target.value||21; renderList(); renderDetail(); renderMeas(); save(); };
 document.addEventListener('keydown',e=>{ if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); return; }
@@ -692,7 +790,7 @@ async function detectSide(s){ // returns how many parts were added on this side
   const c=canvas(768); c.getContext('2d').drawImage(await (async()=>{const f=canvas(PX); await composite(f,s); return f;})(),0,0,768,768);
   const found=await detectAPI(c.toDataURL('image/jpeg',.85)); let added=0;
   for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5)||(s.ignored||[]).some(q=>iou(q,b)>.4)) continue;
-    const p={id:'a'+Date.now()+added+(s===P.sides.back?'b':'f'),kind:'graphic',num:0,name:f.label||'Graphic',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
+    const p={id:'a'+Date.now()+added+(s===P.sides.back?'b':'f'),kind:'graphic',num:0,name:f.label||'Artwork',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
     s.parts.push(p); renumber(s); added++; }
   return added;
 }
@@ -703,7 +801,7 @@ $('#detBtn').onclick=async()=>{ if(isBusy()) return; snap();
     const added=await detectSide(s); sel=s.parts[s.parts.length-added]||sel;
     let addedOther=0; if(both){ try{ addedOther=await detectSide(other); }catch(e){ console.warn(e); } }
     const otherName=side==='front'?'back':'front';
-    toast(added||addedOther?`Found ${added} part${added===1?'':'s'} here${both?` and ${addedOther} on the ${otherName}`:''} — fix any box by dragging it, or add more with “＋ Select area”`:'No new graphics found. Add them with “＋ Select area”.');
+    toast(added||addedOther?`Found ${added} part${added===1?'':'s'} here${both?` and ${addedOther} on the ${otherName}`:''} — fix any box by dragging it, or add more with “＋ Select area”`:'No new artwork found. Add it with “＋ Select area”.');
   }catch(e){ console.error(e); toast('Auto-detect failed: '+e.message); }
   busy(false); save(); render();
 };
@@ -730,6 +828,63 @@ function ensureClean(sd){ // starts (or joins) the background job; resolves true
   const run=async()=>{ for(let i=0;i<2;i++){ try{ const out=await squareURL(await aiClean(s.base)); if(baseKey(s)!==key) return false; s.clean=out; s.cleanOf=key; save(); return true; }catch(e){ console.warn('clean',e); if(i) return false; await wait(1500); } } return false; };
   const p=run().finally(()=>{ if(cleanJobs[sd]?.p===p) delete cleanJobs[sd]; });
   cleanJobs[sd]={key,p}; return p;
+}
+
+/* ---------- AI flat sketches (construction reference) ---------- */
+async function aiFlat(src){
+  if(MOCK) return mockAI(P_FLAT,[src]);
+  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({task:'flat',prompt:'flat',images:[{dataUrl:src}]})});
+  const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length) throw new Error(d.error||'The AI returned no image');
+  return d.images[0].src;
+}
+async function inkMask(src,N){ // filled silhouette of a flat (white background) → {m,x0,y0,x1,y1}
+  const c=canvas(N), x=c.getContext('2d',{willReadFrequently:true}); x.fillStyle='#fff'; x.fillRect(0,0,N,N); x.drawImage(await img(src),0,0,N,N);
+  const d=x.getImageData(0,0,N,N).data, n=N*N, ink=new Uint8Array(n); for(let j=0;j<n;j++){ const i=j*4; ink[j]=(765-d[i]-d[i+1]-d[i+2])>150?1:0; }
+  const out=new Uint8Array(n), st=[]; const push=j=>{ if(!out[j]&&!ink[j]){ out[j]=1; st.push(j); } };
+  for(let i=0;i<N;i++){ push(i); push((N-1)*N+i); push(i*N); push(i*N+N-1); }
+  while(st.length){ const j=st.pop(), X=j%N, Y=(j/N)|0; if(X>0)push(j-1); if(X<N-1)push(j+1); if(Y>0)push(j-N); if(Y<N-1)push(j+N); }
+  const m=new Uint8Array(n); let x0=N,y0=N,x1=-1,y1=-1; for(let j=0;j<n;j++){ m[j]=out[j]?0:1; if(m[j]){ const X=j%N,Y=(j/N)|0; if(X<x0)x0=X; if(X>x1)x1=X; if(Y<y0)y0=Y; if(Y>y1)y1=Y; } }
+  return {m,x0,y0,x1,y1,N};
+}
+function bboxOf(m,N){ let x0=N,y0=N,x1=-1,y1=-1; for(let j=0;j<N*N;j++) if(m[j]){ const X=j%N,Y=(j/N)|0; if(X<x0)x0=X; if(X>x1)x1=X; if(Y<y0)y0=Y; if(Y>y1)y1=Y; } return x1<0?null:{x0,y0,x1,y1}; }
+function sampleMask(m,N,b,R){ const o=new Uint8Array(R*R), w=b.x1-b.x0+1, h=b.y1-b.y0+1; for(let y=0;y<R;y++) for(let x=0;x<R;x++){ o[y*R+x]=m[(b.y0+Math.min(h-1,Math.floor((y+.5)*h/R)))*N+b.x0+Math.min(w-1,Math.floor((x+.5)*w/R))]; } return o; }
+async function fitFlat(flatSrc,s){ // crop to the drawing, match the blank body's aspect, and score the silhouette overlap
+  const F=await inkMask(flatSrc,200), G=await garmentOf(s); if(!G||F.x1<0) return {src:flatSrc,iou:null};
+  const gb=bboxOf(G.m,GM), fb={x0:F.x0,y0:F.y0,x1:F.x1,y1:F.y1}; if(!gb) return {src:flatSrc,iou:null};
+  const ga=(gb.x1-gb.x0+1)/(gb.y1-gb.y0+1), fa=(fb.x1-fb.x0+1)/(fb.y1-fb.y0+1);
+  const R=64, a=sampleMask(F.m,200,fb,R), b=sampleMask(G.m,GM,gb,R); let inter=0,uni=0; for(let j=0;j<R*R;j++){ if(a[j]&&b[j]) inter++; if(a[j]||b[j]) uni++; }
+  const iou=uni?inter/uni:0;
+  const im=await img(flatSrc), k2=PX/200, sx=Math.max(0,fb.x0-3)*k2, sy=Math.max(0,fb.y0-3)*k2, sw=Math.min(PX-sx,(fb.x1-fb.x0+7)*k2), sh=Math.min(PX-sy,(fb.y1-fb.y0+7)*k2);
+  const H=900, W=Math.round(H*Math.min(1.6,Math.max(.5,ga*(sw/(fb.x1-fb.x0+1)/k2)/(sh/(fb.y1-fb.y0+1)/k2)))), c=canvas(W,H), x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  // aspect correction only when the drawing is within 15% of the body's proportions; otherwise keep it as drawn
+  const ratio=ga/fa, fix=ratio>.85&&ratio<1.18; const tw=fix?W:Math.min(W,H*sw/sh), th=fix?H:Math.min(H,W*sh/sw);
+  x.drawImage(im,sx,sy,sw,sh,(W-tw)/2,(H-th)/2,tw,th);
+  return {src:c.toDataURL('image/png'),iou};
+}
+const flatJobs={};
+function flatReady(sd){ const s=P.sides[sd], f=P.flats?.[sd]; return !!(f&&f.src&&(f.user||f.of===baseKey(s))); }
+function ensureFlat(sd,force){
+  const s=P.sides[sd]; if(!s||!s.base) return Promise.resolve(false);
+  if(!force&&flatReady(sd)) return Promise.resolve(true);
+  if(flatJobs[sd]) return flatJobs[sd];
+  const key=baseKey(s);
+  const run=async()=>{
+    try{
+      if(!(await ensureClean(sd))) return false;
+      let best=null;
+      for(let i=0;i<2;i++){ const raw=await aiFlat(s.clean), fit=await fitFlat(raw,s); if(!best||(fit.iou||0)>(best.iou||0)) best=fit; if(fit.iou==null||fit.iou>=.93) break; }
+      if(baseKey(s)!==key) return false;
+      P.flats=P.flats||{}; P.flats[sd]={src:best.src,of:key,iou:best.iou,flag:best.iou!=null&&best.iou<.93}; save(); return true;
+    }catch(e){ console.warn('flat',e); return false; }
+  };
+  const p=run().finally(()=>{ delete flatJobs[sd]; }); flatJobs[sd]=p; return p;
+}
+async function userFlat(sd,file){
+  if(!file||!/^image\//.test(file.type)) return toast('Choose a PNG or JPG image');
+  if(file.size>10*1048576) return toast('That file is over 10 MB');
+  const src=await new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=no; r.readAsDataURL(file); });
+  const im=await loadImg(src), c=canvas(Math.min(1200,im.width),Math.round(Math.min(1200,im.width)*im.height/im.width)), x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(im,0,0,c.width,c.height);
+  P.flats=P.flats||{}; P.flats[sd]={src:c.toDataURL('image/png'),of:baseKey(P.sides[sd]),user:true,flag:false}; save(); renderBody();
 }
 function prefetchClean(){ if(!P) return; ['front','back'].forEach(sd=>{ const s=P.sides[sd]; if(s.base&&s.parts.some(q=>kindOf(q)==='graphic')&&!cleanReady(s)) ensureClean(sd); }); }
 async function rebuildHole(s){ // base with the blank body over every spot where artwork was lifted or erased
@@ -842,7 +997,7 @@ async function renderInks(p){
       inp.addEventListener('change',()=>{ const L=own(); L[+inp.dataset.i].h=inp.value.toUpperCase(); user=true; save(); paint(); }); });
     b.querySelectorAll('[data-pi]').forEach(inp=>inp.addEventListener('input',()=>{ const L=own(); L[+inp.dataset.pi].pms=inp.value.trim(); if(!user){ user=true; } save(); }));
     b.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{ const L=own(); L.splice(+x.dataset.del,1); user=true; save(); paint(); });
-    $('#inkAdd').onclick=()=>{ const L=own(); if(L.length>=8) return toast('Up to 8 colors per graphic'); L.push({h:'#000000',pms:''}); user=true; save(); paint(); setTimeout(()=>$('#inks input[type=color][data-i="'+(L.length-1)+'"]')?.click(),30); };
+    $('#inkAdd').onclick=()=>{ const L=own(); if(L.length>=8) return toast('Up to 8 colors per artwork'); L.push({h:'#000000',pms:''}); user=true; save(); paint(); setTimeout(()=>$('#inks input[type=color][data-i="'+(L.length-1)+'"]')?.click(),30); };
   };
   paint();
 }
@@ -938,7 +1093,7 @@ $('#prodBtn').onclick=async()=>{
   const pl=await A.plan(); if(!pl.pro&&!pl.techpacks?.admin){ upsell('Production files — vector artwork at print size — come with SPOOL Studio, or with a sample request.','files'); return; }
   busy(true,'Building production files','Vector SVG at print size');
   try{ const files=await vectorFiles();
-    if(!files.length) toast('No flat-color graphics to vectorize. Photo-like art is redrawn by SPOOL — request a sample.');
+    if(!files.length) toast('No flat-color artwork to vectorize. Photo-like art is redrawn by SPOOL — request a sample.');
     else { for(const f of files){ const u=URL.createObjectURL(f.blob); dl(u,`${slug()}-${f.name}`); await wait(300); setTimeout(()=>URL.revokeObjectURL(u),4000); }
       toast(`${files.length} vector file${files.length>1?'s':''} downloaded. Auto-traced — check before production.`); window.SPOOL_TRACK?.('download_vectors'); } }
   catch(e){ toast('Production files failed: '+e.message); }
@@ -958,6 +1113,8 @@ $('#tpBtn').onclick=async()=>{
   const sides=['front','back'].filter(sd=>P.sides[sd].base);
   const fulls={}, bodyRGB={}, ann={};
   for(const sd of sides){ const s=P.sides[sd]; const c=canvas(PX); c.getContext('2d').drawImage(await img(await finalURL(s)),0,0,PX,PX); fulls[sd]=c; bodyRGB[sd]=bodyColorOf(c,s); ann[sd]=await annotated(s,sd); }
+  const flatsOK={}; { const need=sides.filter(sd=>!flatReady(sd)); if(need.length){ try{ w.document.body.innerHTML='<p style="font-family:sans-serif;padding:20px">Drawing flat sketches… this takes about 30 seconds the first time.</p>'; }catch(_){}
+    await Promise.race([Promise.all(need.map(sd=>ensureFlat(sd))),wait(100000)]); } sides.forEach(sd=>flatsOK[sd]=flatReady(sd)); }
   const today=new Date().toLocaleDateString('en-US');
   const head=[['STYLE NO.',St.no],['SEASON',St.season||'—'],['STYLE NAME',P.name],['BRAND',St.brand||'—'],['DESIGNER',St.designer||P.email||'—']];
   const head2=[['DATE CREATED',new Date(P.created||Date.now()).toLocaleDateString('en-US')],['DATE MODIFIED',today],['SAMPLE SIZE',`${St.size||'M'} · chest ${f1(+P.chestIn)} in`],['CATEGORY',St.category||'—'],['MAIN TECHNIQUE',[...new Set(sides.flatMap(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='graphic').map(p=>TECH[p.tech])))].join(', ')||'—']];
@@ -982,14 +1139,22 @@ $('#tpBtn').onclick=async()=>{
   }
   const dets=sides.flatMap(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='detail').map(p=>({sd,s:P.sides[sd],p})));
   const kvT=a=>`<table class="kvt">${a.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v||'—')}</td></tr>`).join('')}</table>`;
-  pages.push(`<div class="phead"><h1>CONSTRUCTION, TRIMS &amp; LABELS</h1></div><div class="cols">
+  const flatBox=sd=>{ const f=P.flats?.[sd]; const ok=f&&f.src&&flatsOK[sd]; return `<figure><div class="flat">${ok?`<img src="${f.src}">`:'<span>Flat not available</span>'}</div><figcaption>${sd.toUpperCase()} — ${ok&&f.user?'flat supplied by designer':'AI flat — construction reference'}${ok&&f.flag?' (verify against the photo)':''}</figcaption></figure>`; };
+  const Mz=(B.meas||{}), sizeRows=[['Chest (laid flat)',f1(+P.chestIn)+' in'],['Body length (HPS to hem)',Mz.length],['Sleeve length',Mz.sleeve],['Shoulder width',Mz.shoulder],['Hem width',Mz.hem]];
+  pages.push(`<div class="phead"><h1>TRIMS &amp; PACKAGING</h1></div><div class="cols">
+    <div><h4>TRIMS &amp; PACKAGING</h4><table class="grid"><tr><th>Item</th><th>Spec</th><th>Status</th></tr>${trimsUsed().map(x=>`<tr><td><b>${esc(x.n)}</b></td><td>${esc(trimLine(x))}${x.t.files?.length?`<br><small>Files: ${x.t.files.map(f=>esc(f.name)).join(', ')}</small>`:''}</td><td><small>${trimTag(x.t)[0]}</small></td></tr>`).join('')}</table>
+      ${P.trims.note?`<p class="m">Notes: ${esc(P.trims.note)}</p>`:''}${(()=>{ const nu=TRIM_ITEMS.filter(it=>!P.trims.items[it.k].use).map(it=>it.n); return nu.length?`<p class="m">Not used: ${esc(nu.join(', '))}</p>`:''; })()}
+      </div>
+    <div><h4>MARKED ON GARMENT</h4>${dets.length?`<table class="grid"><tr><th>#</th><th>Side</th><th>Trim</th><th>Type</th><th>Size</th><th>Placement</th></tr>${dets.map(d=>`<tr><td><b>${lab(d.p)}</b></td><td>${d.sd}</td><td>${esc(d.p.name)}${d.p.note?'<br><small>'+esc(d.p.note)+'</small>':''}</td><td>${TECH[d.p.tech]}<br><small>${OPTS[d.p.tech].map(([kk])=>esc(optOf(d.p,kk))).join(' / ')}</small></td><td>${sizeTxt(d.s,d.p)}</td><td>${placeTxt(d.s,d.p).join('<br>')}</td></tr>`).join('')}</table>`:'<p class="m">No trims marked on the garment.</p>'}
+      </div></div>`);
+  pages.push(`<div class="phead"><h1>CONSTRUCTION</h1></div><div class="cols">
     <div><h4>BODY</h4>${kvT([['Fabric',fabric],['Color',[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' · ')],['Fit',B.fit],['Neck / collar',B.neck],['Sleeve / cuff',B.sleeve],['Hem',B.hem],['Body notes',B.notes]])}
-      <h4>WASH &amp; DISTRESS</h4>${kvT([['Wash front',[f.wash,f.washNote].filter(Boolean).join(', ')],['Wash back',[bk.wash,bk.washNote].filter(Boolean).join(', ')],['Distress',sp.distress?[sp.distress.front&&'Front: '+sp.distress.front,sp.distress.back&&'Back: '+sp.distress.back].filter(Boolean).join(' / '):'']])}</div>
-    <div><h4>LABELS &amp; TRIMS</h4>${kvT([['Neck label',Lb.neck],['Care label',Lb.care],['Hang tag',Lb.hangtag],['Stitch / thread',Lb.stitch],['Hardware',Lb.hardware],['Notes',Lb.notes]])}
-      <h4>TRIMS &amp; BRANDING</h4>${dets.length?`<table class="grid"><tr><th>#</th><th>Side</th><th>Trim</th><th>Type</th><th>Size</th><th>Placement</th></tr>${dets.map(d=>`<tr><td><b>${lab(d.p)}</b></td><td>${d.sd}</td><td>${esc(d.p.name)}${d.p.note?'<br><small>'+esc(d.p.note)+'</small>':''}</td><td>${TECH[d.p.tech]}<br><small>${OPTS[d.p.tech].map(([kk])=>esc(optOf(d.p,kk))).join(' / ')}</small></td><td>${sizeTxt(d.s,d.p)}</td><td>${placeTxt(d.s,d.p).join('<br>')}</td></tr>`).join('')}</table>`:'<p class="m">No details marked.</p>'}
+      <h4>WASH &amp; DISTRESS</h4>${kvT([['Wash front',[f.wash,f.washNote].filter(Boolean).join(', ')],['Wash back',[bk.wash,bk.washNote].filter(Boolean).join(', ')],['Distress',sp.distress?[sp.distress.front&&'Front: '+sp.distress.front,sp.distress.back&&'Back: '+sp.distress.back].filter(Boolean).join(' / '):'']])}
+      <h4>SIZE — SAMPLE ${esc((St.size||'M').toUpperCase())}</h4><table class="kvt">${sizeRows.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v||'Factory standard')}</td></tr>`).join('')}</table></div>
+    <div><h4>FLAT SKETCHES</h4><div class="flats">${sides.map(flatBox).join('')}</div>
       <h4>APPROVAL</h4><div class="sign"><div>Designer</div><div>Factory</div><div>Date</div></div>
-      <p class="m">Sizes and colors are estimated from the design image and confirmed on the first sample.</p></div></div>`);
-  const tot=pages.length, label=i=>i===0?'OVERVIEW':i===tot-1?'CONSTRUCTION':'ARTWORK';
+      <p class="m">Sizes and colors are estimated from the design image and confirmed on the first sample. Flat sketches are AI-drawn references; the factory builds from the photo and this spec.</p></div></div>`);
+  const tot=pages.length, label=i=>i===0?'OVERVIEW':i===tot-1?'CONSTRUCTION':i===tot-2?'TRIMS & PACKAGING':'ARTWORK';
   const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tech pack — ${esc(St.no)} ${esc(P.name)}</title><style>
   @page{size:11in 8.5in;margin:0}
   *{box-sizing:border-box}body{margin:0;background:#e9e7e1;font-family:Helvetica,Arial,sans-serif;color:#111;font-size:11px}
@@ -1017,6 +1182,7 @@ $('#tpBtn').onclick=async()=>{
   .cols{flex:1;display:grid;grid-template-columns:1fr 1.2fr;gap:22px;padding:6px 14px}.kvt th{width:1.3in}
   .grid th{width:auto;background:#f1f1ee;font-size:9.5px;letter-spacing:.05em}
   .sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:6px 0 10px}.sign div{border-bottom:1px solid #111;height:34px;font-size:9px;color:#666;display:flex;align-items:flex-end}
+  .flats{display:flex;gap:10px;justify-content:center}.flats figure{flex:1 1 0}.flat{height:3.1in;width:100%;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;color:#888;font-size:10px}.flat img{max-width:100%;max-height:100%;object-fit:contain}.flats figcaption{font-size:9px;font-weight:400;color:#555;text-align:center}
   .m{color:#666;font-size:9.5px}small{color:#555}
   .bar{position:sticky;top:0;background:#111;color:#fff;padding:10px;text-align:center;z-index:5}.bar button{padding:8px 18px;border-radius:99px;border:0;background:#FEE32B;font-weight:700;cursor:pointer;margin-left:10px}
   @media print{body{background:#fff}.page{margin:0;box-shadow:none}.bar{display:none}}
@@ -1027,17 +1193,25 @@ $('#tpBtn').onclick=async()=>{
 
 $('#sampleBtn').onclick=async()=>{
   const sides=['front','back'].filter(sd=>P.sides[sd].base); if(!sides.length) return toast('Add a design first');
+  const std=trimsUsed().filter(x=>x.t.st==='std').map(x=>x.n);
+  if(std.length&&!confirm(`These are still SPOOL STANDARD (unbranded):\n${std.join(', ')}\n\nOK — go ahead with the standard versions.\nCancel — edit Trims & Packaging first.`)){ tab='details'; sel=null; tool=null; render(); if(innerWidth<960) $('#asidePanel').scrollIntoView({behavior:'smooth'}); return; }
   const sp=P.spec||{}, B=Object.assign(blankBody(),P.bodySpec||{}), images={};
   for(const sd of sides) images[sd]=await finalURL(P.sides[sd]);
   const graphics=[]; ['front','back'].forEach(sd=>P.sides[sd].parts.forEach(p=>{ const sv=side; side=sd; graphics.push(`${sd} #${lab(p)} ${p.name}: ${TECH[p.tech]}, ${f1(widthIn(p))} × ${f1(heightIn(p))} in, ${OPTS[p.tech].map(([kk])=>optOf(p,kk)).join(' / ')}${p.note?' — '+p.note:''}`); side=sv; }));
-  window.SPOOL_SAMPLE?.open({ vectors:vectorFiles, design:{name:P.name, body:`${(P.spec?.garment&&P.spec.garment!=='custom'&&sp.body?sp.body:'')||GARMENT_NAME[P.body]||P.body} (chest ≈ ${f1(+P.chestIn)} in)`+(()=>{ const g=B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM'), a=[B.fabric,g,B.fit].filter(Boolean); return a.length?' — '+a.join(', '):''; })(),
-    color:[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' / ')||sp.color||'', wash:sp.front?.wash||'', distress:sp.distress?.level||'', trims:'', graphics, idea:sp.direction||''}, images, prefill:{fabric:[B.fabric,B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM')].filter(Boolean).join(', ')} });
+  window.SPOOL_SAMPLE?.open({ onSent:()=>{ P.sampleSnap=designSig(); save(); updChg(); }, vectors:vectorFiles, files:trimFiles(), design:{name:P.name, body:`${(P.spec?.garment&&P.spec.garment!=='custom'&&sp.body?sp.body:'')||GARMENT_NAME[P.body]||P.body} (chest ≈ ${f1(+P.chestIn)} in)`+(()=>{ const g=B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM'), a=[B.fabric,g,B.fit].filter(Boolean); return a.length?' — '+a.join(', '):''; })(),
+    color:[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' / ')||sp.color||'', wash:sp.front?.wash||'', distress:sp.distress?.level||'', trims:trimsText(), graphics, idea:sp.direction||''}, images, prefill:{fabric:[B.fabric,B.gsm&&(/gsm|oz/i.test(B.gsm)?B.gsm:B.gsm+' GSM')].filter(Boolean).join(', ')} });
 };
 
 /* ================= projects ================= */
 let saveT, cloudT;
+
+/* "Changed since sample request": a fingerprint of what the factory was sent */
+function designSig(){ if(!P) return ''; const o={n:P.name,c:P.chestIn,b:P.bodySpec,t:P.trims&&Object.fromEntries(Object.entries(P.trims.items).map(([k2,v])=>[k2,[v.use,v.spec,(v.files||[]).length]])),
+  s:['front','back'].map(sd=>{ const q=P.sides[sd]; return [q.base?q.base.length+q.base.slice(-24):'',q.parts.map(x=>[x.name,x.tech,x.b.map(Math.round),x.opts,x.note])]; })};
+  const t=JSON.stringify(o); let h=2166136261; for(let i=0;i<t.length;i++){ h^=t.charCodeAt(i); h=Math.imul(h,16777619); } return String(h>>>0); }
+function updChg(){ const el=$('#chgBadge'); if(!el||!P) return; const ch=P.sampleSnap&&P.sampleSnap!==designSig(); el.style.display=ch?'':'none'; }
 function setSave(s){ saveState=s; const el=$('#saveChip'); if(!el) return; const narrow=innerWidth<600; const m={saving:['Saving…',''],cloud:['✓ Saved','ok'],local:[narrow?'Saved here · Sign in':'Saved on this device · Sign in','warn'],fail:['Not saved · Retry','bad']}[s]||['','']; el.textContent=m[0]; el.title={local:'Saved in this browser only. Sign in to keep it in your account.',fail:'Click to try again.',cloud:'Saved to your account. Click to save now.'}[s]||'Click to save now'; el.className='savechip '+m[1]+(!P||!m[0]?' hidden':''); }
-function save(){ if(!P) return; P.updated=Date.now(); dirty=true; clearTimeout(saveT); setSave('saving'); saveT=setTimeout(()=>persist(false),400); }
+function save(){ if(!P) return; P.updated=Date.now(); setTimeout(updChg,0); dirty=true; clearTimeout(saveT); setSave('saving'); saveT=setTimeout(()=>persist(false),400); }
 async function persist(flush){ if(!P) return; const snap=JSON.parse(JSON.stringify(P));
   try{ await edDB.put('projects',snap); await edDB.put('kv',snap.id,'last'); }catch(e){ console.warn(e); dirty=true; setSave('fail'); return; }
   if(window.SPOOL_AUTH?.user) cloudSave(flush?0:4000); else { dirty=false; setSave('local'); } }
@@ -1060,8 +1234,8 @@ function upgrade(p){ // older editor projects → v3
   return q;
 }
 async function openProject(p){ let wasPending=false; if(p&&p.pending){ wasPending=true; busy(true,'Opening your design','Loading front and back'); try{ p=await completeProject(p.pending,{id:p.id,created:p.created,name:p.name}); } finally{ busy(false); } }
-  viewOrig=false; compare=false; undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
-  $('#pname').value=P.name; $('#chest').value=P.chestIn; dirty=false; setSave(window.SPOOL_AUTH?.user?'cloud':'local'); render(); recut(); if(wasPending) save(); }
+  viewOrig=false; compare=false; undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); if(!P.trims?.items){ if(kitP) await Promise.race([kitP,wait(1500)]); P.trims=initTrims(P); } for(const it of TRIM_ITEMS) if(!P.trims.items[it.k]) P.trims.items[it.k]=stdTrim(it.k,P.body); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; if(sc.base&&sc.calAuto&&sc.calV!==2&&(P.body==='hoodie'||P.body==='zip')) await autoCal(sc,P.body); } for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
+  $('#pname').value=P.name; dirty=false; setSave(window.SPOOL_AUTH?.user?'cloud':'local'); render(); updChg(); recut(); if(wasPending) save(); }
 async function recut(){ const pp=P; let n=0; for(const sd of ['front','back']){ const s=pp.sides[sd]; if(!cleanReady(s)) continue; await garmentOf(s); let M=null;
   for(const q of s.parts){ if(!q.layer||!q.orig||(q.cut===3&&q.omask)||(q.hist||[]).some(h=>h.layer)) continue; M=M||await matchFor(s); const lay=cutArt(regionOf(await img(s.base),q.orig),regionOf(await img(s.clean),q.orig),M); q.layer=lay.toDataURL('image/png'); q.omask=maskURL(lay); q.cut=3; n++; }
   if(s.parts.some(q=>q.layer&&q.orig)) await rebuildHole(s); }
@@ -1144,10 +1318,10 @@ $('#upPhotos').onchange=async e=>{ const fs=[...e.target.files]; e.target.value=
 
 /* ================= boot ================= */
 window.SPOOL_AUTH?.mount($('#acct'));
-window.SPOOL_AUTH?.onChange(u=>{ if(u&&P) cloudSave(); });
+window.SPOOL_AUTH?.onChange(u=>{ loadKit(); if(u&&P) cloudSave(); });
 (async()=>{
   if(MOCK) $('#mockbar').classList.remove('hidden');
-  const q=new URLSearchParams(location.search); let opened=false;
+  loadKit(); const q=new URLSearchParams(location.search); let opened=false;
   if(q.get('from')==='studio') opened=await fromStudio();
   if(!opened){ const last=await edDB.get('kv','last'); if(last){ const p=await edDB.get('projects',last); if(p){ await openProject(p); opened=true; } } }
   if(!opened) render();
