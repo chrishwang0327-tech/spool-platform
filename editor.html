@@ -53,7 +53,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100v
 .box .n{position:absolute;top:-12px;left:-12px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--y);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .box.sel .n{background:var(--y);color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
 .box .h{position:absolute;right:-8px;bottom:-8px;width:16px;height:16px;background:var(--y);border:2px solid var(--ink);border-radius:4px;cursor:nwse-resize}
-.box.sel{cursor:move}
+.box.sel{cursor:move;z-index:3}
 .final .box,.final .meas{display:none}
 .drawing{position:absolute;border:2px dashed var(--ink);background:rgba(254,227,43,.18)}
 .meas{position:absolute;inset:0;pointer-events:none}
@@ -90,6 +90,11 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .kv label{font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 .note{font-size:11.5px;color:var(--muted);margin-top:6px}
 .est{font-size:11.5px;color:var(--accent);margin-top:6px}
+.inks{display:flex;flex-direction:column;gap:6px;margin-top:8px}.ink{display:grid;grid-template-columns:34px 70px 1fr 28px;gap:8px;align-items:center}
+.swc{width:34px;height:30px;border-radius:8px;border:1.5px solid #201D1830;cursor:pointer;position:relative;overflow:hidden;display:block}.swc input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
+.ink .hx{font:600 12px ui-monospace,Menlo,monospace}.ink .pms{padding:7px 10px;font-size:12.5px;min-width:0}.ix{width:28px;height:28px;border-radius:50%;border:0;background:#F3F1E8;cursor:pointer;font-size:15px;line-height:1}.ix:hover{background:#ece8da}
+.dimtag{position:absolute;transform:translate(8px,8px);background:var(--ink);color:#FDFDF9;font:600 12px Outfit,sans-serif;padding:4px 9px;border-radius:99px;white-space:nowrap;pointer-events:none;z-index:6}
+.prep{position:absolute;left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:var(--ink);color:#FDFDF9;font:600 12.5px Outfit,sans-serif;padding:8px 14px;border-radius:99px;z-index:7}.prep .spinner{width:14px;height:14px;border-width:2px;margin:0;border-color:#ffffff40;border-top-color:#FEE32B}
 .muted{color:var(--muted);font-size:13px}
 .spec{font-size:12.5px;display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:8px}
 .spec dt{color:var(--muted)}
@@ -137,8 +142,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261009c"></script>
-<script src="sample.js?v=20261009c"></script>
+<script src="auth.js?v=20261010a"></script>
+<script src="sample.js?v=20261010a"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -161,11 +166,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
       <button class="btn sm" id="resetBtn" title="Go back to the original AI image for this side">Reset</button>
       <span class="sp"></span>
-      <button class="btn sm" id="measBtn" title="Set the chest line and HPS used for inch sizes">Measure</button>
       <button class="btn sm" id="detBtn" title="AI finds the graphics and draws the boxes for you">Auto-detect</button>
       <button class="btn sm" id="drawBtn">＋ Select area</button>
-      <button class="btn sm y" id="sepBtn" title="AI splits the body and your selected graphics so you can move and resize them">Separate graphics</button>
-      <button class="btn sm hidden" id="unsepBtn">Undo separation</button>
     </div>
     <div class="hint" id="hint">Drag “＋ Select area” over a part of the design, then pick its technique on the right.</div>
     <div class="stagewrap">
@@ -197,7 +199,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
     <div>
       <div class="lbl">Sizing</div>
       <div class="row" style="margin-top:8px"><span style="font-size:13px;white-space:nowrap">Chest width</span><input class="field" id="chest" type="number" min="8" max="40" step="0.5" value="21" style="width:90px"><span>in</span></div>
-      <div class="note">All inch values are estimated from this width. Use “Measure” to line it up with the garment.</div>
+      <div class="note">Your blank's chest width, laid flat. Every inch on the tech pack is measured from it.</div>
     </div>
     <div>
       <div class="row" style="justify-content:space-between"><div class="lbl">Parts</div><span class="hint" id="partCount"></span></div>
@@ -408,32 +410,31 @@ function renderMeas(){
     const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);renderDetail();save();};
     addEventListener('pointermove',mv); addEventListener('pointerup',up); }));
 }
-function render(){ draw(); renderBoxes(); renderMeas(); renderList(); renderDetail(); renderTabs(); renderTop(); }
+function render(){ draw(); renderBoxes(); renderMeas(); renderList(); renderDetail(); renderTabs(); renderTop(); prefetchClean(); }
 function renderTop(){
   const has=!!(P&&S().base);
   $('#empty').classList.toggle('hidden',has);
   stage.classList.toggle('final',view==='final'); stage.classList.toggle('draw',tool==='draw');
   $('#hideBtn').textContent=view==='final'?'Show boxes':'Hide boxes'; $('#hideBtn').classList.toggle('on',view==='final');
   $('#undoBtn').disabled=!(P&&(undoStack[side]||[]).length); $('#redoBtn').disabled=!(P&&(redoStack[side]||[]).length);
-  $('#drawBtn').classList.toggle('on',tool==='draw'); $('#measBtn').classList.toggle('on',tool==='measure');
-  const sep=has&&S().separated; $('#sepBtn').classList.toggle('hidden',sep); $('#unsepBtn').classList.toggle('hidden',!sep);
-  ['#detBtn','#drawBtn','#measBtn','#sepBtn','#polishBtn','#dlBtn','#tpBtn','#sampleBtn','#resetBtn'].forEach(s=>$(s).disabled=!has);
-  $('#detBtn').classList.toggle('hidden',tab!=='graphic'); $('#sepBtn').disabled=!has||tab!=='graphic'; $('#drawBtn').disabled=!has||tab==='body';
+  $('#drawBtn').classList.toggle('on',tool==='draw');
+  ['#detBtn','#drawBtn','#polishBtn','#dlBtn','#tpBtn','#sampleBtn','#resetBtn'].forEach(s=>$(s).disabled=!has);
+  $('#detBtn').classList.toggle('hidden',tab!=='graphic'); $('#drawBtn').disabled=!has||tab==='body';
   $$('#sideSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.v===side); b.querySelector('.dot')?.remove(); if(P&&P.sides[b.dataset.v].parts.length&&b.dataset.v!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');});
-  $('#hint').textContent=tab==='body'?'Body specs apply to the whole garment. Fill them in on the right; preview a new body color with AI if you like.':tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':tool==='measure'?'Drag the yellow knobs: chest line across the armpits, dashed line at the high point of the shoulder (HPS).':sep?'Graphics are separated: drag a selected box to move it, pull the corner to resize. Inches update as you go.':(tab==='details'?'Drag “＋ Select area” over where rhinestones, studs, distressing or hardware go. Labels and trims are below the parts list.':P&&visParts().length?'Select a part to set its technique and size. To move or resize artwork visually, use “Separate graphics”.':'Press “Auto-detect” to box the graphics automatically, or drag “＋ Select area” yourself.');
+  $('#hint').textContent=tab==='body'?'Body specs apply to the whole garment. Fill them in on the right; preview a new body color with AI if you like.':tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':edgeEdit?'Fit the box around the whole graphic, then press “Done” on the right.':(tab==='details'?'Drag “＋ Select area” over where rhinestones, studs, distressing or hardware go. Labels and trims are below the parts list.':P&&visParts().length?'Select a graphic to set its technique. Drag it to move it, pull the yellow corner to resize it.':'Press “Auto-detect” to box the graphics automatically, or drag “＋ Select area” yourself.');
 }
 function renderList(){
   const L=$('#list'); L.innerHTML=''; if(!P) return;
   const parts=visParts(); $('#partCount').textContent=parts.length?`${parts.length} on ${side}`:'';
   if(!parts.length){ L.innerHTML=`<div class="muted">${tab==='details'?'No trims yet. Use “＋ Select area” to mark where they go.':'No graphics yet. Use “Auto-detect” or “＋ Select area”.'}</div>`; return; }
   parts.forEach(p=>{const b=document.createElement('button'); b.className='li'+(sel===p?' on':'');
-    b.innerHTML=`<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]} · ${f1(widthIn(p))}"</small>`;
+    b.innerHTML=`<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]}</small>`;
     b.onclick=()=>{sel=p;render();}; L.appendChild(b);});
 }
 const widthIn=p=>p.specW||p.b[2]*ipu();
 const heightIn=p=>p.specW?p.specW*p.b[3]/p.b[2]:p.b[3]*ipu();
 function renderDetail(){
-  const d=$('#detail'); const p=sel;
+  const d=$('#detail'); const p=sel; if(edgeEdit&&(!p||p.id!==edgeEdit)) edgeEdit=null;
   if(!P||!p||tab==='body'){ d.innerHTML=`<div class="lbl">${tab==='details'?'Trim':'Graphic'}</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>`; return; }
   const fromHps=(p.b[1]-S().cal.hps)*ipu(), fromC=(p.b[0]+p.b[2]/2-cx())*ipu();
   const opts=OPTS[p.tech].map(([key,vals])=>`<div style="margin-top:10px"><div class="lbl">${key}</div><div class="chips">${vals.map(v=>`<button class="chip${optOf(p,key)===v?' on':''}" data-o="${key}" data-v="${v}">${v}</button>`).join('')}</div></div>`).join('');
@@ -441,14 +442,12 @@ function renderDetail(){
    <div style="margin-top:12px" class="lbl">Technique</div>
    <div class="chips">${(kindOf(p)==='detail'?DT:GT).map(t=>`<button class="chip${p.tech===t?' on':''}" data-t="${t}">${TECH[t]}</button>`).join('')}</div>
    ${opts}
-   <div style="margin-top:14px" class="lbl">Size & placement</div>
-   <div class="kv">
-     <label>Width (in)<input class="field" id="wIn" type="number" step="0.1" min="0.2" value="${f1(widthIn(p))}"></label>
-     <label>Height (in)<input class="field" value="${f1(heightIn(p))}" disabled></label>
-     <label>${fromHps<0?'Above':'Below'} HPS<input class="field" value="${f1(Math.abs(fromHps))}&quot;" disabled></label>
-     <label>From center<input class="field" value="${Math.abs(fromC)<0.15?'Centered':(fromC>0?'R ':'L ')+f1(Math.abs(fromC))+'&quot;'}" disabled></label>
-   </div>
-   <div class="est">${kindOf(p)==='detail'?'Drag the box or its corner to mark the exact area.':S().separated&&p.layer?'Drag the box to move the artwork, pull the corner to resize it.':'Width changes the spec only. To resize the artwork itself, use “Separate graphics”.'}</div>
+   ${kindOf(p)==='graphic'?`<div style="margin-top:14px" class="lbl">Ink colors</div>
+   <div class="inks" id="inks"><span class="muted">Reading colors…</span></div>
+   <div style="margin-top:14px" class="lbl">Size & position</div>
+   ${edgeEdit===p.id?`<div class="est">Drag the box and its corner so it covers the whole graphic.</div><div class="row" style="margin-top:8px"><button class="btn sm y" id="edgeDone">Done</button></div>`
+     :`<div class="est">Drag the graphic to move it. Pull the yellow corner to resize it.</div><div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn sm" id="edgeFix">Box doesn’t fit the graphic?</button>${p.layer?'<button class="btn sm" id="posReset">Reset size &amp; position</button>':''}</div>`}`
+   :`<div class="est" style="margin-top:12px">Drag the box or its corner to mark the exact area.</div>`}
    <label style="display:block;margin-top:12px" class="lbl" for="pNote">Note for the factory</label>
    <input class="field" id="pNote" style="margin-top:6px" value="${esc(p.note||'')}" placeholder="e.g. match Pantone 186 C, tack down corners">
    <div class="row" style="margin-top:14px;gap:6px;flex-wrap:wrap">
@@ -460,11 +459,11 @@ function renderDetail(){
   d.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{ snap(); const q=S().parts.find(x=>x.id===p.id); q.opts[q.tech+'|'+b.dataset.o]=b.dataset.v; sel=q; save(); render();});
   $('#pName').oninput=e=>{p.name=e.target.value; renderList(); save();};
   $('#pNote').oninput=e=>{p.note=e.target.value; save();};
-  $('#pDel').onclick=()=>{ if(S().separated&&p.layer&&!confirm('Delete this part? Its separated artwork will be removed from the image.')) return; snap(); const s=S(); s.parts=s.parts.filter(q=>q.id!==p.id); renumber(s); sel=null; save(); render(); };
-  $('#wIn').onchange=e=>{ const v=+e.target.value; if(!(v>0)) return; snap(); p=S().parts.find(x=>x.id===p.id); sel=p;
-    if(S().separated&&p.layer){ const nw=v/ipu(), r=p.b[3]/p.b[2], c0=[p.b[0]+p.b[2]/2,p.b[1]+p.b[3]/2]; p.b=clampB([c0[0]-nw/2,c0[1]-nw*r/2,nw,nw*r]); p.specW=null; }
-    else p.specW=v;
-    save(); render(); };
+  $('#pDel').onclick=()=>{ if(p.layer&&!confirm('Delete this part? Its artwork will be removed from the image.')) return; snap(); const s=S(); s.parts=s.parts.filter(q=>q.id!==p.id); renumber(s); sel=null; save(); render(); };
+  if(kindOf(p)==='graphic') renderInks(p);
+  $('#edgeFix')?.addEventListener('click',async()=>{ snap(); const had=!!p.layer; await unliftPart(p); edgeEdit=p.id; if(had) toast('Size and position reset. Fit the box, then move it again.'); save(); render(); });
+  $('#edgeDone')?.addEventListener('click',()=>{ edgeEdit=null; render(); });
+  $('#posReset')?.addEventListener('click',async()=>{ snap(); await unliftPart(p); S().polished=null; save(); render(); });
   $('#fxBtn').onclick=()=>preview(p);
   $('#fxUndo').onclick=()=>undoPreview(p);
 }
@@ -524,8 +523,7 @@ async function previewBody(){
   const B=P.bodySpec; if(isBusy()) return; if(!B.color) return toast('Enter a color name first'); snap(); const s=S();
   busy(true,'Recoloring the body','One AI pass on the '+side+' photo');
   try{
-    if(s.separated){ const out=await squareURL(await ai(bodyPrompt(B),[s.hole])); (s.bodyHist=s.bodyHist||[]).push({hole:s.hole,clean:s.clean}); s.hole=out; s.clean=out; }
-    else { const out=await squareURL(await ai(bodyPrompt(B),[s.base])); (s.bodyHist=s.bodyHist||[]).push({base:s.base}); s.base=out; }
+    await bakeLifted(s); const out=await squareURL(await ai(bodyPrompt(B),[s.base])); (s.bodyHist=s.bodyHist||[]).push({base:s.base}); s.base=out; s.polished=null;
     if(s.bodyHist.length>3) s.bodyHist.shift(); toast('Body color preview applied');
   }catch(e){ console.error(e); toast('Color preview failed: '+e.message); }
   busy(false); save(); render();
@@ -533,17 +531,26 @@ async function previewBody(){
 
 /* ================= pointer: boxes / draw ================= */
 function toU(e){const r=stage.getBoundingClientRect(); return [(e.clientX-r.left)/r.width*U,(e.clientY-r.top)/r.height*U];}
+let edgeEdit=null; // id of the graphic whose box edges are being fixed (box only, artwork stays)
+function dimTag(p,on){ stage.querySelector('.dimtag')?.remove(); if(!on) return; const t=document.createElement('span'); t.className='dimtag';
+  t.textContent=`${f1(p.b[2]*ipu())} × ${f1(p.b[3]*ipu())} in`; t.style.left=pct(p.b[0]+p.b[2]); t.style.top=pct(p.b[1]+p.b[3]); stage.appendChild(t); }
 function boxDown(e,p,resize){
   if(view==='final'||tool==='draw') return;
   e.stopPropagation(); e.preventDefault();
   if(sel!==p){ sel=p; render(); return; }
-  const [sx,sy]=toU(e), b0=[...p.b], r=b0[3]/b0[2], movesArt=S().separated&&!!p.layer; let moved=false;
-  const mv=ev=>{const [x,y]=toU(ev); const dx=x-sx, dy=y-sy; if(!moved){ if(Math.abs(dx)+Math.abs(dy)<3) return; moved=true; const keep=S().parts.indexOf(p); snap(); /* snapshot holds copies; keep editing live objects */ }
-    if(resize){ if(movesArt){ const nw=Math.max(10,b0[2]+dx); p.b=[b0[0],b0[1],nw,nw*r]; } else p.b=[b0[0],b0[1],Math.max(10,b0[2]+dx),Math.max(10,b0[3]+dy)]; }
+  const art=kindOf(p)==='graphic'&&edgeEdit!==p.id;
+  const [sx,sy]=toU(e); let b0=null, r=1, moved=false, ready=!art||!!p.layer, waiting=false, last=null, done=false;
+  const apply=ev=>{ const [x,y]=toU(ev); const dx=x-sx, dy=y-sy;
+    if(resize){ if(art){ const nw=Math.max(10,b0[2]+dx); p.b=[b0[0],b0[1],nw,nw*r]; } else p.b=[b0[0],b0[1],Math.max(10,b0[2]+dx),Math.max(10,b0[3]+dy)]; }
     else p.b=[b0[0]+dx,b0[1]+dy,b0[2],b0[3]];
-    p.b=clampB(p.b); if(movesArt) p.specW=null;
-    const el=stage.querySelector(`.box[data-id="${p.id}"]`); if(el) place(el,p.b); if(movesArt) draw(); renderList(); };
-  const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up); save(); render();};
+    p.b=clampB(p.b); if(art){ p.specW=null; S().polished=null; }
+    const el=stage.querySelector(`.box[data-id="${p.id}"]`); if(el) place(el,p.b); if(art) draw(); if(kindOf(p)==='graphic') dimTag(p,true); };
+  const mv=ev=>{ last=ev; const [x,y]=toU(ev);
+    if(!moved){ if(Math.abs(x-sx)+Math.abs(y-sy)<3) return; moved=true; snap();
+      if(!ready&&!waiting){ waiting=true; liftPart(p).then(ok=>{ waiting=false; if(!ok){ cleanup(); render(); return; } ready=true; b0=[...p.b]; r=b0[3]/b0[2]; if(done){ save(); render(); } else if(last) apply(last); }); } }
+    if(!ready) return; if(!b0){ b0=[...p.b]; r=b0[3]/b0[2]; } apply(ev); };
+  const cleanup=()=>{ done=true; removeEventListener('pointermove',mv); removeEventListener('pointerup',up); dimTag(p,false); };
+  const up=()=>{ cleanup(); if(moved) save(); render(); };
   addEventListener('pointermove',mv); addEventListener('pointerup',up);
 }
 stage.addEventListener('pointerdown',e=>{
@@ -557,11 +564,10 @@ stage.addEventListener('pointerdown',e=>{
     snap(); const s=S(), kind=curKind(), n=s.parts.filter(q=>kindOf(q)===kind).length+1;
     const p={id:'a'+Date.now(),kind,num:n,name:(kind==='detail'?'Trim ':'Graphic ')+n,b:clampB(b),tech:kind==='detail'?'label':'print',opts:{},note:'',layer:null,hist:[]};
     s.parts.push(p); renumber(s); sel=p;
-    if(s.separated&&kind==='graphic') extractInto(p).then(()=>{save();render();}); else { save(); render(); } };
+    save(); render(); };
   addEventListener('pointermove',mv); addEventListener('pointerup',up);
 });
 $('#drawBtn').onclick=()=>{tool=tool==='draw'?null:'draw'; render();};
-$('#measBtn').onclick=()=>{tool=tool==='measure'?null:'measure'; render();};
 $('#undoBtn').onclick=undo; $('#redoBtn').onclick=redo;
 $('#hideBtn').onclick=()=>{ view=view==='final'?'spec':'final'; if(view==='final') tool=null; render(); };
 $('#sideSeg').onclick=e=>{const b=e.target.closest('button'); if(!b||!P) return; side=b.dataset.v; sel=null; tool=null; render(); if(!S().base) toast(`No ${side} image in this project`);};
@@ -611,7 +617,7 @@ async function detectSide(s){ // returns how many parts were added on this side
   const found=await detectAPI(c.toDataURL('image/jpeg',.85)); let added=0;
   for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5)) continue;
     const p={id:'a'+Date.now()+added+(s===P.sides.back?'b':'f'),kind:'graphic',num:0,name:f.label||'Graphic',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
-    s.parts.push(p); renumber(s); if(s.separated) await extractInto(p); added++; }
+    s.parts.push(p); renumber(s); added++; }
   return added;
 }
 $('#detBtn').onclick=async()=>{ if(isBusy()) return; snap();
@@ -626,26 +632,55 @@ $('#detBtn').onclick=async()=>{ if(isBusy()) return; snap();
   busy(false); save(); render();
 };
 
-/* ================= separate ================= */
-$('#sepBtn').onclick=async()=>{ if(isBusy()) return; snap();
-  const s=S(); if(isBusy()) return; if(!s.parts.some(p=>kindOf(p)==='graphic')) return toast('Mark the graphics first with “Auto-detect” or “＋ Select area”');
-  busy(true,'Separating body and graphics','One AI pass for the blank body, then each selected area becomes its own layer');
-  try{
-    s.clean=await squareURL(await ai(P_CLEAN,[s.base]));
-    s.hole=s.base; for(const p of s.parts) if(kindOf(p)==='graphic') await extractInto(p);
-    s.separated=true; tool=null; toast('Separated — drag a selected box to move it, pull the corner to resize');
-  }catch(e){ console.error(e); toast('Separation failed: '+e.message); }
-  busy(false); save(); render();
-};
-$('#unsepBtn').onclick=async()=>{ snap();
-  if(!confirm('Undo separation? Moves and resizes go back to the original layout.')) return;
-  const s=S(); s.separated=false; s.parts.forEach(p=>{ if(p.orig) p.b=[...p.orig]; p.layer=null; }); s.hole=null; save(); render();
-};
+/* ================= lift graphics (move / resize the artwork itself) =================
+   The blank body ("clean") is made once per side in the background as soon as the image is open.
+   It doesn't depend on the boxes, so detection and box edits never invalidate it. When a graphic
+   is first dragged, it is cut out locally (no AI, no wait) by diffing the image with the clean body. */
+const baseKey=s=>s.base?s.base.length+':'+s.base.slice(-48):'';
+const cleanJobs={};
+function cleanReady(s){ return !!(s.clean&&s.cleanOf===baseKey(s)); }
+async function aiClean(src){
+  if(MOCK) return mockAI(P_CLEAN,[src]);
+  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({task:'clean',prompt:'clean',images:[{dataUrl:src}]})});
+  const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length) throw new Error(d.error||'The AI returned no image');
+  return d.images[0].src;
+}
+function ensureClean(sd){ // starts (or joins) the background job; resolves true when ready
+  const s=P&&P.sides[sd]; if(!s||!s.base) return Promise.resolve(false);
+  if(cleanReady(s)) return Promise.resolve(true);
+  if(!window.SPOOL_AUTH?.user&&!MOCK) return Promise.resolve(false); // never pop the sign-in box from a background job
+  const key=baseKey(s), job=cleanJobs[sd];
+  if(job&&job.key===key) return job.p;
+  const run=async()=>{ for(let i=0;i<2;i++){ try{ const out=await squareURL(await aiClean(s.base)); if(baseKey(s)!==key) return false; s.clean=out; s.cleanOf=key; save(); return true; }catch(e){ console.warn('clean',e); if(i) return false; await wait(1500); } } return false; };
+  const p=run().finally(()=>{ if(cleanJobs[sd]?.p===p) delete cleanJobs[sd]; });
+  cleanJobs[sd]={key,p}; return p;
+}
+function prefetchClean(){ if(!P) return; ['front','back'].forEach(sd=>{ const s=P.sides[sd]; if(s.base&&s.parts.some(q=>kindOf(q)==='graphic')&&!cleanReady(s)) ensureClean(sd); }); }
+async function rebuildHole(s){ // base with every lifted graphic's original area replaced by the clean body
+  const lifted=s.parts.filter(q=>q.layer&&q.orig); if(!lifted.length){ s.hole=null; s.separated=false; return; }
+  const hc=canvas(PX), hx=hc.getContext('2d'); hx.drawImage(await img(s.base),0,0,PX,PX); const clean=await img(s.clean);
+  for(const q of lifted){ hx.save(); hx.beginPath(); hx.rect(q.orig[0]*k,q.orig[1]*k,q.orig[2]*k,q.orig[3]*k); hx.clip(); hx.drawImage(clean,0,0,PX,PX); hx.restore(); }
+  s.hole=hc.toDataURL('image/jpeg',.93); s.separated=true;
+}
+let prepEl=null;
+function preparing(on){ if(prepEl){ prepEl.remove(); prepEl=null; } if(!on) return; prepEl=document.createElement('div'); prepEl.className='prep'; prepEl.innerHTML='<span class="spinner"></span>Preparing artwork…'; stage.appendChild(prepEl); }
+async function liftPart(p){ // cut one graphic off the body so it can move / scale
+  const sd=side, s=S(); if(p.layer) return true;
+  if(!cleanReady(s)){ preparing(true); const ok=await ensureClean(sd); preparing(false);
+    if(!ok){ toast(window.SPOOL_AUTH?.user||MOCK?'Couldn’t prepare the artwork. Try again in a moment.':'Sign in to move or resize artwork.'); if(!window.SPOOL_AUTH?.user&&!MOCK) window.SPOOL_AUTH?.requireLogin('Sign in to move or resize artwork.').then(u=>{ if(u) ensureClean(sd); }); return false; } }
+  if(side!==sd) return false;
+  const lay=diffLayer(regionOf(await img(s.base),p.b),regionOf(await img(s.clean),p.b)); p.layer=lay.toDataURL('image/png'); p.orig=[...p.b]; p.specW=null;
+  await rebuildHole(s); return true;
+}
+async function unliftPart(p){ const s=S(); if(!p.layer) return; if(p.orig) p.b=[...p.orig]; p.layer=null; p.orig=null; await rebuildHole(s); }
+async function bakeLifted(s){ // burn moved artwork into the image (before whole-image AI edits)
+  if(!s.separated) return; s.base=await flatten(s); s.parts.forEach(q=>{ q.layer=null; q.orig=null; }); s.hole=null; s.separated=false; s.clean=null; s.cleanOf=null;
+}
 async function flatten(s){ const c=canvas(PX); await composite(c,s); return c.toDataURL('image/jpeg',.93); }
 
 /* ================= local preview ================= */
 async function preview(p){
-  if(isBusy()) return; snap(); p=S().parts.find(x=>x.id===p.id)||p; sel=p; const s=S();
+  if(isBusy()) return; snap(); p=S().parts.find(x=>x.id===p.id)||p; sel=p; const s=S(), wasClean=cleanReady(s);
   busy(true,`Previewing ${TECH[p.tech].toLowerCase()}`,'AI redraws only this area');
   try{
     const full=canvas(PX); await composite(full,s);
@@ -664,14 +699,15 @@ async function preview(p){
     } else {
       p.hist.push({base:s.base});
       const nb=canvas(PX), nx=nb.getContext('2d'); nx.drawImage(await img(s.base),0,0,PX,PX); nx.drawImage(patch,0,0);
-      s.base=nb.toDataURL('image/jpeg',.93);
+      s.base=nb.toDataURL('image/jpeg',.93); if(wasClean) s.cleanOf=baseKey(s); if(s.separated) await rebuildHole(s);
     }
+    s.polished=null;
     if(p.hist.length>4) p.hist.shift();
     toast(`${p.name}: ${TECH[p.tech]} preview applied`);
   }catch(e){ console.error(e); toast('Preview failed: '+e.message); }
   busy(false); save(); render();
 }
-function undoPreview(p){ const h=p.hist?.pop(); if(!h) return; const s=S(); if(h.layer){ p.layer=h.layer; } if(h.base){ s.base=h.base; } save(); render(); }
+async function undoPreview(p){ const h=p.hist?.pop(); if(!h) return; const s=S(), wasClean=cleanReady(s); if(h.layer){ p.layer=h.layer; } if(h.base){ s.base=h.base; if(wasClean) s.cleanOf=baseKey(s); if(s.separated) await rebuildHole(s); } s.polished=null; save(); render(); }
 
 /* ================= finish ================= */
 $('#polishBtn').onclick=async()=>{
@@ -706,8 +742,33 @@ $('#hiresBtn').onclick=async()=>{
   busy(false);
 };
 const slug=()=>(P.name||'spool-design').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'spool-design';
-$('#resetBtn').onclick=()=>{ if(!S().original||!confirm(`Restore the original ${side} image? Previews and separation on this side are removed; your parts and specs stay.`)) return; snap(); const s=S();
-  s.base=s.original; s.separated=false; s.hole=null; s.clean=null; s.polished=null; s.parts.forEach(p=>{p.layer=null;p.hist=[]; if(p.orig) p.b=[...p.orig];}); save(); render(); };
+$('#resetBtn').onclick=()=>{ if(!S().original||!confirm(`Restore the original ${side} image? Previews, moves and resizes on this side are removed; your parts and specs stay.`)) return; snap(); const s=S();
+  s.base=s.original; s.separated=false; s.hole=null; s.clean=null; s.cleanOf=null; s.polished=null; s.parts.forEach(p=>{p.layer=null;p.hist=[]; if(p.orig) p.b=[...p.orig]; p.orig=null;}); edgeEdit=null; save(); render(); };
+
+/* ================= artwork colors (editable) ================= */
+// p.inks = [{h:'#RRGGBB', pms:'Pantone code'}] once the user touches them; until then colors are auto-read (approx.)
+async function autoInks(p,s=S()){ const fc=canvas(PX); await composite(fc,s); return artColors(fc,p,bodyColorOf(fc,s)); }
+let inkSeq=0;
+async function renderInks(p){
+  const n=++inkSeq, box=$('#inks'); if(!box) return;
+  let list=p.inks, user=!!(p.inks&&p.inks.length);
+  if(!p.inks){ try{ list=(await autoInks(p)).map(h=>({h,pms:''})); }catch(e){ list=[]; } }
+  if(n!==inkSeq||!$('#inks')||sel!==p) return;
+  const own=()=>{ if(!p.inks){ p.inks=list.map(o=>({...o})); list=p.inks; } return p.inks; };
+  const paint=()=>{
+    const b=$('#inks'); if(!b) return;
+    b.innerHTML=(list.length?list.map((o,i)=>`<div class="ink"><label class="swc" style="background:${o.h}" title="Change color"><input type="color" value="${o.h.toLowerCase()}" data-i="${i}" aria-label="Color ${i+1}"></label><span class="hx">${o.h.toUpperCase()}</span><input class="field pms" data-pi="${i}" value="${esc(o.pms||'')}" placeholder="Pantone (optional)" aria-label="Pantone for color ${i+1}"><button class="ix" data-del="${i}" aria-label="Remove color ${i+1}">×</button></div>`).join(''):'<div class="muted">No colors found.</div>')
+      +`<div class="row" style="justify-content:space-between;margin-top:6px"><button class="btn sm" id="inkAdd">+ Add color</button><span class="note" style="margin:0">${user?'Confirmed for the tech pack':'Auto-detected — tap a color to fix it'}</span></div>`;
+    b.querySelectorAll('input[type=color]').forEach(inp=>{
+      inp.addEventListener('input',()=>{ inp.parentElement.style.background=inp.value; inp.parentElement.nextElementSibling.textContent=inp.value.toUpperCase(); });
+      inp.addEventListener('change',()=>{ const L=own(); L[+inp.dataset.i].h=inp.value.toUpperCase(); user=true; save(); paint(); }); });
+    b.querySelectorAll('[data-pi]').forEach(inp=>inp.addEventListener('input',()=>{ const L=own(); L[+inp.dataset.pi].pms=inp.value.trim(); if(!user){ user=true; } save(); }));
+    b.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{ const L=own(); L.splice(+x.dataset.del,1); user=true; save(); paint(); });
+    $('#inkAdd').onclick=()=>{ const L=own(); if(L.length>=8) return toast('Up to 8 colors per graphic'); L.push({h:'#000000',pms:''}); user=true; save(); paint(); setTimeout(()=>$('#inks input[type=color][data-i="'+(L.length-1)+'"]')?.click(),30); };
+  };
+  paint();
+}
+const inksOf=(fc,p,body)=>p.inks&&p.inks.length?{list:p.inks,user:true}:{list:artColors(fc,p,body).map(h=>({h,pms:''})),user:false};
 
 /* tech pack: industry-style printable pages (landscape) */
 const RED='#D0312D';
@@ -730,13 +791,13 @@ async function vectorFiles(){ // graphics with 1–3 flat ink colors → SVG at 
   for(const sd of ['front','back']){ const s=P.sides[sd]; if(!s.base) continue; const parts=s.parts.filter(p=>kindOf(p)==='graphic'); if(!parts.length) continue;
     const fc=canvas(PX); fc.getContext('2d').drawImage(await img(await finalURL(s)),0,0,PX,PX); const body=bodyColorOf(fc,s), ip=(+P.chestIn||21)/Math.max(40,s.cal.x2-s.cal.x1);
     for(const p of parts){ try{
-      const inks=artColors(fc,p,body).map(rgbOf); if(!inks.length||inks.length>3) continue;
+      const userInks=!!(p.inks&&p.inks.length), inks=(userInks?p.inks.map(o=>o.h):artColors(fc,p,body)).map(rgbOf); if(!inks.length||inks.length>3) continue;
       const sw=p.b[2]*k, sh=p.b[3]*k, sc=Math.min(4,1000/Math.max(sw,sh)), W=Math.max(8,Math.round(sw*sc)), H=Math.max(8,Math.round(sh*sc));
       const c=canvas(W,H), x=c.getContext('2d',{willReadFrequently:true}); x.imageSmoothingQuality='high'; x.drawImage(fc,p.b[0]*k,p.b[1]*k,sw,sh,0,0,W,H);
       const im=x.getImageData(0,0,W,H); let pal=[body,...inks], near=0, n=0; const cnt=pal.map(()=>0);
       for(let i=0;i<im.data.length;i+=16){ const c3=[im.data[i],im.data[i+1],im.data[i+2]]; n++; const ds=pal.map(q=>D(c3,q)), m=Math.min(...ds); cnt[ds.indexOf(m)]++; if(m<75) near++; }
       if(near/n<.8) continue; // gradients / photo-like art: SPOOL redraws by hand
-      const inkN=cnt.slice(1).reduce((a,b)=>a+b,0)||1; pal=[body,...inks.filter((_,i)=>cnt[i+1]/inkN>=.15)]; // drop edge shading / highlights
+      const inkN=cnt.slice(1).reduce((a,b)=>a+b,0)||1; pal=[body,...(userInks?inks:inks.filter((_,i)=>cnt[i+1]/inkN>=.15))]; // drop edge shading / highlights
       if(pal.length<2) continue;
       const opts={pal:pal.map(([r,g,b])=>({r,g,b,a:255})),colorsampling:0,numberofcolors:pal.length,colorquantcycles:1,mincolorratio:0,ltres:1,qtres:1,pathomit:12,blurradius:0,strokewidth:0,linefilter:true,roundcoords:1,viewbox:true,desc:false};
       const td=IT.imagedataToTracedata(im,opts); td.layers[0]=[]; // drop the fabric color
@@ -826,20 +887,20 @@ $('#tpBtn').onclick=async()=>{
   const header=`<div class="hdr"><div class="logo"><b>SPOOL</b><span>TECH PACK</span></div><div class="ht">${cells(head)}</div><div class="ht">${cells(head2)}</div></div>`;
   const sw=[]; const addSw=(h,label)=>{ if(!sw.some(o=>o.h===h)&&sw.length<8) sw.push({h,label}); };
   addSw(hex(bodyRGB[sides[0]]),`BODY${B.pantone?' · PANTONE '+B.pantone:''}${B.color?' · '+B.color:''}`);
-  sides.forEach(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='graphic').forEach(p=>artColors(fulls[sd],p,bodyRGB[sd]).forEach(h=>addSw(h,`ART ${lab(p)} (approx.)`))));
+  sides.forEach(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='graphic').forEach(p=>{ const ik=inksOf(fulls[sd],p,bodyRGB[sd]); ik.list.forEach(o=>addSw(o.h,`ART ${lab(p)}${o.pms?' · PANTONE '+o.pms:''}${ik.user?'':' (approx.)'}`)); }));
   const colorway=`<div class="cw">${sw.map(o=>`<div class="sw"><i style="background:${o.h}"></i><div><b>${o.h}</b><small>${esc(o.label)}</small></div></div>`).join('')}</div>`;
   const fabric=[[B.fabric,B.fabricNote].filter(Boolean).join(', '),B.gsm,B.fit&&B.fit+' fit'].filter(Boolean).join(' · ')||'—';
   const pages=[];
   pages.push(`${header}<h1>FRONT &amp; BACK DETAIL</h1>
     <div class="views">${sides.map(sd=>`<figure style="flex:${ann[sd].w} 1 0"><img src="${ann[sd].src}"><figcaption>${sd.toUpperCase()} VIEW</figcaption></figure>`).join('')}</div>
     <div class="bottom"><div><h4>COLORWAY</h4>${colorway}</div><div><h4>FABRIC</h4><p>${esc(fabric)}</p><h4>WASH</h4><p>${esc([f.wash&&'Front: '+f.wash,bk.wash&&'Back: '+bk.wash].filter(Boolean).join(' / ')||'—')}</p></div></div>`);
-  const arts=[]; for(const sd of sides){ const s=P.sides[sd]; for(const p of s.parts.filter(q=>kindOf(q)==='graphic')) arts.push({sd,s,p,src:await artDetail(fulls[sd],s,p),cols:artColors(fulls[sd],p,bodyRGB[sd])}); }
+  const arts=[]; for(const sd of sides){ const s=P.sides[sd]; for(const p of s.parts.filter(q=>kindOf(q)==='graphic')) arts.push({sd,s,p,src:await artDetail(fulls[sd],s,p),cols:inksOf(fulls[sd],p,bodyRGB[sd])}); }
   for(let i=0;i<arts.length;i+=2){
     pages.push(`<div class="phead"><h1>ARTWORK DETAIL</h1></div><div class="arts">${arts.slice(i,i+2).map(a=>{ const pl=placeTxt(a.s,a.p);
       const rows=[['Technique',TECH[a.p.tech]],...OPTS[a.p.tech].map(([kk])=>[kk,optOf(a.p,kk)]),['Size',sizeTxt(a.s,a.p)],['Placement',pl.join(' · ')],['Notes',a.p.note||'—']];
       return `<div class="art"><div class="at"><span class="num">${lab(a.p)}</span><b>${esc(a.p.name.toUpperCase())}</b><em>${a.sd.toUpperCase()}</em></div><img src="${a.src}">
         <table>${rows.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v)}</td></tr>`).join('')}
-        <tr><th>Ink colors</th><td>${a.cols.map(h=>`<span class="chip"><i style="background:${h}"></i>${h}</span>`).join(' ')||'—'} <small>(approx.)</small></td></tr></table></div>`; }).join('')}</div>`);
+        <tr><th>Ink colors</th><td>${a.cols.list.map(o=>`<span class="chip"><i style="background:${o.h}"></i>${o.h}${o.pms?' · PANTONE '+esc(o.pms):''}</span>`).join(' ')||'—'}${a.cols.user?'':' <small>(approx.)</small>'}</td></tr></table></div>`; }).join('')}</div>`);
   }
   const dets=sides.flatMap(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='detail').map(p=>({sd,s:P.sides[sd],p})));
   const kvT=a=>`<table class="kvt">${a.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v||'—')}</td></tr>`).join('')}</table>`;
@@ -907,7 +968,7 @@ function upgrade(p){ // older editor projects → v3
   ['front','back'].forEach(sd=>{ const o=p.sides?.[sd]; const src=o?.original||o?.base||null; q.sides[sd].original=src; q.sides[sd].base=src; });
   return q;
 }
-async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>renumber(P.sides[sd])); for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
+async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
   $('#pname').value=P.name; $('#chest').value=P.chestIn; render(); }
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
 $('#projBtn').onclick=openProjects;

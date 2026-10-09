@@ -108,6 +108,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .idea{margin-top:16px;background:#FDFDF9;font-size:15px;min-height:56px}
 .examples{margin-top:10px;font-size:13px;opacity:.85}.examples button{background:none;border:0;padding:0;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink)}
 .desc{font-size:13px;color:var(--muted);line-height:1.45;margin-top:-4px}.desc b{color:var(--ink);font-weight:500}
+.refnote{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--ink)}.refnote span{background:var(--y2,#FBEF9C);padding:4px 10px;border-radius:99px}.refnote button{background:none;border:0;padding:0;font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;color:var(--ink)}
 .optbtn{display:inline-flex;align-items:center;gap:4px;background:none;border:0;padding:0;margin-top:8px;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .optbtn .car{display:inline-block;transition:transform .15s}.step.open .optbtn .car{transform:rotate(180deg)}
 .step .more{display:none;margin-top:14px}.step.open .more{display:block}
@@ -256,8 +257,8 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261009c"></script>
-<script src="sample.js?v=20261009c"></script>
+<script src="auth.js?v=20261010a"></script>
+<script src="sample.js?v=20261010a"></script>
 </head>
 <body>
 
@@ -344,12 +345,14 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       <div>
         <div class="step-head"><span class="num">03</span><span class="step-title">Wash &amp; Distress</span><span class="opt">Optional</span></div>
         <div class="desc">Fading, dye effects, rips and frayed edges. <b>Empty = clean and new.</b></div>
+        <div class="refnote hidden" id="washAuto"><span>✓ Wash &amp; distress: from your photo</span><button type="button" id="washChange">Change</button></div>
         <button type="button" class="optbtn">Options <span class="car">▾</span></button>
         <div class="more">
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
         <div class="lbl" style="margin-top:4px">Wash</div>
         <div class="chips" data-pick="washType">
-          <button class="chip on" data-v="none">Clean</button>
+          <button class="chip on" data-v="auto">Auto<small>follows your photo</small></button>
+          <button class="chip" data-v="none">Clean</button>
           <button class="chip" data-v="garment">Garment dye<small>soft, lived-in</small></button>
           <button class="chip" data-v="pigment">Pigment dye<small>faded color</small></button>
           <button class="chip" data-v="vintage">Vintage fade</button>
@@ -358,7 +361,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
         </div>
         <div id="distressStep" class="dis-off">
           <div class="lbl" style="margin-top:14px">Distress</div>
-          <div class="seg" id="disLevel" style="margin-top:8px"><button class="on" data-v="none">None</button><button data-v="light">Light</button><button data-v="heavy">Heavy</button></div>
+          <div class="seg" id="disLevel" style="margin-top:8px"><button class="on" data-v="auto">Auto</button><button data-v="none">None</button><button data-v="light">Light</button><button data-v="heavy">Heavy</button></div>
           <div class="dis-more">
             <div class="chips" id="disWhere">
               <button class="chip" data-v="neckline">Neckline</button>
@@ -523,12 +526,12 @@ const COLORS=[['#f2efe6','Natural'],['#ffffff','White'],['#1c1c1c','Black'],['#8
 const GARMENT_WORDS={tee:'short-sleeve crewneck t-shirt',hoodie:'pullover hoodie with kangaroo pocket',zip:'full-zip hoodie',crew:'crewneck sweatshirt',trucker:'trucker jacket',sweatpant:'sweatpants',denim:'5-pocket jeans',shorts:'shorts'};
 const USE_WORDS={full:'reproduce the full printed artwork faithfully',logo:'use only the logo / wordmark from it',style:'use only its illustration style and mood — create new artwork',colors:'use only its color palette — create new artwork'};
 const TRIM_WORDS={studs:'metal studs',rhinestones:'rhinestones',patches:'sewn-on patches',grommets:'metal grommets',chains:'metal chains'};
-const WASH_WORDS={none:'clean, new',garment:'garment-dyed',pigment:'pigment-dyed with soft uneven color',vintage:'vintage sun-faded',acid:'acid-washed'};
+const WASH_WORDS={auto:'clean, new',none:'clean, new',garment:'garment-dyed',pigment:'pigment-dyed with soft uneven color',vintage:'vintage sun-faded',acid:'acid-washed'};
 const SIDES=['front','back'];
 
-const blankDis=()=>({level:'none',where:[],note:''});
+const blankDis=()=>({level:'auto',where:[],note:''});
 const blankNote=()=>({graphic:'',body:'',wash:'',trim:''});
-const blankSide=()=>({graphicUse:'full',washType:'none',trimType:'none',note:blankNote(),dis:blankDis()});
+const blankSide=()=>({graphicUse:'full',washType:'auto',trimType:'none',note:blankNote(),dis:blankDis()});
 const state={
   refs:{},                                  // 'graphic-front', 'body-back', ...
   tab:{graphic:'front',body:'front',wash:'front',trim:'front'},
@@ -567,9 +570,9 @@ function syncStep(step){
   if(chips){ const key=chips.dataset.pick;
     chips.querySelectorAll('.chip').forEach(c=>{ c.classList.toggle('on',c.dataset.v===S[key]); if(c.dataset.v==='same') c.classList.toggle('hidden',side==='front'); }); }
   // dot = this side has content
-  el.querySelectorAll('.sidetabs button').forEach(b=>{ const s=b.dataset.v; const has=!!(state.refs[`${step}-${s}`]||state[s].note[step]||(step==='wash'&&state[s].dis.level!=='none')||(step==='trim'&&state[s].trimType!=='none'));
+  el.querySelectorAll('.sidetabs button').forEach(b=>{ const s=b.dataset.v; const has=!!(state.refs[`${step}-${s}`]||state[s].note[step]||(step==='wash'&&!['none','auto'].includes(state[s].dis.level))||(step==='trim'&&state[s].trimType!=='none'));
     b.querySelector('.dot')?.remove(); if(has&&s!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>'); });
-  if(step==='wash') syncDistress();
+  if(step==='wash'){ syncDistress(); syncWashAuto(); }
 }
 const NOTE_PH={
   graphic:{front:'Front: e.g. keep the logo, distressed, 2 colors max',back:'Back: e.g. big logo across the upper back'},
@@ -601,18 +604,27 @@ function syncDistress(){
   const d=curDis();
   $$('#disLevel button').forEach(b=>b.classList.toggle('on',b.dataset.v===d.level));
   $$('#disWhere .chip').forEach(c=>c.classList.toggle('on',d.where.includes(c.dataset.v)));
-  $('#distressStep').classList.toggle('dis-off',d.level==='none');
+  $('#distressStep').classList.toggle('dis-off',['none','auto'].includes(d.level));
 }
 $('#disLevel').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; curDis().level=b.dataset.v; syncStep('wash'); saveDraft();});
 $('#disWhere').addEventListener('click',e=>{const c=e.target.closest('.chip'); if(!c) return; const w=curDis().where, v=c.dataset.v; const i=w.indexOf(v); i<0?w.push(v):w.splice(i,1); syncDistress(); saveDraft();});
-const disOn=side=>state[side].dis.level!=='none';
-function disText(side){ const d=state[side].dis; return `${d.level}${d.where.length?' at '+d.where.join(', '):''}${d.note?' — '+d.note:''}`; }
+// "Auto" = follow the wash & distress photo when there is one, otherwise clean.
+// Back with no photo of its own follows the front photo when its wash is "Same as front" or Auto.
+function washRefFor(side){ return side==='front'?!!state.refs['wash-front']:(!!state.refs['wash-back']||(['same','auto'].includes(state.back.washType)&&!!state.refs['wash-front'])); }
+function ownWashRef(side){ return !!state.refs['wash-'+side]; }
+function disAuto(side){ return state[side].dis.level==='auto'; }
+function disOn(side){ return disAuto(side)?washRefFor(side):state[side].dis.level!=='none'; }
+function disText(side){ const d=state[side].dis; if(d.level==='auto') return 'as in the wash & distress photo'+(d.note?' — '+d.note:''); return `${d.level}${d.where.length?' at '+d.where.join(', '):''}${d.note?' — '+d.note:''}`; }
+function washLabel(side){ const t=state[side].washType; if(t==='same') return 'Same as front'; if(t==='auto') return washRefFor(side)?'From reference photo':'Clean'; return WASH_WORDS[t]; }
+function syncWashAuto(){ const el=$('#washAuto'); if(!el) return; const xs=SIDES.filter(ownWashRef), w=xs.some(x=>state[x].washType==='auto'), d=xs.some(disAuto);
+  el.classList.toggle('hidden',!(w||d)); el.querySelector('span').textContent=`✓ ${w&&d?'Wash & distress':w?'Wash':'Distress'}: from your photo`; }
 
 $('#p-global').addEventListener('input',e=>{state.direction=e.target.value; saveDraft();});
 /* ---------- options toggle (per step) ---------- */
-function hasContent(step){ return SIDES.some(x=>state.refs[`${step}-${x}`]||state[x].note[step]) || (step==='wash'&&SIDES.some(x=>disOn(x)||!['none','same'].includes(state[x].washType))) || (step==='trim'&&SIDES.some(x=>state[x].trimType!=='none')) || (step==='graphic'&&SIDES.some(x=>state[x].graphicUse!=='full')) || (step==='body'&&(state.bodyMode==='describe'||!!state.color)); }
+function hasContent(step){ return SIDES.some(x=>state.refs[`${step}-${x}`]||state[x].note[step]) || (step==='wash'&&SIDES.some(x=>!['none','auto'].includes(state[x].dis.level)||!['none','same','auto'].includes(state[x].washType))) || (step==='trim'&&SIDES.some(x=>state[x].trimType!=='none')) || (step==='graphic'&&SIDES.some(x=>state[x].graphicUse!=='full')) || (step==='body'&&(state.bodyMode==='describe'||!!state.color)); }
 function openStep(step,on){ stepEl(step).classList.toggle('open',on); }
 $$('.step').forEach(el=>el.querySelector('.optbtn')?.addEventListener('click',()=>el.classList.toggle('open')));
+$('#washChange')?.addEventListener('click',()=>{ const el=stepEl('wash'); el.classList.add('open'); el.querySelector('[data-pick="washType"]')?.scrollIntoView({block:'nearest',behavior:'smooth'}); });
 function syncOpen(){ ['graphic','body','wash','trim'].forEach(st=>{ if(hasContent(st)) openStep(st,true); }); }
 
 /* ---------- color (in Body) ---------- */
@@ -647,6 +659,7 @@ function applyRef(slot,url){
   const d=document.querySelector(`.drop[data-slot="${slot}"]`); if(!d) return; state.refs[slot]=url||null;
   d.querySelector('img')?.remove(); d.classList.toggle('filled',!!url);
   if(url){ const img=new Image(); img.src=url; d.prepend(img); }
+  if(slot.startsWith('wash-')) syncWashAuto();
 }
 $$('.drop').forEach(d=>{
   const slot=d.dataset.slot, [step,side]=slot.split('-'), input=d.querySelector('input');
@@ -695,8 +708,9 @@ function frontJob(){
     const ideaOnly=!state.refs['graphic-front']&&!F.note.graphic&&!!state.direction;
     if(!state.refs['graphic-front']&&!F.note.graphic) L.push(ideaOnly?'Front print: only artwork the design idea places on the front or chest (or does not place on a specific side); if the idea only describes a back print, or no print, keep the front plain.':'No print on the front.');
     L.push(state.color?`Garment base color: ${state.colorName&&state.colorName!=='custom color'?state.colorName+' ':''}(${state.color}). Apply this color to the garment fabric only — keep graphics, trims, wash and silhouette as specified.`:state.refs['body-front']?'Garment color: keep the color of the body reference unless the notes or design idea say otherwise.':'Garment color: as given in the notes or design idea; otherwise natural off-white.');
-    L.push(`Wash: ${WASH_WORDS[F.washType]||'clean'}${F.note.wash?', '+F.note.wash:''}.`);
-    L.push(disOn('front')?`Distressing on the front: ${disText('front')}.`:'No distressing — the garment is clean and intact.');
+    const fRef=!!state.refs['wash-front'];
+    L.push(F.washType==='auto'&&fRef?`Wash: match the WASH & DISTRESS reference exactly — same dye, fading and wash effect${F.note.wash?', '+F.note.wash:''}.`:`Wash: ${WASH_WORDS[F.washType]||'clean'}${F.note.wash?', '+F.note.wash:''}.`);
+    L.push(disAuto('front')?(fRef?`Distressing on the front: match the distressing in the WASH & DISTRESS reference (rips, holes, fraying, cracked print). If it has none, keep the garment intact.${F.dis.note?' '+F.dis.note+'.':''}`:'No distressing — the garment is clean and intact.'):disOn('front')?`Distressing on the front: ${disText('front')}.`:'No distressing — the garment is clean and intact.');
     if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
     if(state.direction) L.push(`Design idea: ${state.direction}.`);
     L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
@@ -712,13 +726,16 @@ async function backJob(frontUrl){
   if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK GRAPHIC: ${USE_WORDS[B.graphicUse]}. Extract only the printed artwork, ignore any person or garment in it. Print it large across the upper back unless the notes say otherwise.`);
   if(state.refs['body-back']) add(await shrink(state.refs['body-back']),'is the BACK BODY reference: use it ONLY for back panels, seams and cut & sew construction. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
   if(state.refs['trim-back']&&B.trimType!=='none') add(await shrink(state.refs['trim-back']),`is the TRIM reference for the back: add ${TRIM_WORDS[B.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
-  const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?null:state.refs['wash-back'];
+  const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?null:state.refs['wash-back'], followFront=!washRef&&!!state.refs['wash-front']&&(B.washType==='same'||(B.washType==='auto'&&F.washType==='auto'));
   if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
   if(B.note.body) L.push(`Back construction: ${B.note.body}.`); else if(!state.refs['body-back']) L.push('Back construction: same as the front, no extra panels.');
   if(B.note.graphic) L.push(`Back graphic notes: ${B.note.graphic}.`);
   if(!state.refs['graphic-back']&&!B.note.graphic) L.push(state.direction?'Back print: only if the design idea explicitly describes a back print; otherwise a plain back with no print.':'Plain back — no print.');
-  L.push(`Back wash: ${WASH_WORDS[washType]||'clean'}${B.note.wash?', '+B.note.wash:(B.washType==='same'&&F.note.wash?', '+F.note.wash:'')}.`);
-  L.push(disOn('back')?`Distressing on the back: ${disText('back')}.`:'No distressing on the back.');
+  const bNote=B.note.wash?', '+B.note.wash:(B.washType==='same'&&F.note.wash?', '+F.note.wash:'');
+  L.push(washRef&&B.washType==='auto'?`Back wash: match the WASH & DISTRESS reference for the back exactly — same dye, fading and wash effect${bNote}.`
+    :followFront&&(washType==='auto')?`Back wash: exactly the same wash, dye and fading as the front in reference image 1${bNote}.`
+    :`Back wash: ${WASH_WORDS[washType]||'clean'}${bNote}.`);
+  L.push(disAuto('back')?(washRef?'Distressing on the back: match the distressing in the WASH & DISTRESS reference for the back. If it has none, keep the back intact.':followFront?'Distressing on the back: same style as the front in reference image 1 (if the front has rips or fraying, add similar ones on the back; if not, keep it intact).':'No distressing on the back.'):disOn('back')?`Distressing on the back: ${disText('back')}.`:'No distressing on the back.');
   L.push(B.trimType!=='none'?`Trims on the back: ${TRIM_WORDS[B.trimType]}${B.note.trim?' — '+B.note.trim:''}.`:'No trims on the back.');
   if(state.direction) L.push(`Design idea (back view): ${state.direction}.`);
   L.push(state.refs['graphic-back']||B.note.graphic?'STRICT: The only artwork allowed on the back is from the BACK GRAPHIC reference and the back graphic notes. Do not copy the front print or any artwork from any other reference image onto the back.':'STRICT: Do not copy the front print or any artwork from any reference image onto the back.');
@@ -817,7 +834,7 @@ function askEmail(){
 async function create(){
   if(window.SPOOL_AUTH){ const u=await window.SPOOL_AUTH.requireLogin('Sign in to create designs. Everything you make is saved to your account.'); if(!u) return; }
   else if(!getEmail() && !(await askEmail())) return;
-  const any=state.direction.trim()||Object.values(state.refs).some(Boolean)||SIDES.some(x=>Object.values(state[x].note).some(v=>v&&v.trim())||state[x].trimType!=='none'||disOn(x)||!['none','same'].includes(state[x].washType))||state.color;
+  const any=state.direction.trim()||Object.values(state.refs).some(Boolean)||SIDES.some(x=>Object.values(state[x].note).some(v=>v&&v.trim())||state[x].trimType!=='none'||disOn(x)||!['none','same','auto'].includes(state[x].washType))||state.color;
   if(!any){ $('#p-global').focus(); return toast('Describe your idea or add a photo first'); }
   const btn=$('#create'); btn.disabled=true; btn.firstChild.textContent='SPINNING… ';
   const prev=state.variations, prevRecipe=$('#recipe').innerHTML;
@@ -877,8 +894,8 @@ function specSummary(){
   const s=k=>state[k], dF=state.front.dis, dB=state.back.dis, anyDis=disOn('front')||disOn('back');
   return {
     body:bodyName(), garment:state.bodyMode==='preset'?state.body:'custom', color:state.color?(state.colorName&&state.colorName!=='custom color'?state.colorName:state.color.toUpperCase()):'From references / notes', colorHex:state.color||null,
-    front:{graphic:s('front').note.graphic, graphicUse:s('front').graphicUse, body:s('front').note.body, wash:WASH_WORDS[s('front').washType], washNote:s('front').note.wash, trim:s('front').trimType==='none'?null:s('front').trimType, trimNote:s('front').note.trim},
-    back:{graphic:s('back').note.graphic, graphicUse:s('back').graphicUse, body:s('back').note.body, wash:s('back').washType==='same'?'Same as front':WASH_WORDS[s('back').washType], washNote:s('back').note.wash, trim:s('back').trimType==='none'?null:s('back').trimType, trimNote:s('back').note.trim},
+    front:{graphic:s('front').note.graphic, graphicUse:s('front').graphicUse, body:s('front').note.body, wash:washLabel('front'), washNote:s('front').note.wash, trim:s('front').trimType==='none'?null:s('front').trimType, trimNote:s('front').note.trim},
+    back:{graphic:s('back').note.graphic, graphicUse:s('back').graphicUse, body:s('back').note.body, wash:washLabel('back'), washNote:s('back').note.wash, trim:s('back').trimType==='none'?null:s('back').trimType, trimNote:s('back').note.trim},
     distress:anyDis?{level:SIDES.filter(disOn).map(x=>`${cap(x)} ${state[x].dis.level}`).join(' / '),where:[...new Set([...(disOn('front')?dF.where:[]),...(disOn('back')?dB.where:[])])],side:disOn('front')&&disOn('back')?'both':disOn('front')?'front':'back',note:SIDES.filter(disOn).map(x=>state[x].dis.note?`${cap(x)}: ${state[x].dis.note}`:'').filter(Boolean).join(' / '),front:disOn('front')?disText('front'):null,back:disOn('back')?disText('back'):null}:null,
     direction:state.direction
   };
@@ -907,7 +924,7 @@ const DB=(()=>{let dbp;const open=()=>dbp||(dbp=(async()=>{ const sc=window.SPOO
   const tx=async(store,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(store,mode);const out=fn(t.objectStore(store));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn('save failed',e);return null;}};
   return{get:k=>tx('kv','readonly',s=>s.get(k)),set:(k,v)=>tx('kv','readwrite',s=>s.put(v,k)),all:()=>tx('designs','readonly',s=>s.getAll()),put:v=>tx('designs','readwrite',s=>s.put(v)),del:id=>tx('designs','readwrite',s=>s.delete(id))};})();
 
-function snapshot(){ return JSON.parse(JSON.stringify({v:2,refs:state.refs,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,direction:state.direction,quality:state.quality,color:state.color,colorName:state.colorName,variations:state.variations,active:state.active,view:state.view,recipe:$('#recipe').innerHTML})); }
+function snapshot(){ return JSON.parse(JSON.stringify({v:2,wv:2,refs:state.refs,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,direction:state.direction,quality:state.quality,color:state.color,colorName:state.colorName,variations:state.variations,active:state.active,view:state.view,recipe:$('#recipe').innerHTML})); }
 let restoring=false, curId=null;
 function restore(s){
   if(!s) return; restoring=true;
@@ -919,6 +936,7 @@ function restore(s){
   const rf={...(s.refs||{})}; SIDES.forEach(x=>{ if(rf['distress-'+x]&&!rf['wash-'+x]) rf['wash-'+x]=rf['distress-'+x]; delete rf['distress-'+x]; }); // old distress slot → wash & distress
   Object.entries(rf).forEach(([k,u])=>applyRef(k,u));
   state.front=Object.assign(blankSide(),s.front||{}); state.back=Object.assign({...blankSide(),washType:'same'},s.back||{});
+  if(!s.wv){ SIDES.forEach(x=>{ if(state[x].washType==='none') state[x].washType='auto'; if(state[x].dis&&state[x].dis.level==='none') state[x].dis.level='auto'; }); }
   state.front.note=Object.assign(blankNote(),state.front.note); state.back.note=Object.assign(blankNote(),state.back.note);
   setBodyMode(s.bodyMode==='describe'?'describe':'upload'); state.body='tee';
   SIDES.forEach(x=>{ const d=state[x].dis; state[x].dis=Object.assign(blankDis(),d||{}); state[x].dis.where=[...(state[x].dis.where||[])]; });
