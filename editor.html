@@ -521,19 +521,27 @@ function renderBody(){
    <label>Hem<input class="field" data-f="hem" value="${esc(B.hem)}" placeholder="e.g. double needle"></label><label>Sample size<input class="field" value="Chest ${f1(+P.chestIn)}&quot;" disabled></label></div>
    <label class="lbl" style="display:block;margin-top:14px">Body notes</label>
    <textarea class="field" data-f="notes" rows="3" style="margin-top:6px" placeholder="e.g. side-seam pockets, contrast back yoke">${esc(B.notes)}</textarea>
+   <div class="lbl" style="margin-top:16px">Reference photos</div>
+   <div class="note">Shown on their own tech-pack page so the factory sees your real body, wash and trim references.</div>
+   <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">${(P.refs||[]).map((r,i)=>`<div style="width:74px;text-align:center;font-size:10px;position:relative"><img src="${r.src}" style="width:74px;height:74px;object-fit:cover;border-radius:6px;border:1px solid #ddd">${esc(refLabel(r))}<button class="btn sm" data-refdel="${i}" style="position:absolute;top:2px;right:2px;padding:0 6px">×</button></div>`).join('')||'<span style="font-size:12px;color:#888">None added</span>'}</div>
+   <div class="row" style="gap:6px;margin-top:8px"><select class="field" id="refKind" style="width:auto">${REF_KINDS.map(([k2,l])=>`<option value="${k2}">${l.replace(/\.$/,'')}</option>`).join('')}</select><select class="field" id="refSide" style="width:auto"><option value="front">Front</option><option value="back">Back</option></select><label class="btn sm" style="cursor:pointer">Add photo<input type="file" accept="image/png,image/jpeg,image/webp" id="refUp" hidden></label></div>
    <div class="lbl" style="margin-top:16px">Construction flats</div>
    <div class="note">AI flat sketches for the tech pack's Construction page. Artwork is never drawn on them.</div>
    <div class="row" style="gap:8px;margin-top:8px">${['front','back'].filter(sd=>P.sides[sd].base).map(sd=>{ const f=P.flats?.[sd], ok=flatReady(sd); return `<div style="flex:1;text-align:center;font-size:11px"><div style="border:1px solid #ddd;border-radius:8px;background:#fff;height:90px;display:flex;align-items:center;justify-content:center;overflow:hidden">${ok?`<img src="${f.src}" style="max-width:100%;max-height:100%">`:'<span style="color:#888">Drawn when you open the tech pack</span>'}</div>${sd.toUpperCase()}${ok&&f.flag?' · <b style="color:#b45309">Check this flat</b>':''}${ok&&f.user?' · yours':''}<div class="row" style="gap:4px;justify-content:center;margin-top:4px"><button class="btn sm" data-flatre="${sd}">Redraw</button><label class="btn sm" style="cursor:pointer">Upload<input type="file" accept="image/png,image/jpeg" data-flatup="${sd}" hidden></label></div></div>`; }).join('')}</div>
 `;
   bindForm(el,B); el.querySelectorAll('[data-s]').forEach(i=>i.oninput=()=>{ P.style[i.dataset.s]=i.value; save(); });
   el.querySelectorAll('[data-m]').forEach(i=>i.oninput=()=>{ Ms[i.dataset.m]=i.value; save(); });
+  el.querySelectorAll('[data-refdel]').forEach(b=>b.onclick=()=>{ P.refs.splice(+b.dataset.refdel,1); save(); renderBody(); });
+  const ru=$('#refUp'); if(ru) ru.onchange=async()=>{ const f=ru.files[0]; if(!f) return; if(!/^image\//.test(f.type)) return toast('Choose a PNG or JPG image'); if(f.size>15*1048576) return toast('That file is over 15 MB');
+    const url=await new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=no; r.readAsDataURL(f); }); const d=await shrinkRef(url); if(!d) return toast('Couldn’t read that image');
+    P.refs=P.refs||[]; if(P.refs.length>=6) return toast('Up to 6 reference photos'); P.refs.push({kind:$('#refKind').value,side:$('#refSide').value,src:d}); save(); renderBody(); };
   el.querySelectorAll('[data-flatre]').forEach(b=>b.onclick=async()=>{ const sd=b.dataset.flatre; if(P.flats?.[sd]?.user&&!confirm('Replace your uploaded flat with an AI drawing?')) return; if(P.flats?.[sd]) P.flats[sd].user=false; b.disabled=true; b.textContent='Drawing…'; const ok=await ensureFlat(sd,true); toast(ok?'Flat redrawn':'Couldn’t draw the flat. Try again in a moment.'); renderBody(); });
   el.querySelectorAll('[data-flatup]').forEach(i=>i.onchange=()=>userFlat(i.dataset.flatup,i.files[0]));
   $('#chest').oninput=e=>{ P.chestIn=+e.target.value||21; renderMeas(); save(); };
   $('#bodyFx').onclick=previewBody; $('#bodyUndo').onclick=()=>{ const h=s.bodyHist?.pop(); if(!h) return; Object.assign(s,h); save(); render(); };
 }
 /* ================= trims & packaging + Brand Kit ================= */
-const TRIM_ITEMS=[{k:'neck',g:'t',n:'Neck label'},{k:'care',g:'t',n:'Care label'},{k:'drawcord',g:'t',n:'Drawcord'},{k:'zipper',g:'t',n:'Zipper'},{k:'eyelet',g:'t',n:'Eyelets'},{k:'thread',g:'t',n:'Thread'},
+const TRIM_ITEMS=[{k:'neck',g:'t',n:'Main label'},{k:'care',g:'t',n:'Care label'},{k:'drawcord',g:'t',n:'Drawcord'},{k:'zipper',g:'t',n:'Zipper'},{k:'eyelet',g:'t',n:'Eyelets'},{k:'thread',g:'t',n:'Thread'},
   {k:'hangtag',g:'p',n:'Hang tag'},{k:'polybag',g:'p',n:'Polybag'},{k:'sticker',g:'p',n:'Sticker / barcode'}];
 const TRIM_FIELDS=[['type','Type'],['size','Size'],['color','Color / material'],['attach','Placement / attach'],['note','Notes']];
 const TRIM_STD={
@@ -830,6 +838,12 @@ function ensureClean(sd){ // starts (or joins) the background job; resolves true
   cleanJobs[sd]={key,p}; return p;
 }
 
+
+/* ---------- reference photos (body / wash / trim) carried into the tech pack ---------- */
+const REF_KINDS=[['body','BODY REF.'],['wash','WASHING REF.'],['trim','TRIM REF.']];
+async function shrinkRef(src,max=900){ try{ const i=await loadImg(src), k2=Math.min(1,max/Math.max(i.width,i.height)), c=canvas(Math.round(i.width*k2),Math.round(i.height*k2)), x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); return c.toDataURL('image/jpeg',.85); }catch(e){ return null; } }
+async function refsFromHandoff(r){ const out=[]; for(const [k2] of REF_KINDS) for(const sd of ['front','back']){ const u=r?.[`${k2}-${sd}`]; if(u&&String(u).startsWith('data:image/')){ const d=await shrinkRef(u); if(d) out.push({kind:k2,side:sd,src:d}); } } return out; }
+const refLabel=r=>(REF_KINDS.find(x=>x[0]===r.kind)||['', 'REFERENCE'])[1]+(r.side?` · ${r.side.toUpperCase()}`:'');
 /* ---------- AI flat sketches (construction reference) ---------- */
 async function aiFlat(src){
   if(MOCK) return mockAI(P_FLAT,[src]);
@@ -1127,15 +1141,17 @@ $('#tpBtn').onclick=async()=>{
   const fabric=[[B.fabric,B.fabricNote].filter(Boolean).join(', '),B.gsm,B.fit&&B.fit+' fit'].filter(Boolean).join(' · ')||'—';
   const pages=[];
   pages.push(`${header}<h1>FRONT &amp; BACK DETAIL</h1>
-    <div class="views">${sides.map(sd=>`<figure style="flex:${ann[sd].w} 1 0"><img src="${ann[sd].src}"><figcaption>${sd.toUpperCase()} VIEW</figcaption></figure>`).join('')}</div>
+    <div class="views">${sides.map(sd=>`<figure style="flex:1 1 0"><img src="${fulls[sd].toDataURL('image/jpeg',.93)}"><figcaption>${sd.toUpperCase()} VIEW</figcaption></figure>`).join('')}</div>
     <div class="bottom"><div><h4>COLORWAY</h4>${colorway}</div><div><h4>FABRIC</h4><p>${esc(fabric)}</p><h4>WASH</h4><p>${esc([f.wash&&'Front: '+f.wash,bk.wash&&'Back: '+bk.wash].filter(Boolean).join(' / ')||'—')}</p></div></div>`);
+  const refsP=(P.refs||[]).filter(r=>r&&r.src);
+  if(refsP.length) pages.push(`<div class="phead"><h1>REFERENCES</h1></div><div class="refs">${refsP.map(r=>`<figure><div class="rimg"><img src="${r.src}"></div><figcaption>${esc(refLabel(r))}</figcaption></figure>`).join('')}</div><p class="m" style="padding:0 16px 8px">Build the fit, silhouette and construction to the BODY reference, the wash and distress to the WASHING reference. Artwork follows the Artwork pages. References are for guidance only; artwork on them is not part of this order.</p>`);
   const arts=[]; for(const sd of sides){ const s=P.sides[sd]; for(const p of s.parts.filter(q=>kindOf(q)==='graphic')) arts.push({sd,s,p,src:await artDetail(fulls[sd],s,p),cols:inksOf(fulls[sd],p,bodyRGB[sd])}); }
-  for(let i=0;i<arts.length;i+=2){
-    pages.push(`<div class="phead"><h1>ARTWORK DETAIL</h1></div><div class="arts">${arts.slice(i,i+2).map(a=>{ const pl=placeTxt(a.s,a.p);
+  for(let i=0;i<arts.length;i+=1){
+    pages.push(`<div class="phead"><h1>ARTWORK DETAIL</h1></div><div class="arts">${arts.slice(i,i+1).map(a=>{ const pl=placeTxt(a.s,a.p);
       const rows=[['Technique',TECH[a.p.tech]],...OPTS[a.p.tech].map(([kk])=>[kk,optOf(a.p,kk)]),['Size',sizeTxt(a.s,a.p)],['Placement',pl.join(' · ')],...(layerTxt(a.s,a.p)?[['Layering',layerTxt(a.s,a.p)]]:[]),['Notes',a.p.note||'—']];
       return `<div class="art"><div class="at"><span class="num">${lab(a.p)}</span><b>${esc(a.p.name.toUpperCase())}</b><em>${a.sd.toUpperCase()}</em></div><img src="${a.src}">
         <table>${rows.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v)}</td></tr>`).join('')}
-        <tr><th>Ink colors</th><td>${a.cols.list.map(o=>`<span class="chip"><i style="background:${o.h}"></i>${o.h}${o.pms?' · PANTONE '+esc(o.pms):''}</span>`).join(' ')||'—'}${a.cols.user?'':' <small>(approx.)</small>'}</td></tr></table></div>`; }).join('')}</div>`);
+        <tr><th>Ink colors</th><td>${a.cols.list.map(o=>`<span class="chip"><i style="background:${o.h}"></i>${o.h}${o.pms?' · PANTONE '+esc(o.pms):''}</span>`).join(' ')||'—'}${a.cols.user?'':' <small>(approx.)</small>'}</td></tr></table></div><div class="art annw"><img src="${ann[a.sd].src}"><small>${a.sd.toUpperCase()} VIEW — red box shows where the artwork sits</small></div>`; }).join('')}</div>`);
   }
   const dets=sides.flatMap(sd=>P.sides[sd].parts.filter(p=>kindOf(p)==='detail').map(p=>({sd,s:P.sides[sd],p})));
   const kvT=a=>`<table class="kvt">${a.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v||'—')}</td></tr>`).join('')}</table>`;
@@ -1149,15 +1165,17 @@ $('#tpBtn').onclick=async()=>{
   const hoodB=['hoodie','zip'].includes(P.body);
   const dots={neck:[100,52],care:[52,170],hangtag:[128,78],drawcord:[100,28]};
   const garm=hoodB?'<path d="M64 28c8-14 64-14 72 0l34 14 22 62-24 10-6-24v96H38v-96l-6 24-24-10 22-62z" /><path d="M72 30c10 18 46 18 56 0"/>':'<path d="M70 26c10 14 50 14 60 0l40 16 22 60-24 10-6-22v90H38v-90l-6 22-24-10 22-60z"/><path d="M70 26c10 22 50 22 60 0"/>';
-  const svg=`<svg viewBox="0 0 200 240" width="100%" style="max-height:2.3in"><g fill="#f4f3ee" stroke="#111" stroke-width="2.4" stroke-linejoin="round">${garm}</g>${used.filter(it=>dots[it.k]&&!(it.k==='drawcord'&&!hoodB)).map(it=>`<g><circle cx="${dots[it.k][0]}" cy="${dots[it.k][1]}" r="9" fill="#111"/><text x="${dots[it.k][0]}" y="${dots[it.k][1]+4}" text-anchor="middle" font-size="11" font-weight="700" fill="#FEE32B" font-family="Helvetica,Arial">${numOf[it.k]}</text></g>`).join('')}</svg>`;
+  const FD={neck:[50,15],drawcord:[43,21],hangtag:[56,17],care:[78,84]}, fF=P.flats?.front, useFlat=flatsOK.front&&fF&&fF.src;
+  const flatSvg=useFlat?`<div class="fdw"><img src="${fF.src}">${used.filter(it=>FD[it.k]&&!(it.k==='drawcord'&&!hoodB)).map(it=>`<span class="dot" style="left:${FD[it.k][0]}%;top:${FD[it.k][1]}%">${numOf[it.k]}</span>`).join('')}</div>`:'';
+  const svg=flatSvg||`<svg viewBox="0 0 200 240" width="100%" style="max-height:2.3in"><g fill="#f4f3ee" stroke="#111" stroke-width="2.4" stroke-linejoin="round">${garm}</g>${used.filter(it=>dots[it.k]&&!(it.k==='drawcord'&&!hoodB)).map(it=>`<g><circle cx="${dots[it.k][0]}" cy="${dots[it.k][1]}" r="9" fill="#111"/><text x="${dots[it.k][0]}" y="${dots[it.k][1]+4}" text-anchor="middle" font-size="11" font-weight="700" fill="#FEE32B" font-family="Helvetica,Arial">${numOf[it.k]}</text></g>`).join('')}</svg>`;
   const card=it=>{ const t=TT.items[it.k], [tg,cl]=trimTag(t), on=!!t.use, ic=`<svg viewBox="0 0 60 60" width="62%" fill="none" stroke="${on?'#222':'#bbb'}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${ICON[it.k]}</svg>`;
-    const rows=on?TRIM_FIELDS.map(([f,l])=>[l==='Color / material'?'Color':l==='Placement / attach'?'Attach':l==='Notes'?'Note':l,t.spec?.[f]]).filter(([,v])=>v&&v!=='—').slice(0,5):[];
+    const rows=on?TRIM_FIELDS.map(([f,l])=>[l==='Color / material'?'Color':l==='Placement / attach'?'Placement':l==='Notes'?'Note':l,t.spec?.[f]]).filter(([,v])=>v&&v!=='—').slice(0,5):[];
     const fl=(t.files||[]).slice(0,2).map(f=>`<div class="tf"><b>${esc((f.name.split('.').pop()||'').toUpperCase().slice(0,4))}</b> ${esc(f.name)}</div>`).join('');
     return `<div class="tc ${on?'':'off'}"><div class="ti">${ic}</div><div class="tb"><div class="th">${on?`<span class="num">${numOf[it.k]}</span>`:''}<b>${esc(it.n)}</b></div><span class="tg ${cl}">${tg}</span>${rows.length?`<table class="tr">${rows.map(([l,v])=>`<tr><th>${esc(l)}</th><td>${esc(v)}</td></tr>`).join('')}</table>`:''}${on?(fl||(t.st==='std'?'<div class="tf warn">No brand file — SPOOL standard</div>':'')):''}</div></div>`; };
   const stdN=used.filter(it=>TT.items[it.k].st==='std').map(it=>it.n.toLowerCase());
   const dets2=dets.map(d=>`${lab(d.p)} · ${d.sd} · ${d.p.name} (${TECH[d.p.tech]})`);
   pages.push(`<div class="phead tphead"><h1>TRIMS &amp; PACKAGING</h1><div class="lg"><span class="tg ok">CONFIRMED</span> chosen by the brand <span class="tg std">SPOOL STANDARD</span> default — not confirmed <span class="tg nu">NOT USED</span></div></div>
-    <div class="tpg"><div class="tpl"><h4>PLACEMENT</h4>${svg}<div class="cap">BACK VIEW</div><ol class="pl">${used.map(it=>`<li><b>${esc(it.n)}</b> — ${esc(TT.items[it.k].spec?.attach||'—')}</li>`).join('')}</ol>${dets2.length?`<h4>MARKED ON GARMENT</h4><div class="m">${dets2.map(esc).join('<br>')}</div>`:''}</div>
+    <div class="tpg"><div class="tpl"><h4>PLACEMENT</h4>${svg}<div class="cap">FRONT VIEW</div><ol class="pl">${used.map(it=>`<li><b>${esc(it.n)}</b> — ${esc(TT.items[it.k].spec?.attach||'—')}</li>`).join('')}</ol>${dets2.length?`<h4>MARKED ON GARMENT</h4><div class="m">${dets2.map(esc).join('<br>')}</div>`:''}</div>
     <div class="tpr"><h4>TRIMS <small>attached to the garment</small></h4><div class="tgr">${TRIM_ITEMS.filter(i2=>i2.g==='t').map(card).join('')}</div>
       <h4>PACKAGING <small>not attached to the garment</small></h4><div class="tgr">${TRIM_ITEMS.filter(i2=>i2.g==='p').map(card).join('')}</div></div></div>
     <div class="tfoot">${stdN.length?`<b class="wn">${stdN.length} item${stdN.length>1?'s are':' is'} SPOOL STANDARD</b> (${esc(stdN.join(', '))}) — the brand has not chosen ${stdN.length>1?'them':'it'}. Confirm or replace before production.`:'All trims and packaging are confirmed by the brand.'}${TT.note?`<div class="m">Notes: ${esc(TT.note)}</div>`:''}</div>`);
@@ -1168,10 +1186,10 @@ $('#tpBtn').onclick=async()=>{
     <div><h4>FLAT SKETCHES</h4><div class="flats">${sides.map(flatBox).join('')}</div>
       <h4>APPROVAL</h4><div class="sign"><div>Designer</div><div>Factory</div><div>Date</div></div>
       <p class="m">Sizes and colors are estimated from the design image and confirmed on the first sample. Flat sketches are AI-drawn references; the factory builds from the photo and this spec.</p></div></div>`);
-  const tot=pages.length, label=i=>i===0?'OVERVIEW':i===tot-1?'CONSTRUCTION':i===tot-2?'TRIMS & PACKAGING':'ARTWORK';
+  const tot=pages.length, label=i=>i===0?'OVERVIEW':(refsP.length&&i===1)?'REFERENCES':i===tot-1?'CONSTRUCTION':i===tot-2?'TRIMS & PACKAGING':'ARTWORK';
   const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tech pack — ${esc(St.no)} ${esc(P.name)}</title><style>
   @page{size:11in 8.5in;margin:0}
-  *{box-sizing:border-box}body{margin:0;background:#e9e7e1;font-family:Helvetica,Arial,sans-serif;color:#111;font-size:11px}
+  *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#e9e7e1;font-family:Helvetica,Arial,sans-serif;color:#111;font-size:11px}
   .page{width:11in;height:8.5in;background:#fff;margin:18px auto;padding:.35in .4in .5in;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.15);page-break-after:always}
   .frame{border:2px solid #111;height:100%;padding:0 0 10px;display:flex;flex-direction:column}
   .hdr{display:grid;grid-template-columns:1.1in 1fr 1fr;border-bottom:2px solid #111}
@@ -1199,6 +1217,8 @@ $('#tpBtn').onclick=async()=>{
   .flats{display:flex;gap:10px;justify-content:center}.flats figure{flex:1 1 0}.flat{height:3.1in;width:100%;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;color:#888;font-size:10px}.flat img{max-width:100%;max-height:100%;object-fit:contain}.flats figcaption{font-size:9px;font-weight:400;color:#555;text-align:center}
   .tphead{display:flex;align-items:center;justify-content:space-between}.lg{font-size:9.5px;margin-right:12px;display:flex;gap:6px;align-items:center}
   .tpg{flex:1;display:grid;grid-template-columns:2.3in 1fr;min-height:0}.tpl{padding:4px 14px;border-right:1px solid #ccc;overflow:hidden}.tpr{padding:2px 14px 0}.cap{text-align:center;font-weight:700;letter-spacing:.1em;font-size:10px;margin:2px 0 6px}
+  .fdw{position:relative;width:100%}.fdw img{width:100%;display:block}.dot{position:absolute;transform:translate(-50%,-50%);background:#111;color:#FEE32B;border-radius:99px;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .annw{align-items:center;justify-content:center}.annw img{max-height:5.6in}.annw small{text-align:center}
   .pl{margin:0;padding-left:16px;font-size:9.5px;line-height:1.45}.pl li{margin-bottom:2px}
   h4 small{font-weight:400;float:right;color:#666;letter-spacing:0}
   .tgr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
@@ -1210,6 +1230,7 @@ $('#tpBtn').onclick=async()=>{
   .tr{margin-top:3px}.tr th,.tr td{padding:1.5px 3px;font-size:8.5px;border-bottom:1px solid #eee;line-height:1.25}.tr th{width:.5in;color:#555}
   .tf{font-size:8.5px;margin-top:3px}.tf b{background:#111;color:#fff;border-radius:3px;padding:0 4px;font-size:7.5px}.tf.warn{color:#8a5a00}
   .tfoot{border-top:1px solid #ccc;padding:5px 14px;font-size:10px}.wn{color:#8a5a00}
+  .refs{flex:1;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-content:center;padding:10px 16px;min-height:0}.refs figure{width:${refsP.length>3?'30%':'44%'}}.rimg{height:${refsP.length>3?'2.5in':'4.6in'};display:flex;align-items:center;justify-content:center;background:#f6f5f1}.rimg img{max-width:100%;max-height:100%;object-fit:contain}
   .m{color:#666;font-size:9.5px}small{color:#555}
   .bar{position:sticky;top:0;background:#111;color:#fff;padding:10px;text-align:center;z-index:5}.bar button{padding:8px 18px;border-radius:99px;border:0;background:#FEE32B;font-weight:700;cursor:pointer;margin-left:10px}
   @media print{body{background:#fff}.page{margin:0;box-shadow:none}.bar{display:none}}
@@ -1311,7 +1332,7 @@ function applyBody(p,body,named){ p.body=body; p.chestIn=BODY_CHEST[body]||21; p
 async function completeProject(h,meta={}){ // studio handoff → editor project
   const p=newProject(); if(meta.id) p.id=meta.id; if(meta.created) p.created=meta.created;
   const custom=!h.spec||h.spec.garment==='custom';
-  p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
+  p.refs=await refsFromHandoff(h.refs); p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
   p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
   if(h.spec?.color&&!/from references/i.test(h.spec.color)) p.bodySpec.color=h.spec.color;
   for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
