@@ -1141,12 +1141,26 @@ $('#tpBtn').onclick=async()=>{
   const kvT=a=>`<table class="kvt">${a.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v||'—')}</td></tr>`).join('')}</table>`;
   const flatBox=sd=>{ const f=P.flats?.[sd]; const ok=f&&f.src&&flatsOK[sd]; return `<figure><div class="flat">${ok?`<img src="${f.src}">`:'<span>Flat not available</span>'}</div><figcaption>${sd.toUpperCase()} — ${ok&&f.user?'flat supplied by designer':'AI flat — construction reference'}${ok&&f.flag?' (verify against the photo)':''}</figcaption></figure>`; };
   const Mz=(B.meas||{}), sizeRows=[['Chest (laid flat)',f1(+P.chestIn)+' in'],['Body length (HPS to hem)',Mz.length],['Sleeve length',Mz.sleeve],['Shoulder width',Mz.shoulder],['Hem width',Mz.hem]];
-  pages.push(`<div class="phead"><h1>TRIMS &amp; PACKAGING</h1></div><div class="cols">
-    <div><h4>TRIMS &amp; PACKAGING</h4><table class="grid"><tr><th>Item</th><th>Spec</th><th>Status</th></tr>${trimsUsed().map(x=>`<tr><td><b>${esc(x.n)}</b></td><td>${esc(trimLine(x))}${x.t.files?.length?`<br><small>Files: ${x.t.files.map(f=>esc(f.name)).join(', ')}</small>`:''}</td><td><small>${trimTag(x.t)[0]}</small></td></tr>`).join('')}</table>
-      ${P.trims.note?`<p class="m">Notes: ${esc(P.trims.note)}</p>`:''}${(()=>{ const nu=TRIM_ITEMS.filter(it=>!P.trims.items[it.k].use).map(it=>it.n); return nu.length?`<p class="m">Not used: ${esc(nu.join(', '))}</p>`:''; })()}
-      </div>
-    <div><h4>MARKED ON GARMENT</h4>${dets.length?`<table class="grid"><tr><th>#</th><th>Side</th><th>Trim</th><th>Type</th><th>Size</th><th>Placement</th></tr>${dets.map(d=>`<tr><td><b>${lab(d.p)}</b></td><td>${d.sd}</td><td>${esc(d.p.name)}${d.p.note?'<br><small>'+esc(d.p.note)+'</small>':''}</td><td>${TECH[d.p.tech]}<br><small>${OPTS[d.p.tech].map(([kk])=>esc(optOf(d.p,kk))).join(' / ')}</small></td><td>${sizeTxt(d.s,d.p)}</td><td>${placeTxt(d.s,d.p).join('<br>')}</td></tr>`).join('')}</table>`:'<p class="m">No trims marked on the garment.</p>'}
-      </div></div>`);
+  const ICON={neck:'<rect x="8" y="18" width="44" height="24" rx="2"/><path d="M16 30h28"/>',care:'<rect x="14" y="6" width="32" height="48" rx="2"/><path d="M20 16h20M20 22h14M20 28h20M20 34h12"/><rect x="20" y="42" width="6" height="6"/><circle cx="34" cy="45" r="3.5"/>',
+    drawcord:'<path d="M4 22c8-10 14 10 22 0s14 10 22 0M4 40c8-10 14 10 22 0s14 10 22 0"/>',zipper:'<rect x="24" y="4" width="12" height="52"/><path d="M16 12h8M36 18h8M16 24h8M36 30h8M16 36h8M36 42h8"/>',eyelet:'<circle cx="30" cy="30" r="18"/><circle cx="30" cy="30" r="9"/>',
+    thread:'<rect x="12" y="10" width="14" height="40" rx="2"/><rect x="34" y="10" width="14" height="40" rx="2"/>',hangtag:'<path d="M30 2v10"/><rect x="14" y="12" width="32" height="46" rx="3"/><circle cx="30" cy="20" r="3"/>',
+    polybag:'<rect x="10" y="8" width="40" height="44" rx="2"/><path d="M10 18h40" stroke-dasharray="3 3"/>',sticker:'<rect x="6" y="16" width="48" height="28" rx="2"/><path d="M14 22v16M18 22v16M24 22v16M28 22v16M36 22v16M40 22v16M46 22v16"/>'};
+  const TT=P.trims, used=TRIM_ITEMS.filter(it=>TT.items[it.k].use), numOf={}; used.forEach((it,i)=>numOf[it.k]=i+1);
+  const hoodB=['hoodie','zip'].includes(P.body);
+  const dots={neck:[100,52],care:[52,170],hangtag:[128,78],drawcord:[100,28]};
+  const garm=hoodB?'<path d="M64 28c8-14 64-14 72 0l34 14 22 62-24 10-6-24v96H38v-96l-6 24-24-10 22-62z" /><path d="M72 30c10 18 46 18 56 0"/>':'<path d="M70 26c10 14 50 14 60 0l40 16 22 60-24 10-6-22v90H38v-90l-6 22-24-10 22-60z"/><path d="M70 26c10 22 50 22 60 0"/>';
+  const svg=`<svg viewBox="0 0 200 240" width="100%" style="max-height:2.3in"><g fill="#f4f3ee" stroke="#111" stroke-width="2.4" stroke-linejoin="round">${garm}</g>${used.filter(it=>dots[it.k]&&!(it.k==='drawcord'&&!hoodB)).map(it=>`<g><circle cx="${dots[it.k][0]}" cy="${dots[it.k][1]}" r="9" fill="#111"/><text x="${dots[it.k][0]}" y="${dots[it.k][1]+4}" text-anchor="middle" font-size="11" font-weight="700" fill="#FEE32B" font-family="Helvetica,Arial">${numOf[it.k]}</text></g>`).join('')}</svg>`;
+  const card=it=>{ const t=TT.items[it.k], [tg,cl]=trimTag(t), on=!!t.use, ic=`<svg viewBox="0 0 60 60" width="62%" fill="none" stroke="${on?'#222':'#bbb'}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${ICON[it.k]}</svg>`;
+    const rows=on?TRIM_FIELDS.map(([f,l])=>[l==='Color / material'?'Color':l==='Placement / attach'?'Attach':l==='Notes'?'Note':l,t.spec?.[f]]).filter(([,v])=>v&&v!=='—').slice(0,5):[];
+    const fl=(t.files||[]).slice(0,2).map(f=>`<div class="tf"><b>${esc((f.name.split('.').pop()||'').toUpperCase().slice(0,4))}</b> ${esc(f.name)}</div>`).join('');
+    return `<div class="tc ${on?'':'off'}"><div class="ti">${ic}</div><div class="tb"><div class="th">${on?`<span class="num">${numOf[it.k]}</span>`:''}<b>${esc(it.n)}</b></div><span class="tg ${cl}">${tg}</span>${rows.length?`<table class="tr">${rows.map(([l,v])=>`<tr><th>${esc(l)}</th><td>${esc(v)}</td></tr>`).join('')}</table>`:''}${on?(fl||(t.st==='std'?'<div class="tf warn">No brand file — SPOOL standard</div>':'')):''}</div></div>`; };
+  const stdN=used.filter(it=>TT.items[it.k].st==='std').map(it=>it.n.toLowerCase());
+  const dets2=dets.map(d=>`${lab(d.p)} · ${d.sd} · ${d.p.name} (${TECH[d.p.tech]})`);
+  pages.push(`<div class="phead tphead"><h1>TRIMS &amp; PACKAGING</h1><div class="lg"><span class="tg ok">CONFIRMED</span> chosen by the brand <span class="tg std">SPOOL STANDARD</span> default — not confirmed <span class="tg nu">NOT USED</span></div></div>
+    <div class="tpg"><div class="tpl"><h4>PLACEMENT</h4>${svg}<div class="cap">BACK VIEW</div><ol class="pl">${used.map(it=>`<li><b>${esc(it.n)}</b> — ${esc(TT.items[it.k].spec?.attach||'—')}</li>`).join('')}</ol>${dets2.length?`<h4>MARKED ON GARMENT</h4><div class="m">${dets2.map(esc).join('<br>')}</div>`:''}</div>
+    <div class="tpr"><h4>TRIMS <small>attached to the garment</small></h4><div class="tgr">${TRIM_ITEMS.filter(i2=>i2.g==='t').map(card).join('')}</div>
+      <h4>PACKAGING <small>not attached to the garment</small></h4><div class="tgr">${TRIM_ITEMS.filter(i2=>i2.g==='p').map(card).join('')}</div></div></div>
+    <div class="tfoot">${stdN.length?`<b class="wn">${stdN.length} item${stdN.length>1?'s are':' is'} SPOOL STANDARD</b> (${esc(stdN.join(', '))}) — the brand has not chosen ${stdN.length>1?'them':'it'}. Confirm or replace before production.`:'All trims and packaging are confirmed by the brand.'}${TT.note?`<div class="m">Notes: ${esc(TT.note)}</div>`:''}</div>`);
   pages.push(`<div class="phead"><h1>CONSTRUCTION</h1></div><div class="cols">
     <div><h4>BODY</h4>${kvT([['Fabric',fabric],['Color',[B.color,B.pantone&&'Pantone '+B.pantone].filter(Boolean).join(' · ')],['Fit',B.fit],['Neck / collar',B.neck],['Sleeve / cuff',B.sleeve],['Hem',B.hem],['Body notes',B.notes]])}
       <h4>WASH &amp; DISTRESS</h4>${kvT([['Wash front',[f.wash,f.washNote].filter(Boolean).join(', ')],['Wash back',[bk.wash,bk.washNote].filter(Boolean).join(', ')],['Distress',sp.distress?[sp.distress.front&&'Front: '+sp.distress.front,sp.distress.back&&'Back: '+sp.distress.back].filter(Boolean).join(' / '):'']])}
@@ -1183,6 +1197,19 @@ $('#tpBtn').onclick=async()=>{
   .grid th{width:auto;background:#f1f1ee;font-size:9.5px;letter-spacing:.05em}
   .sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:6px 0 10px}.sign div{border-bottom:1px solid #111;height:34px;font-size:9px;color:#666;display:flex;align-items:flex-end}
   .flats{display:flex;gap:10px;justify-content:center}.flats figure{flex:1 1 0}.flat{height:3.1in;width:100%;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;color:#888;font-size:10px}.flat img{max-width:100%;max-height:100%;object-fit:contain}.flats figcaption{font-size:9px;font-weight:400;color:#555;text-align:center}
+  .tphead{display:flex;align-items:center;justify-content:space-between}.lg{font-size:9.5px;margin-right:12px;display:flex;gap:6px;align-items:center}
+  .tpg{flex:1;display:grid;grid-template-columns:2.3in 1fr;min-height:0}.tpl{padding:4px 14px;border-right:1px solid #ccc;overflow:hidden}.tpr{padding:2px 14px 0}.cap{text-align:center;font-weight:700;letter-spacing:.1em;font-size:10px;margin:2px 0 6px}
+  .pl{margin:0;padding-left:16px;font-size:9.5px;line-height:1.45}.pl li{margin-bottom:2px}
+  h4 small{font-weight:400;float:right;color:#666;letter-spacing:0}
+  .tgr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+  .tc{display:grid;grid-template-columns:.8in 1fr;border:1px solid #bbb;min-height:1.15in;overflow:hidden}.tc.off{color:#999;background:#fafaf8}
+  .ti{background:#f2f1ec;display:flex;align-items:center;justify-content:center}.tc.off .ti{background:#f7f7f4}.tb{padding:5px 7px}
+  .th{display:flex;align-items:center;gap:5px;margin-bottom:3px}.th b{font-size:11.5px}.th .num{min-width:18px;height:18px;font-size:10px;padding:0 4px}
+  .tg{display:inline-block;border:1px solid;border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;letter-spacing:.06em;font-style:italic}
+  .tg.ok{background:#e1f3e4;color:#1d6b2c;border-color:#9bd0a5}.tg.std{background:#fdf0c8;color:#8a5a00;border-color:#e6c765}.tg.kit{background:#e3ecfb;color:#244f94;border-color:#a9c1ec}.tg.nu{background:#eee;color:#888;border-color:#ccc}
+  .tr{margin-top:3px}.tr th,.tr td{padding:1.5px 3px;font-size:8.5px;border-bottom:1px solid #eee;line-height:1.25}.tr th{width:.5in;color:#555}
+  .tf{font-size:8.5px;margin-top:3px}.tf b{background:#111;color:#fff;border-radius:3px;padding:0 4px;font-size:7.5px}.tf.warn{color:#8a5a00}
+  .tfoot{border-top:1px solid #ccc;padding:5px 14px;font-size:10px}.wn{color:#8a5a00}
   .m{color:#666;font-size:9.5px}small{color:#555}
   .bar{position:sticky;top:0;background:#111;color:#fff;padding:10px;text-align:center;z-index:5}.bar button{padding:8px 18px;border-radius:99px;border:0;background:#FEE32B;font-weight:700;cursor:pointer;margin-left:10px}
   @media print{body{background:#fff}.page{margin:0;box-shadow:none}.bar{display:none}}
