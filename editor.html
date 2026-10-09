@@ -112,6 +112,14 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .pc img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--soft)}
 .pc div{padding:8px 10px;font-size:12.5px}
 .pc small{color:var(--muted);display:block}
+.savechip{border:1px solid var(--line2);background:#fff;border-radius:99px;font-size:12px;padding:5px 11px;color:var(--muted);cursor:pointer;white-space:nowrap;max-width:210px;overflow:hidden;text-overflow:ellipsis}
+.savechip.ok{color:#2a7a3b}.savechip.warn{color:#8a6a00;background:#fffbe6;border-color:#f0e2a0}.savechip.bad{color:#b3261e;border-color:#f0b8b4;background:#fff5f4}
+.origbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff8d6;border:1px solid #f0e2a0;border-radius:12px;padding:8px 12px;font-size:13px;margin-bottom:8px}.origbar span{flex:1 1 auto}
+.vieworig #asidePanel{pointer-events:none;opacity:.45}
+.vieworig #detBtn,.vieworig #drawBtn,.vieworig #undoBtn,.vieworig #redoBtn,.vieworig #hideBtn{pointer-events:none;opacity:.4}
+.stage.holdorig .box{display:none}
+.pc .act{position:absolute;top:6px;background:rgba(253,253,249,.92);border-radius:99px;font-size:11px;padding:2px 8px}
+.pc .dup{right:62px}
 .pc .del{position:absolute;top:6px;right:6px;background:rgba(253,253,249,.92);border-radius:99px;font-size:11px;padding:2px 8px}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
 .cmp figure{display:flex;flex-direction:column;gap:6px}
@@ -129,7 +137,9 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .toast.show{opacity:1}
 @media (max-width:600px){
   header{flex-wrap:wrap;row-gap:10px}
-  .hdr-r{flex:1 0 100%;width:100%;min-width:0}
+  .hdr-r{flex:1 0 100%;width:100%;min-width:0;flex-wrap:wrap;row-gap:8px}
+  .hdr-r .pname{flex:1 1 150px}
+  .savechip{max-width:160px}
   .pname{flex:1 1 auto;min-width:0;width:auto}
 }
 @media (max-width:960px){
@@ -157,6 +167,8 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
   <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Design Editor</span></a>
   <div class="hdr-r">
     <input class="pname" id="pname" value="Untitled design" aria-label="Project name">
+    <button class="savechip hidden" id="saveChip" type="button" title="Click to save now"></button>
+    <div class="seg hidden" id="verSeg" title="Switch between your design and the original AI design"><button class="on" data-v="cur">Current</button><button data-v="orig">Original</button></div>
     <button class="btn sm" id="projBtn">My projects</button>
     <span id="acct"></span>
   </div>
@@ -169,12 +181,13 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <button class="btn sm" id="hideBtn" title="Show the design without boxes">Hide boxes</button>
       <button class="btn sm" id="undoBtn" title="Undo (Cmd/Ctrl + Z)" aria-label="Undo">↶</button>
       <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
-      <button class="btn sm" id="resetBtn" title="Go back to the original AI image for this side">Reset</button>
+      <button class="btn sm" id="cmpBtn" title="Press and hold to see the original design" style="touch-action:none;user-select:none;-webkit-user-select:none">Hold for original</button>
       <span class="sp"></span>
       <button class="btn sm" id="detBtn" title="AI finds the graphics and draws the boxes for you">Auto-detect</button>
       <button class="btn sm" id="drawBtn">＋ Select area</button>
     </div>
     <div class="hint" id="hint">Drag “＋ Select area” over a part of the design, then pick its technique on the right.</div>
+    <div class="origbar hidden" id="origBar"><span>Viewing the original design — read only.</span><button class="btn sm y" id="origCopy">Edit a copy</button><button class="btn sm" id="origBack">Back to current</button></div>
     <div class="stagewrap">
       <div class="stage" id="stage">
         <canvas id="cv" width="1024" height="1024"></canvas>
@@ -225,7 +238,6 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
         <button class="btn dark" id="sampleBtn">Request sample →</button>
       </div>
       <div class="note" id="planNote">Free plan: your first tech pack is free. Production files come with SPOOL Studio or with your sample.</div>
-      <div class="note" id="saved">Saved in this browser</div>
     </div>
   </aside>
 </main>
@@ -273,26 +285,6 @@ const OPTS={
   chain:[['Type',['Curb','Ball','Cable']],['Finish',['Silver','Gold','Gunmetal']]],
   other:[['Type',['Hardware','Buttons','Lace','Snaps','Other']]]
 };
-function techWords(p){
-  const o=k2=>optOf(p,k2);
-  switch(p.tech){
-    case 'print': return `flat ${o('Method').toLowerCase()} print ink on the fabric`;
-    case 'puff': return 'raised puff print with a soft rubbery 3D surface';
-    case 'emb': return `${o('Type')==='Chain stitch'?'chain-stitch':o('Type')==='3D puff'?'3D puff':'flat satin-stitch'} embroidery with visible thread texture`;
-    case 'patch': return `a sewn-on ${o('Type').toLowerCase()} patch with a ${o('Edge').toLowerCase()} edge, slightly raised from the garment`;
-    case 'app': return `appliqué cut from ${o('Fabric').toLowerCase()} fabric, ${o('Edge')==='Raw'?'raw-edge':'satin-stitched edge'}, sewn onto the garment`;
-    case 'rhine': return `${o('Color').toLowerCase()} rhinestones (${o('Stone')}) set ${o('Density')==='Full'?'densely, fully covering':'along'} the artwork, sparkling`;
-    case 'studs': return `${o('Finish').toLowerCase()} ${o('Shape').toLowerCase()} metal studs (${o('Size')}) following the artwork shape`;
-    case 'distress': return `${o('Level').toLowerCase()} ${o('Type').toLowerCase()} distressing on the fabric`;
-    case 'label': return `a small ${o('Type').toLowerCase()} brand label at the ${o('Place').toLowerCase()}`;
-    case 'hangtag': return `a ${o('Material').toLowerCase()} hang tag attached with a ${o('String').toLowerCase()}`;
-    case 'zipper': return `a ${o('Finish').toLowerCase()} ${o('Type').toLowerCase()} zipper`;
-    case 'drawcord': return `a ${o('Type').toLowerCase()} drawcord with ${o('Tip').toLowerCase()} tips`;
-    case 'grommet': return `${o('Finish').toLowerCase()} metal grommets (${o('Size')})`;
-    case 'chain': return `a ${o('Finish').toLowerCase()} ${o('Type').toLowerCase()} chain attached to the garment`;
-    case 'other': return `a realistic ${o('Type').toLowerCase()} detail${p.note?' ('+p.note+')':''}`;
-  }
-}
 const optOf=(p,key)=>{const d=OPTS[p.tech].find(x=>x[0]===key); return p.opts[p.tech+'|'+key]||(d?d[1][0]:'');};
 
 /* ================= helpers ================= */
@@ -328,7 +320,6 @@ async function mockAI(prompt,images){
   return c.toDataURL('image/png');
 }
 const P_CLEAN='REMOVE ALL PRINTS: Edit this garment product photo. Remove every printed graphic, logo, text, patch and trim from the garment so it is completely blank. Keep the garment type, color, wash, fabric texture, folds, distressing, camera angle and background exactly the same.';
-const localPrompt=p=>`LOCAL EDIT: This is a close-up crop of a garment product photo. Re-render ONLY the artwork in the middle of the crop as ${techWords(p)}. Keep its exact shape, letters, colors, size and position.${p.note?' Notes: '+p.note+'.':''} Keep the surrounding fabric, wash, lighting, framing and everything else exactly the same. Photorealistic, same camera angle.`;
 const P_POLISH='POLISH: Clean up this garment product photo so every printed, stitched and attached detail looks naturally lit and consistent. Do not change the design, layout, sizes, colors, techniques or garment in any way. Same framing and background.';
 
 /* ================= storage ================= */
@@ -365,8 +356,8 @@ let P=null, side='front', sel=null, view='spec', tool=null, tab='graphic', imgCa
 let undoStack={front:[],back:[]}, redoStack={front:[],back:[]};
 const cloneSide=s=>({...s,erased:[...(s.erased||[])],ignored:[...(s.ignored||[])],cal:{...s.cal},bodyHist:[...(s.bodyHist||[])],parts:s.parts.map(p=>({...p,b:[...p.b],orig:p.orig?[...p.orig]:p.orig,opts:{...p.opts},hist:[...(p.hist||[])]}))});
 function snap(){ if(!P) return; const st=undoStack[side]; st.push(cloneSide(S())); if(st.length>40) st.shift(); redoStack[side]=[]; renderTop(); }
-function undo(){ const st=undoStack[side]; if(!st.length) return toast('Nothing to undo'); redoStack[side].push(cloneSide(S())); P.sides[side]=st.pop(); sel=null; save(); render(); }
-function redo(){ const st=redoStack[side]; if(!st.length) return toast('Nothing to redo'); undoStack[side].push(cloneSide(S())); P.sides[side]=st.pop(); sel=null; save(); render(); }
+function undo(){ if(viewOrig) return; const st=undoStack[side]; if(!st.length) return toast('Nothing to undo'); redoStack[side].push(cloneSide(S())); P.sides[side]=st.pop(); sel=null; save(); render(); }
+function redo(){ if(viewOrig) return; const st=redoStack[side]; if(!st.length) return toast('Nothing to redo'); undoStack[side].push(cloneSide(S())); P.sides[side]=st.pop(); sel=null; save(); render(); }
 const kindOf=p=>p.kind||(DT.includes(p.tech)?'detail':'graphic');
 const curKind=()=>tab==='details'?'detail':'graphic';
 const visParts=()=>tab==='body'||!P?[]:S().parts.filter(p=>kindOf(p)===curKind());
@@ -386,13 +377,13 @@ async function composite(target, s=S()){
   x.drawImage(await img(s.hole),0,0,PX,PX);
   for(const p of [...s.parts].reverse()){ if(p.layer){ const b=p.b; x.drawImage(await img(p.layer),b[0]*k,b[1]*k,b[2]*k,b[3]*k); } } // #1 = front layer
 }
-let drawSeq=0;
-async function draw(){ const n=++drawSeq; if(!P){ ctx.clearRect(0,0,PX,PX); return; } const off=canvas(PX); await composite(off); if(n!==drawSeq) return; ctx.clearRect(0,0,PX,PX); ctx.drawImage(off,0,0); }
+let drawSeq=0, viewOrig=false, compare=false, saveState='', dirty=false; const showOrig=()=>viewOrig||compare;
+async function draw(){ const n=++drawSeq; if(!P){ ctx.clearRect(0,0,PX,PX); return; } const off=canvas(PX); if(showOrig()&&S().original){ const ox=off.getContext('2d'); ox.fillStyle='#fff'; ox.fillRect(0,0,PX,PX); ox.drawImage(await img(S().original),0,0,PX,PX); } else await composite(off); if(n!==drawSeq) return; ctx.clearRect(0,0,PX,PX); ctx.drawImage(off,0,0); }
 const pct=v=>v/U*100+'%';
 function place(el,b){el.style.left=pct(b[0]);el.style.top=pct(b[1]);el.style.width=pct(b[2]);el.style.height=pct(b[3]);}
 function renderBoxes(){
   stage.querySelectorAll('.box').forEach(e=>e.remove());
-  if(!P||!S().base) return;
+  if(!P||!S().base||showOrig()) return;
   [...visParts()].reverse().forEach(p=>{
     const bx=document.createElement('div'); bx.className='box'+(kindOf(p)==='detail'?' det':'')+(sel===p?' sel':''); place(bx,p.b); bx.dataset.id=p.id;
     bx.innerHTML=`<span class="n">${lab(p)}</span>`+(sel===p?'<span class="h"></span>':'');
@@ -423,7 +414,11 @@ function renderTop(){
   $('#hideBtn').textContent=view==='final'?'Show boxes':'Hide boxes'; $('#hideBtn').classList.toggle('on',view==='final');
   $('#undoBtn').disabled=!(P&&(undoStack[side]||[]).length); $('#redoBtn').disabled=!(P&&(redoStack[side]||[]).length);
   $('#drawBtn').classList.toggle('on',tool==='draw');
-  ['#detBtn','#drawBtn','#polishBtn','#dlBtn','#tpBtn','#sampleBtn','#resetBtn'].forEach(s=>$(s).disabled=!has);
+  ['#detBtn','#drawBtn','#polishBtn','#dlBtn','#tpBtn','#sampleBtn'].forEach(s=>$(s).disabled=!has);
+  const hasOrig=!!(P&&S().original); $('#cmpBtn').disabled=!has||!hasOrig||viewOrig;
+  $('#verSeg').classList.toggle('hidden',!has); $$('#verSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='orig')===viewOrig)); $('#verSeg [data-v="orig"]').disabled=!hasOrig;
+  $('#origBar').classList.toggle('hidden',!viewOrig); document.body.classList.toggle('vieworig',viewOrig);
+  $('#saveChip').classList.toggle('hidden',!P||!saveState||saveState==='none');
   $('#detBtn').classList.toggle('hidden',tab!=='graphic'); $('#drawBtn').disabled=!has||tab==='body';
   $$('#sideSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.v===side); b.querySelector('.dot')?.remove(); if(P&&P.sides[b.dataset.v].parts.length&&b.dataset.v!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');});
   $('#hint').textContent=tab==='body'?'Body specs apply to the whole garment. Fill them in on the right; preview a new body color with AI if you like.':tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':edgeEdit?'Fit the box around the whole graphic, then press “Done” on the right.':(tab==='details'?'Drag “＋ Select area” over where rhinestones, studs, distressing or hardware go. Labels and trims are below the parts list.':P&&visParts().length?'Select a graphic to set its technique. Drag it to move it, pull the yellow corner to resize it.':'Press “Auto-detect” to box the graphics automatically, or drag “＋ Select area” yourself.');
@@ -452,17 +447,11 @@ function renderDetail(){
    ${opts}
    ${kindOf(p)==='graphic'?`<div style="margin-top:14px" class="lbl">Ink colors</div>
    <div class="inks" id="inks"><span class="muted">Reading colors…</span></div>
-   <div style="margin-top:14px" class="lbl">Size & position</div>
-   ${edgeEdit===p.id?`<div class="est">Drag the box and its corner so it covers the whole graphic.</div><div class="row" style="margin-top:8px"><button class="btn sm y" id="edgeDone">Done</button><button class="btn sm" id="notArt">Not artwork — remove box</button></div>`
-     :`<div class="est">Drag the graphic to move it. Pull the yellow corner to resize it.</div><div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn sm" id="edgeFix">Box doesn’t fit the graphic?</button>${p.layer?'<button class="btn sm" id="posReset">Reset size &amp; position</button>':''}</div>`}`
+   ${edgeEdit===p.id?`<div class="est" style="margin-top:12px">Drag the box and its corner so it covers the whole artwork.</div><div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn sm y" id="edgeDone">Done</button><button class="btn sm" id="notArt">Not artwork — remove box</button></div>`
+     :`<div class="row" style="margin-top:12px;gap:6px;flex-wrap:wrap"><button class="btn sm" id="edgeFix" title="The box cuts off part of the artwork, or covers too much">Fix box</button>${p.layer?'<button class="btn sm" id="posReset" title="Put this artwork back where it was, at its original size">Reset position</button>':''}</div>`}`
    :`<div class="est" style="margin-top:12px">Drag the box or its corner to mark the exact area.</div>`}
    <label style="display:block;margin-top:12px" class="lbl" for="pNote">Note for the factory</label>
-   <input class="field" id="pNote" style="margin-top:6px" value="${esc(p.note||'')}" placeholder="e.g. match Pantone 186 C, tack down corners">
-   <div class="row" style="margin-top:14px;gap:6px;flex-wrap:wrap">
-     <button class="btn y" id="fxBtn">Preview as ${TECH[p.tech]}</button>
-     <button class="btn" id="fxUndo" ${p.hist?.length?'':'disabled'}>Undo preview</button>
-   </div>
-   <div class="note">Preview redraws only this area with AI. Everything outside the box stays the same.</div>`;
+   <input class="field" id="pNote" style="margin-top:6px" value="${esc(p.note||'')}" placeholder="e.g. match Pantone 186 C, tack down corners">`;
   d.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ if(p.tech===b.dataset.t) return; snap(); const q=S().parts.find(x=>x.id===p.id); q.tech=b.dataset.t; sel=q; save(); render();});
   d.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{ snap(); const q=S().parts.find(x=>x.id===p.id); q.opts[q.tech+'|'+b.dataset.o]=b.dataset.v; sel=q; save(); render();});
   $('#pName').oninput=e=>{p.name=e.target.value; renderList(); save();};
@@ -474,8 +463,6 @@ function renderDetail(){
   $('#edgeDone')?.addEventListener('click',()=>{ edgeEdit=null; render(); });
   $('#notArt')?.addEventListener('click',async()=>{ snap(); const s=S(); await unliftPart(p); s.ignored=[...(s.ignored||[]),[...p.b]]; s.parts=s.parts.filter(q=>q.id!==p.id); renumber(s); sel=null; edgeEdit=null; save(); render(); toast('Box removed. Auto-detect will skip this spot.'); });
   $('#posReset')?.addEventListener('click',async()=>{ snap(); await unliftPart(p); S().polished=null; save(); render(); });
-  $('#fxBtn').onclick=()=>preview(p);
-  $('#fxUndo').onclick=()=>undoPreview(p);
 }
 
 /* ================= tabs ================= */
@@ -801,36 +788,6 @@ function layerTxt(s,p){ const g=s.parts.filter(q=>kindOf(q)==='graphic'), i=g.in
   return [over.length?'Prints over '+over.join(', '):'', under.length?'Under '+under.join(', '):''].filter(Boolean).join(' · '); }
 async function flatten(s){ const c=canvas(PX); await composite(c,s); return c.toDataURL('image/jpeg',.93); }
 
-/* ================= local preview ================= */
-async function preview(p){
-  if(isBusy()) return; snap(); p=S().parts.find(x=>x.id===p.id)||p; sel=p; const s=S(), wasClean=cleanReady(s);
-  busy(true,`Previewing ${TECH[p.tech].toLowerCase()}`,'AI redraws only this area');
-  try{
-    const full=canvas(PX); await composite(full,s);
-    const [x,y,sz]=cropSquare(p.b); const crop=canvas(1024); crop.getContext('2d').drawImage(full,x,y,sz,sz,0,0,1024,1024);
-    const out=await img(await ai(localPrompt(p),[crop.toDataURL('image/jpeg',.92)]));
-    // paste back only the box (slightly padded), feathered
-    const pad=Math.max(6,Math.min(p.b[2],p.b[3])*k*.06);
-    const patch=canvas(PX), px=patch.getContext('2d'); px.drawImage(out,x,y,sz,sz);
-    const mask=canvas(PX), mx=mask.getContext('2d'); mx.filter=`blur(${Math.round(pad/2)}px)`; mx.fillStyle='#000'; mx.fillRect(p.b[0]*k-pad/2,p.b[1]*k-pad/2,p.b[2]*k+pad,p.b[3]*k+pad);
-    px.globalCompositeOperation='destination-in'; px.drawImage(mask,0,0);
-    p.hist=p.hist||[];
-    if(s.separated&&p.layer){
-      p.hist.push({layer:p.layer,b:[...p.b]});
-      const merged=canvas(PX), m2=merged.getContext('2d'); m2.drawImage(full,0,0); m2.drawImage(patch,0,0);
-      const lay=diffLayer(regionOf(merged,p.b),regionOf(await img(s.hole),p.b)); p.layer=lay.toDataURL('image/png');
-    } else {
-      p.hist.push({base:s.base});
-      const nb=canvas(PX), nx=nb.getContext('2d'); nx.drawImage(await img(s.base),0,0,PX,PX); nx.drawImage(patch,0,0);
-      s.base=nb.toDataURL('image/jpeg',.93); if(wasClean) s.cleanOf=baseKey(s); if(s.separated) await rebuildHole(s);
-    }
-    s.polished=null;
-    if(p.hist.length>4) p.hist.shift();
-    toast(`${p.name}: ${TECH[p.tech]} preview applied`);
-  }catch(e){ console.error(e); toast('Preview failed: '+e.message); }
-  busy(false); save(); render();
-}
-async function undoPreview(p){ const h=p.hist?.pop(); if(!h) return; const s=S(), wasClean=cleanReady(s); if(h.layer){ p.layer=h.layer; } if(h.base){ s.base=h.base; if(wasClean) s.cleanOf=baseKey(s); if(s.separated) await rebuildHole(s); } s.polished=null; save(); render(); }
 
 /* ================= finish ================= */
 $('#polishBtn').onclick=async()=>{
@@ -865,8 +822,6 @@ $('#hiresBtn').onclick=async()=>{
   busy(false);
 };
 const slug=()=>(P.name||'spool-design').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'spool-design';
-$('#resetBtn').onclick=()=>{ if(!S().original||!confirm(`Restore the original ${side} image? Previews, moves and resizes on this side are removed; your parts and specs stay.`)) return; snap(); const s=S();
-  s.base=s.original; s.separated=false; s.hole=null; s.erased=[]; s.ignored=[]; s.clean=null; s.cleanOf=null; s.polished=null; s.parts.forEach(p=>{p.layer=null;p.hist=[]; if(p.orig) p.b=[...p.orig]; p.orig=null;}); edgeEdit=null; save(); render(); };
 
 /* ================= artwork colors (editable) ================= */
 // p.inks = [{h:'#RRGGBB', pms:'Pantone code'}] once the user touches them; until then colors are auto-read (approx.)
@@ -1080,10 +1035,23 @@ $('#sampleBtn').onclick=async()=>{
 };
 
 /* ================= projects ================= */
-let saveT; function save(){ if(!P) return; P.updated=Date.now(); clearTimeout(saveT); $('#saved').textContent='Saving…';
-  saveT=setTimeout(async()=>{ await edDB.put('projects',JSON.parse(JSON.stringify(P))); await edDB.put('kv',P.id,'last'); const t=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); $('#saved').textContent=(window.SPOOL_AUTH?.user?'Saved · syncing… · ':'Saved in this browser · ')+t; cloudSave(); },400); }
-let cloudT; function cloudSave(){ const A=window.SPOOL_AUTH; if(!A?.user||!P) return; clearTimeout(cloudT); const id=P.id;
-  cloudT=setTimeout(async()=>{ if(!P||P.id!==id) return; const ok=await A.cloud.save(P,await thumbOf(P)); $('#saved').textContent=(ok?'Saved to your account · ':'Saved in this browser (sync failed) · ')+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); },4000); }
+let saveT, cloudT;
+function setSave(s){ saveState=s; const el=$('#saveChip'); if(!el) return; const narrow=innerWidth<600; const m={saving:['Saving…',''],cloud:['✓ Saved','ok'],local:[narrow?'Saved here · Sign in':'Saved on this device · Sign in','warn'],fail:['Not saved · Retry','bad']}[s]||['','']; el.textContent=m[0]; el.title={local:'Saved in this browser only. Sign in to keep it in your account.',fail:'Click to try again.',cloud:'Saved to your account. Click to save now.'}[s]||'Click to save now'; el.className='savechip '+m[1]+(!P||!m[0]?' hidden':''); }
+function save(){ if(!P) return; P.updated=Date.now(); dirty=true; clearTimeout(saveT); setSave('saving'); saveT=setTimeout(()=>persist(false),400); }
+async function persist(flush){ if(!P) return; const snap=JSON.parse(JSON.stringify(P));
+  try{ await edDB.put('projects',snap); await edDB.put('kv',snap.id,'last'); }catch(e){ console.warn(e); dirty=true; setSave('fail'); return; }
+  if(window.SPOOL_AUTH?.user) cloudSave(flush?0:4000); else { dirty=false; setSave('local'); } }
+function cloudSave(delay){ const A=window.SPOOL_AUTH; if(!A?.user||!P) return; clearTimeout(cloudT); const id=P.id; setSave('saving');
+  cloudT=setTimeout(async()=>{ if(!P||P.id!==id) return; let ok=false; try{ ok=await A.cloud.save(P,await thumbOf(P)); }catch(e){ console.warn(e); } if(!P||P.id!==id) return; dirty=!ok; setSave(ok?'cloud':'fail'); },delay===undefined?4000:delay); }
+async function flushSave(){ if(!P) return; clearTimeout(saveT); clearTimeout(cloudT); setSave('saving'); await persist(true); }
+addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&dirty&&P) flushSave(); });
+async function cloneProject(src,opt={}){ // Duplicate (as is) or Edit a copy (from the original)
+  const q=JSON.parse(JSON.stringify(src)); delete q.pending;
+  q.id='p'+Date.now()+Math.random().toString(36).slice(2,5); q.created=q.updated=Date.now(); q.from={id:src.id,original:!!opt.fromOriginal};
+  q.name=(src.name||'Design')+(opt.fromOriginal?' · from original':' · copy'); q.style=Object.assign({},q.style||{},{no:''});
+  if(opt.fromOriginal) for(const sd of ['front','back']){ const o=q.sides[sd]?.original||null; q.sides[sd]=Object.assign(blankSide(),{original:o,base:o}); if(o) await autoCal(q.sides[sd],q.body); }
+  return q; }
 async function thumbOf(p){ const sd=p.sides.front.base?p.sides.front:p.sides.back; const src=sd?.polished||sd?.base; if(!src) return null; try{ const i=await loadImg(src); const c=canvas(200); c.getContext('2d').drawImage(i,0,0,200,200); return c.toDataURL('image/jpeg',.7); }catch(e){ return null; } }
 function upgrade(p){ // older editor projects → v3
   if(p.v===3) return p;
@@ -1091,24 +1059,37 @@ function upgrade(p){ // older editor projects → v3
   ['front','back'].forEach(sd=>{ const o=p.sides?.[sd]; const src=o?.original||o?.base||null; q.sides[sd].original=src; q.sides[sd].base=src; });
   return q;
 }
-async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
-  $('#pname').value=P.name; $('#chest').value=P.chestIn; render(); recut(); }
+async function openProject(p){ let wasPending=false; if(p&&p.pending){ wasPending=true; busy(true,'Opening your design','Loading front and back'); try{ p=await completeProject(p.pending,{id:p.id,created:p.created,name:p.name}); } finally{ busy(false); } }
+  viewOrig=false; compare=false; undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
+  $('#pname').value=P.name; $('#chest').value=P.chestIn; dirty=false; setSave(window.SPOOL_AUTH?.user?'cloud':'local'); render(); recut(); if(wasPending) save(); }
 async function recut(){ const pp=P; let n=0; for(const sd of ['front','back']){ const s=pp.sides[sd]; if(!cleanReady(s)) continue; await garmentOf(s); let M=null;
   for(const q of s.parts){ if(!q.layer||!q.orig||(q.cut===3&&q.omask)||(q.hist||[]).some(h=>h.layer)) continue; M=M||await matchFor(s); const lay=cutArt(regionOf(await img(s.base),q.orig),regionOf(await img(s.clean),q.orig),M); q.layer=lay.toDataURL('image/png'); q.omask=maskURL(lay); q.cut=3; n++; }
   if(s.parts.some(q=>q.layer&&q.orig)) await rebuildHole(s); }
   if(n&&P===pp){ save(); draw(); } }
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
+$('#saveChip').onclick=async()=>{ if(!P) return; const A=window.SPOOL_AUTH; if(A&&!A.user&&saveState!=='fail'){ const u=await A.requireLogin('Sign in to keep this project in your account and open it on any device.'); if(!u) return; } flushSave(); };
+$('#verSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b||b.disabled||!P) return; const o=b.dataset.v==='orig'; if(o===viewOrig) return; viewOrig=o; if(o){ sel=null; tool=null; edgeEdit=null; } render(); };
+$('#origBack').onclick=()=>{ viewOrig=false; render(); };
+$('#origCopy').onclick=async()=>{ if(!P) return; await flushSave(); const q=await cloneProject(P,{fromOriginal:true}); await openProject(q); save(); toast('New copy made from the original. Your first project is unchanged.'); };
+{ const cb=$('#cmpBtn'); const on=e=>{ if(cb.disabled||compare) return; e.preventDefault?.(); compare=true; stage.classList.add('holdorig'); draw(); };
+  const off=()=>{ if(!compare) return; compare=false; stage.classList.remove('holdorig'); draw(); };
+  cb.addEventListener('pointerdown',on); ['pointerup','pointerleave','pointercancel'].forEach(ev=>cb.addEventListener(ev,off)); addEventListener('blur',off);
+  cb.addEventListener('keydown',e=>{ if((e.key===' '||e.key==='Enter')&&!e.repeat) on(e); }); cb.addEventListener('keyup',off); cb.addEventListener('contextmenu',e=>e.preventDefault()); }
 $('#projBtn').onclick=openProjects;
 async function openProjects(){
   const A=window.SPOOL_AUTH; const local=((await edDB.all('projects'))||[]); const cloudList=A?.user?await A.cloud.list():[];
-  const items=new Map(); local.forEach(p=>{ const sd=p.sides?.front?.base?p.sides.front:p.sides?.back; items.set(p.id,{id:p.id,name:p.name,updated:p.updated,thumb:sd?.polished||sd?.base||'',local:p,cloud:false}); });
+  const items=new Map(); local.forEach(p=>{ const sd=p.sides?.front?.base?p.sides.front:p.sides?.back; items.set(p.id,{id:p.id,name:p.name,updated:p.updated,thumb:sd?.polished||sd?.base||p.thumb||'',local:p,cloud:false}); });
   cloudList.forEach(c=>{ const t=Date.parse(c.updated_at)||0, it=items.get(c.id); if(it){ it.cloud=true; if(t>it.updated+1000){ it.newer=true; it.updated=t; } } else items.set(c.id,{id:c.id,name:c.name,updated:t,thumb:c.thumb||'',local:null,cloud:true}); });
   const list=[...items.values()].sort((a,b)=>b.updated-a.updated); const g=$('#projs'); g.innerHTML='';
   if(A&&!A.user) g.insertAdjacentHTML('beforeend','<div class="muted" style="grid-column:1/-1">Sign in to keep your projects in your account and open them on any device.</div>');
   if(!list.length) g.insertAdjacentHTML('beforeend','<div class="muted">No projects yet. Designs you open from the Design Studio are saved here.</div>');
   list.forEach(it=>{ const c=document.createElement('button'); c.className='pc';
-    c.innerHTML=`<img src="${it.thumb}" alt=""><div><b>${esc(it.name)}</b><small>${new Date(it.updated).toLocaleDateString()}${it.cloud?' · in your account':' · this browser only'}</small></div><span class="del">Delete</span>`;
-    c.onclick=async e=>{ if(e.target.classList.contains('del')){ e.stopPropagation(); if(confirm('Delete this project?')){ await edDB.del('projects',it.id); if(it.cloud) await A.cloud.remove(it.id); if(P?.id===it.id){P=null;render();} openProjects(); } return; }
+    c.innerHTML=`<img src="${it.thumb}" alt=""><div><b>${esc(it.name)}</b><small>${new Date(it.updated).toLocaleDateString()}${it.cloud?' · in your account':' · this browser only'} · original kept</small></div><span class="act dup">Duplicate</span><span class="act del">Delete</span>`;
+    c.onclick=async e=>{ if(e.target.classList.contains('dup')){ e.stopPropagation(); let src=it.local; if(!src||it.newer){ busy(true,'Duplicating','Loading from your account'); try{ src=await A.cloud.load(it.id)||src; }finally{ busy(false); } } if(!src) return toast('Could not copy this project');
+        if(src.pending){ const q=JSON.parse(JSON.stringify(src)); q.id='p'+Date.now()+Math.random().toString(36).slice(2,5); q.created=q.updated=Date.now(); q.name=(src.name||'Design')+' · copy'; q.pending.pid=q.id; src=null; await edDB.put('projects',q); if(A?.user) A.cloud.save(q,q.thumb); }
+        else { const q=await cloneProject(src); await edDB.put('projects',q); if(A?.user) A.cloud.save(q,await thumbOf(q)); }
+        toast('Duplicated'); setTimeout(openProjects,300); return; }
+      if(e.target.classList.contains('del')){ e.stopPropagation(); if(confirm('Delete this project?')){ await edDB.del('projects',it.id); if(it.cloud) await A.cloud.remove(it.id); if(P?.id===it.id){P=null;render();} openProjects(); } return; }
       let p=it.local; if(!p||it.newer){ busy(true,'Opening project','Loading from your account'); try{ p=await A.cloud.load(it.id)||p; }finally{ busy(false); } if(p) await edDB.put('projects',p); }
       if(!p) return toast('Could not open this project');
       $('#projModal').classList.add('hidden'); await openProject(p); if(!it.cloud) cloudSave(); };
@@ -1126,21 +1107,30 @@ async function garmentFromImage(src){ // ask the detect AI what kind of garment 
   }catch(e){ console.warn('garment',e); return null; } }
 function applyBody(p,body,named){ p.body=body; p.chestIn=BODY_CHEST[body]||21; p.style=Object.assign(blankStyle(),p.style||{},{category:GARMENT_NAME[body]||''});
   if(!named) p.name=(GARMENT_NAME[body]||'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'}); }
+async function completeProject(h,meta={}){ // studio handoff → editor project
+  const p=newProject(); if(meta.id) p.id=meta.id; if(meta.created) p.created=meta.created;
+  const custom=!h.spec||h.spec.garment==='custom';
+  p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
+  p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
+  if(h.spec?.color&&!/from references/i.test(h.spec.color)) p.bodySpec.color=h.spec.color;
+  for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
+  // garment type: preset body > words in the notes/idea > AI looking at the design > tee
+  let body=custom?guessBody([h.spec?.front?.body,h.spec?.back?.body,h.direction].join(' ')):(h.body||'tee');
+  if(!body){ busy(true,'Opening your design','Checking the garment type'); body=await garmentFromImage(p.sides.front.base||p.sides.back.base)||h.body||'tee'; }
+  applyBody(p,body,false); if(!custom&&h.spec?.body) p.name=h.spec.body+' · '+new Date(p.created).toLocaleDateString([], {month:'short',day:'numeric'});
+  if(meta.name) p.name=meta.name;
+  for(const sd of ['front','back']) if(p.sides[sd].base) await autoCal(p.sides[sd],p.body);
+  return p;
+}
 async function fromStudio(){
   const h=await studioDB.get('kv','handoff'); if(!h||!h.ai) return false;
   busy(true,'Opening your design','Loading front and back');
-  try{ const p=newProject();
-    const custom=!h.spec||h.spec.garment==='custom';
-    p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
-    p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
-    if(h.spec?.color&&!/from references/i.test(h.spec.color)) p.bodySpec.color=h.spec.color;
-    for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
-    // garment type: preset body > words in the notes/idea > AI looking at the design > tee
-    let body=custom?guessBody([h.spec?.front?.body,h.spec?.back?.body,h.direction].join(' ')):(h.body||'tee');
-    if(!body){ busy(true,'Opening your design','Checking the garment type'); body=await garmentFromImage(p.sides.front.base||p.sides.back.base)||h.body||'tee'; }
-    applyBody(p,body,false); if(!custom&&h.spec?.body) p.name=h.spec.body+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'});
-    for(const sd of ['front','back']) if(p.sides[sd].base) await autoCal(p.sides[sd],p.body);
-    await studioDB.put('kv',null,'handoff'); await openProject(p); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
+  try{
+    if(h.pid){ let ex=await edDB.get('projects',h.pid); const A=window.SPOOL_AUTH;
+      if(!ex&&A?.user){ try{ ex=await A.cloud.load(h.pid); }catch(e){ console.warn(e); } }
+      if(ex){ await studioDB.put('kv',null,'handoff'); busy(false); await openProject(ex); window.SPOOL_TRACK?.('editor_open'); toast('Opened your project — edits are saved to it'); return true; } }
+    const p=await completeProject(h,{id:h.pid});
+    await studioDB.put('kv',null,'handoff'); busy(false); await openProject(p); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
   } finally { busy(false); }
   return true;
 }

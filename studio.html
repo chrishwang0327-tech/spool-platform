@@ -474,8 +474,10 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 
 <section class="mine" id="saved">
   <div class="mine-head">
-    <div><h2>Saved</h2><p>Designs you starred. Click one to open it again.</p></div>
+    <div><h2>My projects</h2><p>Designs you saved or edited. They open in the Design Editor, in your account.</p></div>
+    <a class="btn" href="editor.html#projects">Open My projects →</a>
   </div>
+  <p class="hidden" id="savedOld" style="margin:4px 0 10px;font-size:13px;color:var(--muted)">Starred earlier in this browser:</p>
   <div class="mine-grid" id="savedGrid"></div>
 </section>
 
@@ -901,11 +903,22 @@ function specSummary(){
   };
 }
 const EDITOR_BODY={tee:'tee',hoodie:'hoodie',zip:'fullzip',crew:'sweatshirt',trucker:'sweatshirt',sweatpant:'sweatpants',denim:'denim',shorts:'sweatpants'};
+function handoffOf(v){ const key=state.bodyMode==='preset'?(EDITOR_BODY[state.body]||'tee'):'tee';
+  return {key,body:state.bodyMode==='preset'?state.body:'tee',ai:{front:v.front,back:v.back,provider:v.provider||''},spec:specSummary(),refs:{...state.refs},notes:{front:state.front.note,back:state.back.note},washType:{front:state.front.washType,back:state.back.washType},distress:{front:state.front.dis,back:state.back.dis},trims:{front:{type:state.front.trimType,note:state.front.note.trim},back:{type:state.back.trimType,note:state.back.note.trim}},color:'',colorName:'',direction:state.direction,email:getEmail(),from:'reference-studio',at:Date.now()}; }
+/* one studio design = one project: the id comes from the design images, so Edit and Save always find the same project */
+const designId=(()=>{ const memo=new WeakMap(); const h32=s=>{ let x=2166136261>>>0; const st=Math.max(1,Math.floor(s.length/6000)); for(let i=0;i<s.length;i+=st){ x^=s.charCodeAt(i); x=Math.imul(x,16777619)>>>0; } for(let i=Math.max(0,s.length-400);i<s.length;i++){ x^=s.charCodeAt(i); x=Math.imul(x,16777619)>>>0; } x^=s.length; return (Math.imul(x,16777619)>>>0).toString(36); };
+  return v=>{ if(memo.has(v)) return memo.get(v); const id='d'+h32(String(v.front||''))+h32(String(v.back||'')); memo.set(v,id); return id; }; })();
+const PROJ=(()=>{ let p; const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest';
+    return await new Promise((res,rej)=>{ if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open('spool-editor-'+sc,1);
+      r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains('projects')) db.createObjectStore('projects',{keyPath:'id'}); if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); })());
+  const tx=async(mode,fn)=>{ try{ const db=await open(); return await new Promise((res,rej)=>{ const t=db.transaction('projects',mode); const o=fn(t.objectStore('projects')); t.oncomplete=()=>res(o&&o.result); t.onerror=()=>rej(t.error); }); }catch(e){ console.warn(e); return null; } };
+  return { get:id=>tx('readonly',s=>s.get(id)), put:v=>tx('readwrite',s=>s.put(v)) }; })();
+async function thumbOfSrc(src){ try{ const i=await new Promise((res,rej)=>{ const im=new Image(); im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=rej; im.src=src; });
+  const c=document.createElement('canvas'); c.width=c.height=200; const s=Math.min(i.width,i.height); c.getContext('2d').drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,200,200); return c.toDataURL('image/jpeg',.7); }catch(e){ return null; } }
 $('#editDesign').onclick=async()=>{
   const v=state.variations[state.active]; if(!v) return toast('Create a design first');
-  
-  const key=state.bodyMode==='preset'?(EDITOR_BODY[state.body]||'tee'):'tee';
-  await DB.set('handoff',{key,body:state.bodyMode==='preset'?state.body:'tee',ai:{front:v.front,back:v.back,provider:v.provider||''},spec:specSummary(),refs:{...state.refs},notes:{front:state.front.note,back:state.back.note},washType:{front:state.front.washType,back:state.back.washType},distress:{front:state.front.dis,back:state.back.dis},trims:{front:{type:state.front.trimType,note:state.front.note.trim},back:{type:state.back.trimType,note:state.back.note.trim}},color:'',colorName:'',direction:state.direction,email:getEmail(),from:'reference-studio',at:Date.now()});
+  await DB.set('handoff',{...handoffOf(v),pid:v.mock?null:designId(v)});
   location.href='editor.html?from=studio';
 };
 $('#sample').onclick=()=>{
@@ -963,13 +976,20 @@ async function saveHistory(){
 async function rememberActive(){ saveDraft(); if(!curId) return; const d=((await DB.all())||[]).find(x=>x.id===curId); if(d){ d.active=state.active; d.view=state.view; DB.put(d); } }
 
 /* ---------- Saved ★ ---------- */
-function updateSaveBtn(){ const v=state.variations[state.active]; const on=!!v?.savedId; $('#saveV').classList.toggle('on',on); $('#saveV').textContent=on?'★ Saved':'☆ Save'; }
+async function updateSaveBtn(){ const v=state.variations[state.active], b=$('#saveV'); let on=false;
+  if(v&&!v.mock){ try{ on=!!await PROJ.get(designId(v)); }catch(e){} }
+  if(v!==state.variations[state.active]) return; b.classList.toggle('on',on); b.textContent=on?'★ In My projects':'☆ Save to My projects'; }
 $('#saveV').onclick=async()=>{
-  const v=state.variations[state.active]; if(!v) return;
-  if(v.savedId){ await DB.del(v.savedId); v.savedId=null; toast('Removed from Saved'); }
-  else{ const id='s'+Date.now(); v.savedId=id; const snap=snapshot(); snap.variations=[{...v}]; snap.active=0;
-    await DB.put({id,type:'saved',name:bodyName(),date:Date.now(),...snap}); toast('Saved'); window.SPOOL_TRACK?.('design_saved'); }
-  updateSaveBtn(); saveDraft(); if(curId){ const d=((await DB.all())||[]).find(x=>x.id===curId); if(d){ d.variations=state.variations; DB.put(d);} } renderLists();
+  const v=state.variations[state.active]; if(!v) return; if(v.mock) return toast('Saving works with real designs');
+  const id=designId(v); if(await PROJ.get(id)) return toast('Already in My projects — open it with “Edit selected design”');
+  const b=$('#saveV'); b.disabled=true; b.textContent='Saving…';
+  try{ const thumb=await thumbOfSrc(v.front||v.back), now=Date.now();
+    const p={v:3,id,name:(bodyName()||'Design')+' · '+new Date(now).toLocaleDateString([], {month:'short',day:'numeric'}),created:now,updated:now,thumb,pending:{...handoffOf(v),pid:id}};
+    if(!await PROJ.put(p)&&!await PROJ.get(id)) throw new Error('Could not save on this device');
+    const A=window.SPOOL_AUTH; let cloud=false; if(A?.user){ try{ cloud=await A.cloud.save(p,thumb); }catch(e){ console.warn(e); } }
+    toast(cloud?'Saved to My projects':A?.user?'Saved on this device — account sync failed, it will retry when you open it':'Saved on this device. Sign in to keep it in your account.'); window.SPOOL_TRACK?.('design_saved');
+  }catch(e){ console.error(e); toast('Not saved: '+e.message); }
+  b.disabled=false; updateSaveBtn();
 };
 
 function card(d,onOpen){
@@ -988,7 +1008,7 @@ function card(d,onOpen){
 async function renderLists(){
   const all=(await DB.all())||[];
   const saved=all.filter(d=>d.type==='saved').sort((a,b)=>b.date-a.date), recent=all.filter(d=>d.type!=='saved').sort((a,b)=>b.id-a.id);
-  const sg=$('#savedGrid'); sg.innerHTML=saved.length?'':'<div class="mine-empty">Tap ☆ Save under a design you like.</div>';
+  const sg=$('#savedGrid'); sg.innerHTML=''; $('#savedOld').classList.toggle('hidden',!saved.length);
   saved.forEach(d=>sg.appendChild(card(d,()=>{ curId=null; restore(d); saveDraft(); renderLists(); window.scrollTo({top:0,behavior:'smooth'}); })));
   const mg=$('#mineGrid'); mg.innerHTML=recent.length?'':'<div class="mine-empty">Your designs will appear here after you hit Create.</div>';
   recent.forEach(d=>mg.appendChild(card(d,()=>{ curId=d.id; restore(d); saveDraft(); renderLists(); window.scrollTo({top:0,behavior:'smooth'}); })));
