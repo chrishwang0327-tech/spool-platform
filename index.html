@@ -114,7 +114,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px;white-space:nowrap
 @media(max-width:360px){nav a.cta{padding:8px 11px;font-size:12px}.logo img{width:84px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261009c"></script>
+<script src="auth.js?v=20261016d"></script>
 </head>
 <body>
 <header>
@@ -134,7 +134,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px;white-space:nowrap
       <h1><span>Idea to sample.</span><span>Sample to shelf.</span></h1>
       <p>Design it with AI, get production-ready artwork and a tech pack, then we sample it and produce it through our factory network.</p>
       <div class="ctas">
-        <a class="btn dark" href="studio.html" data-free-cta>Start designing — 10 free →</a>
+        <a class="btn dark" href="studio.html" data-free-cta>Start designing — 5 free →</a>
         <a class="btn ghost" href="#how">See how it works</a>
       </div>
     </div>
@@ -169,7 +169,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px;white-space:nowrap
     <div class="ex">
       <div class="exc"><div class="im"><img src="assets/example-hoodie.jpg" alt="Washed charcoal hoodie with rhinestone old-English chest logo" loading="lazy"></div><div class="cap"><b>Vintage rhinestone hoodie</b>Washed charcoal, cracked chest logo, frayed hem</div></div>
       <div class="exc"><div class="im"><img src="assets/example-racing.jpg" alt="Cream racing hoodie with checkered flag, puff-print SPOOL logo and sleeve numbers" loading="lazy"></div><div class="cap"><b>Racing hoodie</b>Cream French terry, puff-print chest logo, sleeve numbers</div></div>
-      <a class="exc next" href="studio.html"><div class="im"><span>Your design<br>goes here.</span></div><div class="cap"><b data-free-cta>Start designing — 10 free →</b>Describe it or add a photo. Two designs in about a minute.</div></a>
+      <a class="exc next" href="studio.html"><div class="im"><span>Your design<br>goes here.</span></div><div class="cap"><b data-free-cta>Start designing — 5 free →</b>Describe it or add a photo. Two designs in about a minute.</div></a>
     </div>
   </section>
 
@@ -213,7 +213,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px;white-space:nowrap
       </div>
       <div class="plan k">
         <h3>SPOOL Studio</h3><div class="pr">$29<span> / month</span></div><p>For brands designing every week. Cancel anytime.</p>
-        <ul><li>Unlimited AI designs</li><li>Unlimited tech pack PDFs</li><li>Production files — vector SVG at print size</li><li>Clean images, no watermark</li></ul>
+        <ul><li>Unlimited designs (up to 10 a day)</li><li>Unlimited tech pack PDFs</li><li>Production files — vector SVG at print size</li><li>Clean images, no watermark</li></ul>
         <button type="button" class="btn" id="goStudio">Go Studio — $29/mo</button>
       </div>
       <div class="plan">
@@ -227,7 +227,7 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px;white-space:nowrap
   <section class="block" id="faq">
     <div class="head"><h2>Questions.</h2><p>Anything else? Tap the chat button — we reply as soon as we can.</p></div>
     <div class="faq">
-      <details><summary>Is it free to try?</summary><p>Yes. Every account gets 10 free designs, the full editor, image downloads and your first tech pack free. SPOOL Studio ($29/month) unlocks unlimited designs, tech packs and production files.</p></details>
+      <details><summary>Is it free to try?</summary><p>Yes. Every account gets 5 free designs, the full editor, image downloads and your first tech pack free. SPOOL Studio ($29/month) unlocks unlimited designs (up to 10 a day), tech packs and production files.</p></details>
       <details><summary>How much does a sample cost?</summary><p>It depends on the garment and techniques. Send a sample request and we'll reply with a quote within 1–2 business days. Nothing is charged until you accept.</p></details>
       <details><summary>What's the minimum for production?</summary><p>We quote production after your sample is approved, based on your design, techniques and quantities.</p></details>
       <details><summary>Do I get print-ready files?</summary><p>SPOOL Studio members can download vector SVG artwork at print size for flat-color graphics. With a sample, SPOOL prepares the full production artwork — vector files, color separations and embroidery files. Have your own logo file? Add it to your sample request so we match it exactly.</p></details>
@@ -251,8 +251,8 @@ footer a{color:var(--k);text-decoration:none;margin-left:18px;white-space:nowrap
   v.addEventListener('ended',()=>{ f.classList.remove('playing'); v.controls=false; v.muted=true; v.loop=true; v.play().catch(()=>{}); });
 })();
 document.getElementById('yr').textContent=new Date().getFullYear(); window.SPOOL_AUTH?.mount(document.getElementById('acct'));
-const goS=document.getElementById('goStudio'); goS.addEventListener('click',()=>{ if(goS.dataset.pro) window.SPOOL_AUTH?.manage(); else window.SPOOL_AUTH?.upgrade('Unlimited designs, tech packs and production files.',{why:'pricing'}); });
-// subscribers: no "10 free" wording, Studio card becomes "Manage billing"
+const goS=document.getElementById('goStudio'); goS.addEventListener('click',()=>{ if(goS.dataset.pro) window.SPOOL_AUTH?.manage(); else window.SPOOL_AUTH?.upgrade('Unlimited designs (up to 10 a day), tech packs and production files.',{why:'pricing'}); });
+// subscribers: no "5 free" wording, Studio card becomes "Manage billing"
 window.SPOOL_AUTH?.ready.then(async u=>{ if(!u) return; const p=await window.SPOOL_AUTH.plan(); if(!p.pro) return;
   document.querySelectorAll('[data-free-cta]').forEach(el=>el.textContent='Open Design Studio →'); goS.dataset.pro='1'; goS.textContent='You’re on Studio · Manage billing'; });</script>
 </body>

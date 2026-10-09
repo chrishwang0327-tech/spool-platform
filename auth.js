@@ -175,7 +175,7 @@
     pw.innerHTML=`<div class="sa-card sa-pw"><button type="button" class="sa-x" aria-label="Close">✕</button>
       <h2 id="saPwH">Upgrade to SPOOL Studio</h2><p id="saPwWhy"></p>
       <div class="sa-price">${PRICE_TXT}<span> / month · cancel anytime</span></div>
-      <ul><li>Unlimited designs in the Design Studio</li><li>Unlimited tech pack PDFs</li><li>Production files — vector SVG artwork at print size</li><li>Images without the SPOOL watermark</li></ul>
+      <ul><li>Unlimited designs in the Design Studio (up to 10 a day)</li><li>Unlimited tech pack PDFs</li><li>Production files — vector SVG artwork at print size</li><li>Images without the SPOOL watermark</li></ul>
       <button type="button" class="sa-btn dark" id="saPwGo">Upgrade — ${PRICE_TXT}/month</button>
       ${opts.sample?'<button type="button" class="sa-link" id="saPwSample">Or request a sample of this design instead</button>':''}
       <div class="sa-err" id="saPwErr" role="alert"></div><div class="sa-small">Secure checkout by Stripe. Manage or cancel anytime from your account menu.</div></div>`;
@@ -191,7 +191,7 @@
   (function(){ const q=new URLSearchParams(location.search); if(!q.has('upgraded')&&!q.has('upgrade')) return;
     const ok=q.has('upgraded'); q.delete('upgraded'); q.delete('upgrade'); history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);
     if(!ok) return; ready.then(async()=>{ let p={pro:false}; for(let i=0;i<6&&!p.pro;i++){ p=await plan(true); if(!p.pro) await new Promise(r=>setTimeout(r,2500)); }
-      if(p.pro){ track('upgraded'); toast('Welcome to SPOOL Studio — unlimited designs and tech packs are on.',6000); renderChips(); subs.forEach(f=>{try{f(user)}catch(e){}}); }
+      if(p.pro){ track('upgraded'); toast('Welcome to SPOOL Studio — unlimited designs (up to 10 a day) and tech packs are on.',6000); renderChips(); subs.forEach(f=>{try{f(user)}catch(e){}}); }
       else toast('Payment received. Your plan will switch on in a minute — refresh the page if it doesn’t.',7000); }); })();
 
   window.SPOOL_AUTH={

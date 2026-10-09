@@ -168,7 +168,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261010a"></script>
+<script src="auth.js?v=20261016d"></script>
 <script src="sample.js?v=20261016c"></script>
 </head>
 <body>
@@ -192,7 +192,6 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
       <button class="btn sm" id="hideBtn" title="Show the design without boxes">Hide boxes</button>
       <button class="btn sm" id="undoBtn" title="Undo (Cmd/Ctrl + Z)" aria-label="Undo">↶</button>
       <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
-      <button class="btn sm" id="cmpBtn" title="Press and hold to see the original design" style="touch-action:none;user-select:none;-webkit-user-select:none">Hold for original</button>
       <span class="sp"></span>
       <button class="btn sm" id="detBtn" title="AI finds the artwork and draws the boxes for you">Auto-detect</button>
       <button class="btn sm" id="drawBtn">＋ Select area</button>
@@ -228,6 +227,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
     <div class="card hidden" id="labelsCard"></div>
     <div>
       <div class="row" style="justify-content:space-between"><div class="lbl" id="listLbl">Artwork</div><span class="hint" id="partCount"></span></div>
+      <div class="row hidden" id="mergeRow" style="gap:6px;margin:4px 0"><button class="btn sm" id="mergeBtn" title="Combine several artworks into one print">Merge…</button><span class="hint" id="mergeHint"></span></div>
       <div class="list" id="list"></div>
     </div>
     <div class="card" id="detail"></div>
@@ -389,7 +389,7 @@ async function composite(target, s=S()){
   x.drawImage(await img(s.hole),0,0,PX,PX);
   for(const p of [...s.parts].reverse()){ if(p.layer){ const b=p.b; x.drawImage(await img(p.layer),b[0]*k,b[1]*k,b[2]*k,b[3]*k); } } // #1 = front layer
 }
-let drawSeq=0, viewOrig=false, compare=false, saveState='', dirty=false; const showOrig=()=>viewOrig||compare;
+let mergeMode=false, mergeSel=new Set(), drawSeq=0, viewOrig=false, compare=false, saveState='', dirty=false; const showOrig=()=>viewOrig||compare;
 async function draw(){ const n=++drawSeq; if(!P){ ctx.clearRect(0,0,PX,PX); return; } const off=canvas(PX); if(showOrig()&&S().original){ const ox=off.getContext('2d'); ox.fillStyle='#fff'; ox.fillRect(0,0,PX,PX); ox.drawImage(await img(S().original),0,0,PX,PX); } else await composite(off); if(n!==drawSeq) return; ctx.clearRect(0,0,PX,PX); ctx.drawImage(off,0,0); }
 const pct=v=>v/U*100+'%';
 function place(el,b){el.style.left=pct(b[0]);el.style.top=pct(b[1]);el.style.width=pct(b[2]);el.style.height=pct(b[3]);}
@@ -427,23 +427,36 @@ function renderTop(){
   $('#undoBtn').disabled=!(P&&(undoStack[side]||[]).length); $('#redoBtn').disabled=!(P&&(redoStack[side]||[]).length);
   $('#drawBtn').classList.toggle('on',tool==='draw');
   ['#detBtn','#drawBtn','#polishBtn','#dlBtn','#tpBtn','#sampleBtn'].forEach(s=>$(s).disabled=!has);
-  const hasOrig=!!(P&&S().original); $('#cmpBtn').disabled=!has||!hasOrig||viewOrig;
-  $('#verSeg').classList.toggle('hidden',!has); $$('#verSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='orig')===viewOrig)); $('#verSeg [data-v="orig"]').disabled=!hasOrig;
+  $('#verSeg').classList.toggle('hidden',!has); $$('#verSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='orig')===viewOrig)); { const hasOrig=!!(P&&S().original); $('#verSeg [data-v="orig"]').disabled=!hasOrig; }
   $('#origBar').classList.toggle('hidden',!viewOrig); document.body.classList.toggle('vieworig',viewOrig);
   $('#saveChip').classList.toggle('hidden',!P||!saveState||saveState==='none');
   $('#detBtn').classList.toggle('hidden',tab!=='graphic'); $('#drawBtn').disabled=!has||tab==='body';
   $$('#sideSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.v===side); b.querySelector('.dot')?.remove(); if(P&&P.sides[b.dataset.v].parts.length&&b.dataset.v!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');});
   $('#hint').textContent=tab==='body'?'Body specs apply to the whole garment. Fill them in on the right; preview a new body color with AI if you like.':tool==='draw'?'Drag over the part of the design you want to spec. Release to add it.':edgeEdit?'Fit the box around the whole artwork, then press “Done” on the right.':(tab==='details'?'Drag “＋ Select area” over where rhinestones, studs, distressing or hardware go. Labels and trims are below the parts list.':P&&visParts().length?'Select an artwork to set its technique. Drag it to move it, pull the yellow corner to resize it.':'Press “Auto-detect” to box the artwork automatically, or drag “＋ Select area” yourself.');
 }
+
+$('#mergeBtn').onclick=()=>{ mergeMode=!mergeMode; mergeSel.clear(); sel=null; render(); };
+async function doMerge(){ // combine the ticked artworks into one print that covers all of them
+  if(isBusy()||!P) return; const s=S(); const ch=s.parts.filter(q=>mergeSel.has(q.id)&&kindOf(q)==='graphic'); if(ch.length<2) return toast('Pick at least two artworks');
+  snap(); const boxes=ch.map(q=>q.layer&&q.orig?q.orig:q.b), x0=Math.min(...boxes.map(b=>b[0])), y0=Math.min(...boxes.map(b=>b[1])), x1=Math.max(...boxes.map(b=>b[0]+b[2])), y1=Math.max(...boxes.map(b=>b[1]+b[3]));
+  const hadLift=ch.some(q=>q.layer), first=ch[0], at=s.parts.indexOf(first);
+  const np={id:'a'+Date.now(),kind:'graphic',num:0,name:'Merged artwork',b:clampB([x0,y0,x1-x0,y1-y0]),tech:first.tech,opts:{...first.opts},note:ch.map(q=>q.note).filter(Boolean).join(' / '),layer:null,hist:[]};
+  s.parts=s.parts.filter(q=>!ch.includes(q)); s.parts.splice(Math.min(at,s.parts.length),0,np); renumber(s);
+  mergeMode=false; mergeSel.clear(); sel=np; if(s.parts.some(q=>q.layer&&q.orig)||hadLift) await rebuildHole(s); save(); render(); toast(`${ch.length} artworks merged into one. Drag it or press Cmd+Z to undo.`); }
 function renderList(){
   const L=$('#list'); L.innerHTML=''; if(!P) return;
   const parts=visParts(); $('#partCount').textContent=parts.length?`${parts.length} on ${side}`:'';
+  const gsAll=parts.filter(q=>kindOf(q)==='graphic'); if(tab!=='graphic'||viewOrig||gsAll.length<2) mergeMode=false;
+  $('#mergeRow').classList.toggle('hidden',!(tab==='graphic'&&!viewOrig&&gsAll.length>=2));
+  $('#mergeBtn').textContent=mergeMode?'Cancel merge':'Merge…'; $('#mergeHint').textContent=mergeMode?'Tap the artworks to combine, then press Merge.':'';
   if(!parts.length){ L.innerHTML=`<div class="muted">${tab==='details'?'No trims yet. Use “＋ Select area” to mark where they go.':'No artwork yet. Use “Auto-detect” or “＋ Select area”.'}</div>`; return; }
   const gs=parts.filter(q=>kindOf(q)==='graphic');
   parts.forEach(p=>{const b=document.createElement('div'); b.className='li'+(sel===p?' on':''); b.setAttribute('role','button'); b.tabIndex=0;
     const arrows=sel===p&&kindOf(p)==='graphic'&&gs.length>1?`<span class="lyr"><button data-l="-1" title="Bring forward" ${gs[0]===p?'disabled':''}>↑</button><button data-l="1" title="Send backward" ${gs[gs.length-1]===p?'disabled':''}>↓</button></span>`:'';
-    b.innerHTML=`<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]}</small>${arrows}`;
-    b.onclick=e=>{ const l=e.target.closest('[data-l]'); if(l){ e.stopPropagation(); moveLayer(p,+l.dataset.l); return; } sel=p;render();}; L.appendChild(b);});
+    const mchk=mergeMode&&kindOf(p)==='graphic'?`<span style="font-size:18px;margin-right:4px">${mergeSel.has(p.id)?'☑':'☐'}</span>`:''; if(mergeMode&&mergeSel.has(p.id)) b.classList.add('on');
+    b.innerHTML=`${mchk}<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]}</small>${mergeMode?'':arrows}`;
+    b.onclick=e=>{ if(mergeMode){ if(kindOf(p)!=='graphic') return; mergeSel.has(p.id)?mergeSel.delete(p.id):mergeSel.add(p.id); renderList(); return; } const l=e.target.closest('[data-l]'); if(l){ e.stopPropagation(); moveLayer(p,+l.dataset.l); return; } sel=p;render();}; L.appendChild(b);});
+  if(mergeMode){ const g=document.createElement('div'); g.className='row'; g.style.cssText='gap:6px;margin-top:8px'; const nSel=[...mergeSel].filter(id=>parts.some(q=>q.id===id)).length; g.innerHTML=`<button class="btn y sm" id="mergeGo" ${nSel>=2?'':'disabled'}>Merge ${nSel||''} into one</button>`; L.appendChild(g); $('#mergeGo').onclick=()=>doMerge(); }
   if(gs.length>1&&tab==='graphic'){ const n=document.createElement('div'); n.className='muted'; n.style.cssText='font-size:12px;margin-top:2px'; n.textContent='#1 is the top layer. Select an artwork, then use ↑ ↓ to change the order.'; L.appendChild(n); }
 }
 const widthIn=p=>p.specW||p.b[2]*ipu();
@@ -512,9 +525,7 @@ function renderBody(){
    <div class="kv"><label>Weight (GSM / oz)<input class="field" data-f="gsm" value="${esc(B.gsm)}" placeholder="e.g. 240 GSM"></label><label>Other fabric<input class="field" data-f="fabricNote" value="${esc(B.fabricNote||'')}" placeholder="e.g. 100% cotton slub"></label></div>
    <div class="lbl" style="margin-top:14px">Color</div>
    <div class="kv"><label>Color name<input class="field" data-f="color" value="${esc(B.color)}" placeholder="e.g. Washed black"></label><label>Pantone (optional)<input class="field" data-f="pantone" value="${esc(B.pantone)}" placeholder="e.g. 19-4007 TCX"></label></div>
-   <div class="row" style="margin-top:10px;gap:6px;flex-wrap:wrap"><button class="btn y sm" id="bodyFx">Preview color on ${side}</button><button class="btn sm" id="bodyUndo" ${s.bodyHist?.length?'':'disabled'}>Undo color</button></div>
-   <div class="note">AI recolors the ${side} photo once. Artwork should stay the same; use Undo if anything else changed.</div>
-   <div class="lbl" style="margin-top:14px">Fit</div>
+   <div class="lbl" style="margin-top:14px">Fit <span class="hint" style="text-transform:none;letter-spacing:0">(optional — tells the factory the intended cut)</span></div>
    ${chipRow('fit',['Regular','Oversized','Boxy','Slim','Cropped'],B.fit)}
    <div class="lbl" style="margin-top:14px">Finishing</div>
    <div class="kv"><label>Neck / collar<input class="field" data-f="neck" value="${esc(B.neck)}" placeholder="e.g. 1x1 rib, 2.5 cm"></label><label>Sleeve / cuff<input class="field" data-f="sleeve" value="${esc(B.sleeve)}" placeholder="e.g. raw edge"></label>
@@ -538,7 +549,6 @@ function renderBody(){
   el.querySelectorAll('[data-flatre]').forEach(b=>b.onclick=async()=>{ const sd=b.dataset.flatre; if(P.flats?.[sd]?.user&&!confirm('Replace your uploaded flat with an AI drawing?')) return; if(P.flats?.[sd]) P.flats[sd].user=false; b.disabled=true; b.textContent='Drawing…'; const ok=await ensureFlat(sd,true); toast(ok?'Flat redrawn':'Couldn’t draw the flat. Try again in a moment.'); renderBody(); });
   el.querySelectorAll('[data-flatup]').forEach(i=>i.onchange=()=>userFlat(i.dataset.flatup,i.files[0]));
   $('#chest').oninput=e=>{ P.chestIn=+e.target.value||21; renderMeas(); save(); };
-  $('#bodyFx').onclick=previewBody; $('#bodyUndo').onclick=()=>{ const h=s.bodyHist?.pop(); if(!h) return; Object.assign(s,h); save(); render(); };
 }
 /* ================= trims & packaging + Brand Kit ================= */
 const TRIM_ITEMS=[{k:'neck',g:'t',n:'Main label'},{k:'care',g:'t',n:'Care label'},{k:'drawcord',g:'t',n:'Drawcord'},{k:'zipper',g:'t',n:'Zipper'},{k:'eyelet',g:'t',n:'Eyelets'},{k:'thread',g:'t',n:'Thread'},
@@ -1198,8 +1208,8 @@ $('#tpBtn').onclick=async()=>{
   .hk,.hv{padding:4px 8px;border-bottom:1px solid #999;font-size:10.5px}.hk{background:#e4e4e1;font-weight:700;letter-spacing:.04em}.hv{font-style:italic}
   .ht>div:nth-last-child(-n+2){border-bottom:0}
   h1{font-size:17px;text-align:center;letter-spacing:.06em;margin:10px 0 4px}
-  .views{flex:1;display:flex;justify-content:center;align-items:center;gap:10px;padding:0 10px;min-height:0}.views figure{flex:1 1 0;min-width:0}
-  figure{margin:0;display:flex;flex-direction:column;align-items:center;min-height:0}figure img{max-width:100%;max-height:4.6in;object-fit:contain}figcaption{font-weight:700;font-size:12px;letter-spacing:.06em;margin-top:2px}
+  .views{flex:1;display:flex;justify-content:center;align-items:center;gap:10px;padding:6px 10px 4px;min-height:0;overflow:hidden}.views figure{flex:1 1 0;min-width:0}
+  figure{margin:0;display:flex;flex-direction:column;align-items:center;min-height:0}figure img{max-width:100%;max-height:4.05in;object-fit:contain}figcaption{font-weight:700;font-size:12px;letter-spacing:.06em;margin-top:2px}
   .bottom{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;padding:6px 16px 0;border-top:1px solid #ddd}
   h4{font-size:12px;letter-spacing:.06em;margin:6px 0 4px;border-bottom:2px solid #111;padding-bottom:2px}p{margin:2px 0}
   .cw{display:flex;flex-wrap:wrap;gap:8px 14px}.sw{display:flex;gap:6px;align-items:center;width:1.9in}.sw i{width:34px;height:26px;border:1px solid #999;flex:none}.sw b{display:block;font-size:10px}.sw small{font-size:8.5px;color:#444;display:block;line-height:1.2}
@@ -1293,10 +1303,6 @@ $('#saveChip').onclick=async()=>{ if(!P) return; const A=window.SPOOL_AUTH; if(A
 $('#verSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b||b.disabled||!P) return; const o=b.dataset.v==='orig'; if(o===viewOrig) return; viewOrig=o; if(o){ sel=null; tool=null; edgeEdit=null; } render(); };
 $('#origBack').onclick=()=>{ viewOrig=false; render(); };
 $('#origCopy').onclick=async()=>{ if(!P) return; await flushSave(); const q=await cloneProject(P,{fromOriginal:true}); await openProject(q); save(); toast('New copy made from the original. Your first project is unchanged.'); };
-{ const cb=$('#cmpBtn'); const on=e=>{ if(cb.disabled||compare) return; e.preventDefault?.(); compare=true; stage.classList.add('holdorig'); draw(); };
-  const off=()=>{ if(!compare) return; compare=false; stage.classList.remove('holdorig'); draw(); };
-  cb.addEventListener('pointerdown',on); ['pointerup','pointerleave','pointercancel'].forEach(ev=>cb.addEventListener(ev,off)); addEventListener('blur',off);
-  cb.addEventListener('keydown',e=>{ if((e.key===' '||e.key==='Enter')&&!e.repeat) on(e); }); cb.addEventListener('keyup',off); cb.addEventListener('contextmenu',e=>e.preventDefault()); }
 $('#projBtn').onclick=openProjects;
 async function openProjects(){
   const A=window.SPOOL_AUTH; const local=((await edDB.all('projects'))||[]); const cloudList=A?.user?await A.cloud.list():[];
