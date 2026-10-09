@@ -20,7 +20,12 @@
   .sa-in{width:100%;box-sizing:border-box;border:1.5px solid transparent;background:#F3F1E8;border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;outline:none}.sa-in:focus{border-color:#201D18;background:#fff}
   .sa-btn{width:100%;margin-top:12px;border:0;border-radius:99px;padding:13px;font:inherit;font-weight:600;font-size:15px;background:#FEE32B;color:#201D18;cursor:pointer}.sa-btn:hover{background:#201D18;color:#FEE32B}.sa-btn:disabled{opacity:.5}
   .sa-x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:0;background:#F3F1E8;cursor:pointer;font-size:15px}
-  .sa-err{color:#a3341d;font-size:13px;min-height:18px;margin-top:8px}.sa-small{font-size:12px;color:#7a7566;margin-top:12px}
+  .sa-err{color:#a3341d;font-size:13px;min-height:18px;margin-top:8px}
+  .sa-g{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border:1.5px solid #201D1826;border-radius:99px;padding:12px;background:#fff;font:inherit;font-weight:600;font-size:15px;color:#201D18;cursor:pointer}.sa-g:hover{border-color:#201D18}
+  .sa-or{display:flex;align-items:center;gap:12px;color:#7a7566;font-size:12px;margin:16px 0 12px}.sa-or:before,.sa-or:after{content:"";flex:1;height:1px;background:#201D1820}
+  .sa-lbl{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a7566}
+  .sa-code{font-size:24px;letter-spacing:.3em;text-align:center;font-weight:600}
+  .sa-row{display:flex;justify-content:space-between;gap:10px;margin-top:10px}.sa-link2{border:0;background:none;font:inherit;font-size:13.5px;color:#201D18;text-decoration:underline;cursor:pointer;padding:4px 0}.sa-small{font-size:12px;color:#7a7566;margin-top:12px}
   .sa-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #201D1822;border-radius:99px;padding:6px 12px 6px 6px;background:#FDFDF9;font:500 13px Outfit,system-ui,sans-serif;color:#201D18;cursor:pointer;position:relative;white-space:nowrap}
   .sa-chip.out{padding:8px 16px;background:#201D18;color:#FDFDF9;border-color:#201D18}
   .sa-av{width:24px;height:24px;border-radius:50%;background:#FEE32B;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
@@ -36,32 +41,61 @@
   function modal(reason){
     if(!back){
       back=document.createElement('div'); back.className='sa-back'; back.setAttribute('role','dialog'); back.setAttribute('aria-modal','true');
-      back.innerHTML=`<form class="sa-card" novalidate><button type="button" class="sa-x" aria-label="Close">✕</button>
+      back.innerHTML=`<div class="sa-card"><button type="button" class="sa-x" aria-label="Close">✕</button>
         <div id="saStep1"><h2>Sign in to SPOOL</h2><p id="saWhy">Save your designs and pick them up on any device.</p>
-        <label for="saEmail" style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a7566">Email</label>
+        <button type="button" class="sa-g" id="saGoogle"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</button>
+        <div class="sa-or" id="saOr"><span>or</span></div>
+        <form id="saF1" novalidate><label for="saEmail" class="sa-lbl">Email</label>
         <input class="sa-in" id="saEmail" type="email" autocomplete="email" placeholder="you@brand.com" style="margin-top:6px">
-        <button class="sa-btn" id="saSend" type="submit">Email me a sign-in link</button><div class="sa-err" id="saErr" role="alert"></div>
-        <div class="sa-small">No password needed. New here? The same link creates your account.</div>
+        <button class="sa-btn" id="saSend" type="submit">Email me a sign-in code</button></form><div class="sa-err" id="saErr" role="alert"></div>
+        <div class="sa-small" id="saInApp" style="display:none">Opened from Instagram or TikTok? Use the email code — Google sign-in doesn't work inside those apps.</div>
+        <div class="sa-small">No password needed. New here? This creates your account.</div>
         <div class="sa-small">By continuing you agree to our <a href="terms.html" target="_blank" style="color:inherit">Terms</a> and <a href="privacy.html" target="_blank" style="color:inherit">Privacy Policy</a>.</div></div>
-        <div id="saStep2" style="display:none"><h2>Check your email</h2><p>We sent a sign-in link to <b id="saTo"></b>. Open it on this device and you'll come right back here, signed in.</p>
-        <button class="sa-btn" type="button" id="saAgain" style="background:#F3F1E8">Use a different email</button></div></form>`;
+        <form id="saStep2" style="display:none" novalidate><h2>Enter your code</h2><p>We emailed a code to <b id="saTo"></b>. Type it here — or tap the link in the email.</p>
+        <input class="sa-in sa-code" id="saCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" placeholder="123456" aria-label="Sign-in code">
+        <button class="sa-btn" id="saVerify" type="submit">Sign in</button><div class="sa-err" id="saErr2" role="alert"></div>
+        <div class="sa-row"><button type="button" class="sa-link2" id="saResend">Resend code</button><button type="button" class="sa-link2" id="saAgain">Use a different email</button></div>
+        <div class="sa-small">Can't find it? Check spam or promotions. The code works for 1 hour.</div></form></div>`;
       document.body.appendChild(back);
+      const $b=q=>back.querySelector(q);
       const close=()=>{ back.classList.remove('open'); const p=pending; pending=[]; p.forEach(r=>r(user)); };
-      back.querySelector('.sa-x').onclick=close; back.addEventListener('click',e=>{ if(e.target===back) close(); });
+      $b('.sa-x').onclick=close; back.addEventListener('click',e=>{ if(e.target===back) close(); });
       document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&back.classList.contains('open')) close(); });
-      back.querySelector('#saAgain').onclick=()=>{ back.querySelector('#saStep1').style.display=''; back.querySelector('#saStep2').style.display='none'; };
-      back.querySelector('form').onsubmit=async e=>{ e.preventDefault();
-        const em=back.querySelector('#saEmail').value.trim(), err=back.querySelector('#saErr'), b=back.querySelector('#saSend');
+      // Google blocks its sign-in inside Instagram/TikTok/Facebook in-app browsers → show the email code only
+      const inApp=/Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|BytedanceWebview|Line\/|Snapchat|Pinterest/i.test(navigator.userAgent||'');
+      if(inApp){ $b('#saGoogle').style.display='none'; $b('#saOr').style.display='none'; $b('#saInApp').style.display=''; }
+      $b('#saGoogle').onclick=async()=>{ const err=$b('#saErr'); if(!sb){ err.textContent='Sign-in is not available right now. Refresh the page and try again.'; return; }
+        err.textContent=''; track('signin_google');
+        const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
+        if(error) err.textContent=/provider|enabled/i.test(error.message)?'Google sign-in isn’t available yet — use the email code below.':error.message; };
+      let curEmail='', resendAt=0;
+      const send=async em=>{ const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname+location.search}}); return error; };
+      const showStep=n=>{ $b('#saStep1').style.display=n===1?'':'none'; $b('#saStep2').style.display=n===2?'':'none'; };
+      $b('#saAgain').onclick=()=>{ showStep(1); setTimeout(()=>$b('#saEmail').focus(),30); };
+      $b('#saF1').onsubmit=async e=>{ e.preventDefault();
+        const em=$b('#saEmail').value.trim(), err=$b('#saErr'), b=$b('#saSend');
         if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ err.textContent='Enter a valid email address.'; return; }
         if(!sb){ err.textContent='Sign-in is not available right now. Refresh the page and try again.'; return; }
         b.disabled=true; err.textContent='';
-        const {error}=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname+location.search}});
-        b.disabled=false;
+        const error=await send(em); b.disabled=false;
         if(error){ err.textContent=/rate|seconds/i.test(error.message)?'Too many emails just now. Wait a minute and try again.':error.message; return; }
         try{ localStorage.setItem('spoolEmail',em); }catch(_){}
-        track('signin_sent');
-        back.querySelector('#saTo').textContent=em; back.querySelector('#saStep1').style.display='none'; back.querySelector('#saStep2').style.display='';
-      };
+        track('signin_sent'); curEmail=em; resendAt=Date.now()+30000;
+        $b('#saTo').textContent=em; $b('#saCode').value=''; $b('#saErr2').textContent=''; showStep(2); setTimeout(()=>$b('#saCode').focus(),50); };
+      $b('#saCode').addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,'').slice(0,10); if(e.target.value.length===6||e.target.value.length===8) $b('#saStep2').requestSubmit?.(); });
+      let verifying=false;
+      $b('#saStep2').onsubmit=async e=>{ e.preventDefault(); if(verifying) return;
+        const code=$b('#saCode').value.trim(), err=$b('#saErr2'), b=$b('#saVerify');
+        if(code.length<6){ err.textContent='Enter the code from the email.'; return; }
+        verifying=true; b.disabled=true; b.textContent='Signing in…'; err.textContent='';
+        const {error}=await sb.auth.verifyOtp({email:curEmail,token:code,type:'email'});
+        verifying=false; b.disabled=false; b.textContent='Sign in';
+        if(error){ err.textContent=/expired|invalid/i.test(error.message)?'That code didn’t work. Check it, or tap “Resend code”.':error.message; return; }
+        track('signin_code'); };
+      $b('#saResend').onclick=async()=>{ const err=$b('#saErr2'); const wait=Math.ceil((resendAt-Date.now())/1000);
+        if(wait>0){ err.textContent=`You can resend in ${wait} s.`; return; }
+        const error=await send(curEmail); if(error){ err.textContent=/rate|seconds/i.test(error.message)?'Too many emails just now. Wait a minute and try again.':error.message; return; }
+        resendAt=Date.now()+30000; err.textContent='New code sent.'; };
     }
     back.querySelector('#saWhy').textContent=reason||'Save your designs and pick them up on any device.';
     back.querySelector('#saStep1').style.display=''; back.querySelector('#saStep2').style.display='none'; back.querySelector('#saErr').textContent='';
