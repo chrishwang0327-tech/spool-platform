@@ -440,7 +440,7 @@ async function doMerge(){ // combine the ticked artworks into one print that cov
   if(isBusy()||!P) return; const s=S(); const ch=s.parts.filter(q=>mergeSel.has(q.id)&&kindOf(q)==='graphic'); if(ch.length<2) return toast('Pick at least two artworks');
   snap(); const boxes=ch.map(q=>q.layer&&q.orig?q.orig:q.b), x0=Math.min(...boxes.map(b=>b[0])), y0=Math.min(...boxes.map(b=>b[1])), x1=Math.max(...boxes.map(b=>b[0]+b[2])), y1=Math.max(...boxes.map(b=>b[1]+b[3]));
   const hadLift=ch.some(q=>q.layer), first=ch[0], at=s.parts.indexOf(first);
-  const np={id:'a'+Date.now(),kind:'graphic',num:0,name:'Merged artwork',b:clampB([x0,y0,x1-x0,y1-y0]),tech:first.tech,opts:{...first.opts},note:ch.map(q=>q.note).filter(Boolean).join(' / '),layer:null,hist:[]};
+  const np={id:'a'+Date.now(),kind:'graphic',num:0,name:'Merged artwork',b:clampB([x0,y0,x1-x0,y1-y0]),tech:first.tech,opts:{...first.opts},note:ch.map(q=>q.note).filter(Boolean).join(' / '),layer:null,hist:[],from:ch.map(q=>({...q,b:[...(q.layer&&q.orig?q.orig:q.b)],opts:{...q.opts},layer:null,orig:null,hist:[]}))};
   s.parts=s.parts.filter(q=>!ch.includes(q)); s.parts.splice(Math.min(at,s.parts.length),0,np); renumber(s);
   mergeMode=false; mergeSel.clear(); sel=np; if(s.parts.some(q=>q.layer&&q.orig)||hadLift) await rebuildHole(s); save(); render(); toast(`${ch.length} artworks merged into one. Drag it or press Cmd+Z to undo.`); }
 function renderList(){
@@ -473,7 +473,7 @@ function renderDetail(){
    ${kindOf(p)==='graphic'?`<div style="margin-top:14px" class="lbl">Ink colors</div>
    <div class="inks" id="inks"><span class="muted">Reading colors…</span></div>
    ${edgeEdit===p.id?`<div class="est" style="margin-top:12px">Drag the box and its corner so it covers the whole artwork.</div><div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn sm y" id="edgeDone">Done</button><button class="btn sm" id="notArt">Not artwork — remove box</button></div>`
-     :`<div class="row" style="margin-top:12px;gap:6px;flex-wrap:wrap"><button class="btn sm" id="edgeFix" title="The box cuts off part of the artwork, or covers too much">Fix box</button>${p.layer?'<button class="btn sm" id="posReset" title="Put this artwork back where it was, at its original size">Reset position</button>':''}</div>`}`
+     :`<div class="row" style="margin-top:12px;gap:6px;flex-wrap:wrap"><button class="btn sm" id="edgeFix" title="The box cuts off part of the artwork, or covers too much">Fix box</button>${p.from?'<button class="btn sm" id="splitBack" title="Undo the merge: bring back the separate artworks">Split back</button>':''}${p.layer?'<button class="btn sm" id="posReset" title="Put this artwork back where it was, at its original size">Reset position</button>':''}</div>`}`
    :`<div class="est" style="margin-top:12px">Drag the box or its corner to mark the exact area.</div>`}
    <label style="display:block;margin-top:12px" class="lbl" for="pNote">Note for the factory</label>
    <input class="field" id="pNote" style="margin-top:6px" value="${esc(p.note||'')}" placeholder="e.g. match Pantone 186 C, tack down corners">`;
@@ -486,6 +486,8 @@ function renderDetail(){
   if(kindOf(p)==='graphic') renderInks(p);
   $('#edgeFix')?.addEventListener('click',async()=>{ snap(); const had=!!p.layer; await unliftPart(p); edgeEdit=p.id; if(had) toast('Size and position reset. Fit the box, then move it again.'); save(); render(); });
   $('#edgeDone')?.addEventListener('click',()=>{ edgeEdit=null; render(); });
+  $('#splitBack')?.addEventListener('click',async()=>{ if(isBusy()) return; snap(); const s=S(); await unliftPart(p); const at=s.parts.findIndex(q=>q.id===p.id), back=(p.from||[]).map(q=>({...q,b:[...q.b],opts:{...q.opts},layer:null,orig:null,hist:[]}));
+    s.parts.splice(at,1,...back); renumber(s); sel=back[0]||null; if(s.parts.some(q=>q.layer&&q.orig)) await rebuildHole(s); save(); render(); toast(`Split back into ${back.length} artworks. Cmd+Z to undo.`); });
   $('#notArt')?.addEventListener('click',async()=>{ snap(); const s=S(); await unliftPart(p); s.ignored=[...(s.ignored||[]),[...p.b]]; s.parts=s.parts.filter(q=>q.id!==p.id); renumber(s); sel=null; edgeEdit=null; save(); render(); toast('Box removed. Auto-detect will skip this spot.'); });
   $('#posReset')?.addEventListener('click',async()=>{ snap(); await unliftPart(p); S().polished=null; save(); render(); });
 }
