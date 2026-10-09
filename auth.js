@@ -37,6 +37,7 @@
   .sa-btn.dark{background:#201D18;color:#FEE32B}.sa-btn.dark:hover{background:#FEE32B;color:#201D18}.sa-link{display:block;width:100%;margin-top:10px;border:0;background:none;font:inherit;font-size:14px;color:#201D18;text-decoration:underline;cursor:pointer}
   .sa-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#201D18;color:#FDFDF9;padding:12px 18px;border-radius:99px;font:500 14px Outfit,system-ui,sans-serif;z-index:300;box-shadow:0 14px 40px -16px rgba(0,0,0,.5);max-width:calc(100% - 32px)}.sa-menu small{display:block;padding:6px 12px 8px;color:#7a7566;border-bottom:1px solid #201D1414;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis}`;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+  const chat=on=>{ try{ window.$crisp&&window.$crisp.push(['do',on?'chat:show':'chat:hide']); }catch(_){} }; // the chat bubble covers dialogs on phones
   let back=null, pending=[];
   function modal(reason){
     if(!back){
@@ -58,7 +59,7 @@
         <div class="sa-small">Can't find it? Check spam or promotions. The code works for 1 hour.</div></form></div>`;
       document.body.appendChild(back);
       const $b=q=>back.querySelector(q);
-      const close=()=>{ back.classList.remove('open'); const p=pending; pending=[]; p.forEach(r=>r(user)); };
+      const close=()=>{ back.classList.remove('open'); chat(true); const p=pending; pending=[]; p.forEach(r=>r(user)); };
       $b('.sa-x').onclick=close; back.addEventListener('click',e=>{ if(e.target===back) close(); });
       document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&back.classList.contains('open')) close(); });
       // Google blocks its sign-in inside Instagram/TikTok/Facebook in-app browsers → show the email code only
@@ -100,10 +101,10 @@
     back.querySelector('#saWhy').textContent=reason||'Save your designs and pick them up on any device.';
     back.querySelector('#saStep1').style.display=''; back.querySelector('#saStep2').style.display='none'; back.querySelector('#saErr').textContent='';
     try{ back.querySelector('#saEmail').value=localStorage.getItem('spoolEmail')||''; }catch(_){}
-    back.classList.add('open'); setTimeout(()=>back.querySelector('#saEmail').focus(),50);
+    back.classList.add('open'); chat(false); setTimeout(()=>back.querySelector('#saEmail').focus(),50);
     return new Promise(r=>pending.push(r));
   }
-  subs.push(u=>{ if(u&&back&&back.classList.contains('open')){ back.classList.remove('open'); const p=pending; pending=[]; p.forEach(r=>r(u)); } });
+  subs.push(u=>{ if(u&&back&&back.classList.contains('open')){ back.classList.remove('open'); chat(true); const p=pending; pending=[]; p.forEach(r=>r(u)); } });
 
   /* ---------- header chip ---------- */
   const chips=[];
@@ -164,7 +165,6 @@
   function toast(msg,ms){ const t=document.createElement('div'); t.className='sa-toast'; t.setAttribute('role','status'); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),ms||4200); }
   async function manage(){ try{ const j=await call('portal'); location.href=j.url; }catch(e){ toast(e.message); } }
   let pw=null;
-  const chat=on=>{ try{ window.$crisp&&window.$crisp.push(['do',on?'chat:show':'chat:hide']); }catch(_){} }; // chat bubble would cover the paywall on phones
   function closePw(){ if(!pw) return; pw.classList.remove('open'); chat(true); }
   async function upgrade(reason,opts){
     opts=opts||{};
