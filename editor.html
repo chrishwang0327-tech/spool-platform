@@ -597,23 +597,18 @@ function diffLayer(srcC,bgC){
   const sm=canvas(w,h), sx=sm.getContext('2d'); sx.filter='blur(0.6px)'; sx.drawImage(out,0,0); return sm;
 }
 // ink only: compares the photo with the AI blank body; garment, folds and background stay behind
-function cutArt(srcC,bgC){
+function cutArt(srcC,bgC,M){ // M = {off,T} measured on the whole photo, outside the artwork
   const w=srcC.width,h=srcC.height,n=w*h;
   const A=srcC.getContext('2d').getImageData(0,0,w,h), B=bgC.getContext('2d').getImageData(0,0,w,h), a=A.data, b=B.data;
-  // 1) colour offset between the photo and the AI blank body, from the best-matching 40% of pixels
-  const d0=new Float32Array(n); for(let i=0,j=0;j<n;i+=4,j++) d0[j]=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]);
-  const q=(arr,f)=>{ const s=Float32Array.from(arr).sort(); return s[Math.min(s.length-1,Math.floor(s.length*f))]; };
-  const lim=q(d0,.4); const off=[0,0,0]; let m=0;
-  for(let i=0,j=0;j<n;i+=4,j++) if(d0[j]<=lim){ off[0]+=a[i]-b[i]; off[1]+=a[i+1]-b[i+1]; off[2]+=a[i+2]-b[i+2]; m++; }
-  if(m) for(let c=0;c<3;c++) off[c]/=m;
+  const off=M?M.off:[0,0,0];
   // 2) difference that tolerates a 2px shift of the AI image
   const R=2, d=new Float32Array(n);
   for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=(y*w+x)*4; let best=1e9;
     for(let yy=Math.max(0,y-R);yy<=Math.min(h-1,y+R);yy++) for(let xx=Math.max(0,x-R);xx<=Math.min(w-1,x+R);xx++){ const k2=(yy*w+xx)*4;
       const v=Math.abs(a[i]-b[k2]-off[0])+Math.abs(a[i+1]-b[k2+1]-off[1])+Math.abs(a[i+2]-b[k2+2]-off[2]); if(v<best) best=v; }
     d[y*w+x]=best; }
-  // 3) threshold from the noise level of the matching pixels
-  const noise=q(d,.2), T=Math.max(42,noise*3+24);
+  // 3) threshold from the photo's own noise level (never from inside the box: the box can be all artwork)
+  const T=M?M.T:48;
   let mk=new Uint8Array(n); for(let j=0;j<n;j++) mk[j]=d[j]>T?1:0;
   // 4) drop specks (open 1px) and tiny islands
   const er=new Uint8Array(n), di=new Uint8Array(n);
@@ -632,7 +627,7 @@ function cutArt(srcC,bgC){
   lab.fill(0); id=1; const bigHole=n*0.012;
   for(let j=0;j<n;j++) if(!mk[j]&&!lab[j]){ const l=flood(j,id++,t=>!mk[t]); let edge=false;
     for(const t of l){ const x=t%w,y=(t/w)|0; if(x===0||y===0||x===w-1||y===h-1){ edge=true; break; } }
-    if(!edge&&l.length>=bigHole) for(const t of l) mk[t]=1; }
+    if(!edge&&(l.length>=bigHole||l.length<=6)) for(const t of l) mk[t]=1; }
   // 6) 1px grow + soft edge
   const g=new Uint8Array(n); for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const j=y*w+x; g[j]=mk[j]||(x>0&&mk[j-1])||(x<w-1&&mk[j+1])||(y>0&&mk[j-w])||(y<h-1&&mk[j+w])?1:0; }
   for(let i=0,j=0;j<n;i+=4,j++) a[i+3]=g[j]?255:0;
@@ -640,6 +635,20 @@ function cutArt(srcC,bgC){
   const sm=canvas(w,h), sx=sm.getContext('2d'); sx.filter='blur(0.7px)'; sx.drawImage(out,0,0);
   return sm;
 }
+// colour drift + noise between the photo and the AI blank body, measured outside the boxes
+function matchOf(baseC,cleanC,boxes){ const W=baseC.width,H=baseC.height;
+  const A=baseC.getContext('2d').getImageData(0,0,W,H).data, B=cleanC.getContext('2d').getImageData(0,0,W,H).data, sc=W/1000;
+  const inBox=(x,y)=>boxes.some(b=>x>=(b[0]-15)*sc&&x<=(b[0]+b[2]+15)*sc&&y>=(b[1]-15)*sc&&y<=(b[1]+b[3]+15)*sc);
+  const px=[]; for(let y=0;y<H;y+=4) for(let x=0;x<W;x+=4){ if(inBox(x,y)) continue; const i=(y*W+x)*4; px.push(i); }
+  const raw=px.map(i=>[Math.abs(A[i]-B[i])+Math.abs(A[i+1]-B[i+1])+Math.abs(A[i+2]-B[i+2]),i]).sort((p,q)=>p[0]-q[0]);
+  const use=raw.slice(0,Math.max(1,Math.floor(raw.length*.6))), off=[0,0,0];
+  for(const [,i] of use){ off[0]+=A[i]-B[i]; off[1]+=A[i+1]-B[i+1]; off[2]+=A[i+2]-B[i+2]; }
+  for(let c=0;c<3;c++) off[c]=Math.max(-24,Math.min(24,Math.round(off[c]/use.length)));
+  const dd=px.map(i=>Math.abs(A[i]-B[i]-off[0])+Math.abs(A[i+1]-B[i+1]-off[1])+Math.abs(A[i+2]-B[i+2]-off[2])).sort((p,q)=>p-q);
+  const noise=dd.length?dd[Math.floor(dd.length*.75)]:20; const T=Math.max(42,Math.min(90,noise*1.5+24));
+  return {off,T,noise}; }
+async function matchFor(s){ const b=canvas(PX); b.getContext("2d").drawImage(await img(s.base),0,0,PX,PX); const c=canvas(PX); c.getContext("2d").drawImage(await img(s.clean),0,0,PX,PX);
+  return matchOf(b,c,s.parts.filter(q=>kindOf(q)==="graphic").map(q=>q.orig||q.b)); }
 // garment silhouette from the blank body (for keeping artwork on the garment)
 const GM=200, garmCache=new Map();
 async function garmentOf(s){
@@ -669,7 +678,7 @@ function pullIn(G,b){ const cx=b[0]+b[2]/2, cy=b[1]+b[3]/2;
 function regionOf(srcImg,b){ const w=Math.max(1,Math.round(b[2]*k)), h=Math.max(1,Math.round(b[3]*k)); const c=canvas(w,h); c.getContext('2d').drawImage(srcImg,b[0]*k,b[1]*k,b[2]*k,b[3]*k,0,0,w,h); return c; }
 async function extractInto(p, fromImg){ // build p.layer from the current image vs the clean body; punch the hole
   const s=S(); const src=fromImg||await img(s.base); const clean=await img(s.clean);
-  const lay=cutArt(regionOf(src,p.b),regionOf(clean,p.b)); p.layer=lay.toDataURL('image/png'); p.orig=[...p.b]; p.cut=2;
+  const lay=cutArt(regionOf(src,p.b),regionOf(clean,p.b),await matchFor(s)); p.layer=lay.toDataURL('image/png'); p.orig=[...p.b]; p.cut=3;
   // hole: replace the box area of the hole image with the clean body
   const hc=canvas(PX), hx=hc.getContext('2d'); hx.drawImage(await img(s.hole||s.base),0,0,PX,PX);
   hx.save(); hx.beginPath(); hx.rect(p.b[0]*k,p.b[1]*k,p.b[2]*k,p.b[3]*k); hx.clip(); hx.drawImage(clean,0,0,PX,PX); hx.restore();
@@ -739,10 +748,7 @@ const fillCache=new Map();
 async function fillOf(s,base){ // blank body, colour-matched to the photo (AI output can drift slightly brighter/darker)
   const key=s.cleanOf+'|'+s.clean.length; if(fillCache.has(key)) return fillCache.get(key);
   const c=canvas(PX), x=c.getContext('2d'); x.drawImage(await img(s.clean),0,0,PX,PX); const b=canvas(PX); b.getContext('2d').drawImage(base,0,0,PX,PX);
-  const A=b.getContext('2d').getImageData(0,0,PX,PX).data, I=x.getImageData(0,0,PX,PX), B=I.data, ds=[];
-  for(let i=0;i<A.length;i+=64) ds.push([Math.abs(A[i]-B[i])+Math.abs(A[i+1]-B[i+1])+Math.abs(A[i+2]-B[i+2]),i]);
-  ds.sort((p1,p2)=>p1[0]-p2[0]); const use=ds.slice(0,Math.floor(ds.length*.4)), off=[0,0,0];
-  for(const [,i] of use){ off[0]+=A[i]-B[i]; off[1]+=A[i+1]-B[i+1]; off[2]+=A[i+2]-B[i+2]; } off.forEach((v,c2)=>off[c2]=Math.max(-24,Math.min(24,Math.round(v/use.length))));
+  const I=x.getImageData(0,0,PX,PX), B=I.data, off=matchOf(b,c,s.parts.filter(q=>kindOf(q)==="graphic").map(q=>q.orig||q.b)).off;
   if(off.some(v=>Math.abs(v)>=2)){ for(let i=0;i<B.length;i+=4){ B[i]+=off[0]; B[i+1]+=off[1]; B[i+2]+=off[2]; } x.putImageData(I,0,0); }
   fillCache.set(key,c); return c; }
 let prepEl=null;
@@ -752,7 +758,7 @@ async function liftPart(p){ // cut one graphic off the body so it can move / sca
   if(!cleanReady(s)){ preparing(true); const ok=await ensureClean(sd); preparing(false);
     if(!ok){ toast(window.SPOOL_AUTH?.user||MOCK?'Couldn’t prepare the artwork. Try again in a moment.':'Sign in to move or resize artwork.'); if(!window.SPOOL_AUTH?.user&&!MOCK) window.SPOOL_AUTH?.requireLogin('Sign in to move or resize artwork.').then(u=>{ if(u) ensureClean(sd); }); return false; } }
   if(side!==sd) return false;
-  const lay=cutArt(regionOf(await img(s.base),p.b),regionOf(await img(s.clean),p.b)); p.layer=lay.toDataURL('image/png'); p.orig=[...p.b]; p.specW=null; p.cut=2;
+  const lay=cutArt(regionOf(await img(s.base),p.b),regionOf(await img(s.clean),p.b),await matchFor(s)); p.layer=lay.toDataURL('image/png'); p.orig=[...p.b]; p.specW=null; p.cut=3;
   await garmentOf(s); await rebuildHole(s); return true;
 }
 async function unliftPart(p){ const s=S(); if(!p.layer) return; if(p.orig) p.b=[...p.orig]; p.layer=null; p.orig=null; await rebuildHole(s); }
@@ -1053,8 +1059,8 @@ function upgrade(p){ // older editor projects → v3
 }
 async function openProject(p){ undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
   $('#pname').value=P.name; $('#chest').value=P.chestIn; render(); recut(); }
-async function recut(){ const pp=P; let n=0; for(const sd of ['front','back']){ const s=pp.sides[sd]; if(!cleanReady(s)) continue; await garmentOf(s);
-  for(const q of s.parts){ if(!q.layer||!q.orig||q.cut===2||(q.hist||[]).some(h=>h.layer)) continue; q.layer=cutArt(regionOf(await img(s.base),q.orig),regionOf(await img(s.clean),q.orig)).toDataURL('image/png'); q.cut=2; n++; } }
+async function recut(){ const pp=P; let n=0; for(const sd of ['front','back']){ const s=pp.sides[sd]; if(!cleanReady(s)) continue; await garmentOf(s); let M=null;
+  for(const q of s.parts){ if(!q.layer||!q.orig||q.cut===3||(q.hist||[]).some(h=>h.layer)) continue; M=M||await matchFor(s); q.layer=cutArt(regionOf(await img(s.base),q.orig),regionOf(await img(s.clean),q.orig),M).toDataURL('image/png'); q.cut=3; n++; } }
   if(n&&P===pp){ save(); draw(); } }
 $('#pname').oninput=e=>{ if(P){ P.name=e.target.value; save(); } };
 $('#projBtn').onclick=openProjects;
