@@ -76,6 +76,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .chip.on{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
 .hint{font-size:11.5px;color:var(--muted);margin-top:6px}
 .hint a{color:var(--ink);font-weight:600}
+.newd{margin-top:10px;width:100%;justify-content:center}
 .bclean{font-size:12px;margin-top:8px;display:flex;flex-direction:column;gap:4px}.bclean div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bclean img{width:34px;height:34px;border-radius:8px;object-fit:cover;border:1px solid var(--line,#e5e0d0);cursor:zoom-in}.bclean a{color:var(--ink);font-weight:600}
 .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -134,7 +135,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .output{position:sticky;top:96px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:26px;padding:24px;min-height:640px;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(32,29,24,.04),0 20px 50px -30px rgba(32,29,24,.25)}
 .out-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
 .out-head h2{font-size:13px;font-weight:600;letter-spacing:.2em}
-.recipe{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.recipe{display:none} /* kept only for the admin creation log */
 .recipe span{font-size:11px;background:var(--soft);border-radius:99px;padding:4px 11px}
 .empty{flex:1;background:var(--soft);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}
 .empty .eq{font-size:13px;color:var(--ink);font-weight:500;margin:14px 0 6px;letter-spacing:.06em}
@@ -474,6 +475,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
         <button class="btn y" id="editDesign" title="Open the selected design (front + back) in the SPOOL design editor">Edit selected design →</button>
         <button class="btn dark" id="sample">Request sample →</button>
       </div>
+      <button class="btn newd" id="newDesign">+ New design</button>
     </div>
   </section>
 </main>
@@ -490,7 +492,6 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 <section class="mine" id="mine">
   <div class="mine-head">
     <div><h2>Recent</h2><p>Every Create is kept automatically (last 40), in this browser only.</p></div>
-    <button class="btn" id="newDesign">+ New design</button>
   </div>
   <div class="mine-grid" id="mineGrid"></div>
 </section>
@@ -690,15 +691,17 @@ async function cleanBody(slot){
     finally{ if(cleanJobs[slot]?.of===sig) delete cleanJobs[slot]; syncBodyClean(); } })();
   cleanJobs[slot]={of:sig,p}; return p;
 }
-function syncBodyClean(){ const el=$('#bodyClean'); if(!el) return; const rows=[];
-  ['body-front','body-back'].forEach(slot=>{ const u=state.refs[slot]; if(!u) return; const side=slot.split('-')[1], c=state.clean[slot], ok=c&&c.of===refSig(u);
-    if(cleanJobs[slot]) rows.push(`<div>⏳ ${cap(side)}: removing prints from your photo…</div>`);
-    else if(ok&&c.src) rows.push(state.useOrig[slot]?`<div>${cap(side)}: using your original photo · <a href="#" data-orig="${slot}" data-on="0">Use blank version</a></div>`
-      :`<div><img src="${c.src}" data-view="${slot}" alt="">${cap(side)}: prints removed, so they won’t be copied · <a href="#" data-orig="${slot}" data-on="1">Use my original</a></div>`);
-    else if(ok&&c.failed) rows.push(`<div>${cap(side)}: couldn’t remove the prints — your photo is used as is.</div>`); });
-  el.innerHTML=rows.join(''); el.classList.toggle('hidden',!rows.length);
-  el.querySelectorAll('[data-orig]').forEach(a=>a.onclick=e=>{ e.preventDefault(); state.useOrig[a.dataset.orig]=a.dataset.on==='1'; syncBodyClean(); saveDraft(); });
-  el.querySelectorAll('[data-view]').forEach(i=>i.onclick=()=>openLB(state.clean[i.dataset.view]?.src,'Body without prints')); }
+function syncBodyClean(){ const el=$('#bodyClean'); if(!el) return;
+  const slots=['body-front','body-back'].filter(k=>state.refs[k]); let html='';
+  const done=slots.filter(k=>{ const c=state.clean[k]; return c&&c.of===refSig(state.refs[k])&&c.src; });
+  const failed=slots.filter(k=>{ const c=state.clean[k]; return c&&c.of===refSig(state.refs[k])&&c.failed; });
+  if(slots.some(k=>cleanJobs[k])) html='⏳ Removing prints from your photo…';
+  else if(done.length&&done.some(k=>state.useOrig[k])) html='Using your original photo · <a href="#" data-orig="0">Remove prints</a>';
+  else if(done.length) html='✓ <a href="#" data-view="1">Prints removed</a> · <a href="#" data-orig="1">Use original</a>';
+  else if(failed.length) html='Couldn’t remove prints — using your photo as is.';
+  el.innerHTML=html?`<div>${html}</div>`:''; el.classList.toggle('hidden',!html);
+  el.querySelector('[data-orig]')?.addEventListener('click',e=>{ e.preventDefault(); const on=e.target.dataset.orig==='1'; slots.forEach(k=>state.useOrig[k]=on); syncBodyClean(); saveDraft(); });
+  el.querySelector('[data-view]')?.addEventListener('click',e=>{ e.preventDefault(); openLB(state.clean[done[0]].src,'Body without prints'); }); }
 
 /* ---------- uploads ---------- */
 function applyRef(slot,url){
