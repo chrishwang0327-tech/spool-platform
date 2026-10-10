@@ -174,12 +174,12 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
 <header>
-  <a class="back" href="studio.html">← Design Studio</a>
   <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Design Editor</span></a>
   <div class="hdr-r">
     <input class="pname" id="pname" value="Untitled design" aria-label="Project name">
     <span id="chgBadge" title="You changed this design after sending a sample request. Send a new request or email info@spoolnyc.com so the factory has the latest." style="display:none;font-size:11px;background:#fff3cd;color:#8a5a00;border:1px solid #f0d58a;border-radius:99px;padding:3px 9px;white-space:nowrap">Changed since sample request</span><button class="savechip hidden" id="saveChip" type="button" title="Click to save now"></button>
     <div class="seg hidden" id="verSeg" title="Switch between your design and the original AI design"><button class="on" data-v="cur">Current</button><button data-v="orig">Original</button></div>
+    <a class="btn sm" id="studioBtn" href="studio.html" title="Go to the Design Studio">Design Studio</a>
     <button class="btn sm" id="projBtn">My projects</button>
     <span id="acct"></span>
   </div>
@@ -420,6 +420,7 @@ function renderMeas(){
 }
 function render(){ draw(); renderBoxes(); renderMeas(); renderList(); renderDetail(); renderTabs(); renderTop(); prefetchClean(); }
 function renderTop(){
+  { const b=$('#studioBtn'); if(b){ const can=!!(P&&P.studio); b.textContent=can?'Open in Studio':'Design Studio'; b.title=can?'Reopen the Design Studio with the references and settings this design was made with':'Go to the Design Studio'; } }
   const has=!!(P&&S().base);
   $('#empty').classList.toggle('hidden',has);
   stage.classList.toggle('final',view==='final'); stage.classList.toggle('draw',tool==='draw');
@@ -857,6 +858,13 @@ const REF_KINDS=[['body','BODY REF.'],['wash','WASHING REF.'],['trim','TRIM REF.
 async function shrinkRef(src,max=900){ try{ const i=await loadImg(src), k2=Math.min(1,max/Math.max(i.width,i.height)), c=canvas(Math.round(i.width*k2),Math.round(i.height*k2)), x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); return c.toDataURL('image/jpeg',.85); }catch(e){ return null; } }
 async function refsFromHandoff(r){ const out=[]; for(const [k2] of REF_KINDS) for(const sd of ['front','back']){ const u=r?.[`${k2}-${sd}`]; if(u&&String(u).startsWith('data:image/')){ const d=await shrinkRef(u); if(d) out.push({kind:k2,side:sd,src:d}); } } return out; }
 const refLabel=r=>(REF_KINDS.find(x=>x[0]===r.kind)||['', 'REFERENCE'])[1]+(r.side?` · ${r.side.toUpperCase()}`:'');
+/* ---------- back to the studio with this design's references and settings ---------- */
+$('#studioBtn')?.addEventListener('click',async e=>{ if(!P||!P.studio) return; e.preventDefault();
+  try{ await flushSave?.(); }catch(_){}
+  const refs={}; for(const sd of ['front','back']) if(P.studio.art?.[sd]) refs['graphic-'+sd]=P.studio.art[sd];
+  for(const r of (P.refs||[])) if(r&&r.src&&r.side&&['body','wash','trim'].includes(r.kind)&&!refs[r.kind+'-'+r.side]) refs[r.kind+'-'+r.side]=r.src;
+  const {art,...set}=P.studio; await studioDB.put('kv',{...set,refs},'reopen'); location.href='studio.html?from=editor'; });
+
 /* ---------- AI flat sketches (construction reference) ---------- */
 async function aiFlat(src){
   if(MOCK) return mockAI(P_FLAT,[src]);
@@ -1341,7 +1349,8 @@ function applyBody(p,body,named){ p.body=body; p.chestIn=BODY_CHEST[body]||21; p
 async function completeProject(h,meta={}){ // studio handoff → editor project
   const p=newProject(); if(meta.id) p.id=meta.id; if(meta.created) p.created=meta.created;
   const custom=!h.spec||h.spec.garment==='custom';
-  p.refs=await refsFromHandoff(h.refs); p.spec=h.spec||null; p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
+  p.refs=await refsFromHandoff(h.refs); p.spec=h.spec||null;
+  if(h.studio){ const art={}; for(const sd of ['front','back']){ const u=h.refs?.['graphic-'+sd]; if(u&&String(u).startsWith('data:image/')) art[sd]=await shrinkRef(u); } p.studio={...h.studio,art}; } // what the studio used, to reopen it later p.email=window.SPOOL_AUTH?.email()||h.email||''; p.provider=h.ai.provider||'';
   p.bodySpec.notes=[h.spec?.front?.body&&'Front: '+h.spec.front.body,h.spec?.back?.body&&'Back: '+h.spec.back.body].filter(Boolean).join(' / ');
   if(h.spec?.color&&!/from references/i.test(h.spec.color)) p.bodySpec.color=h.spec.color;
   for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }

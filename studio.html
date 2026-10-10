@@ -54,6 +54,9 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .drop{width:76px;height:76px;border-radius:50%;border:1.5px dashed #c9c3ad;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;background:var(--soft);transition:.15s}
 .drop:hover,.drop.over{background:var(--y2);border-color:var(--accent)}
 .drop b{font-size:13px;font-weight:600;line-height:1}
+.copyfrom{font-size:12px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.copyfrom .cpy{font:600 12px Outfit,sans-serif;border:1.5px solid var(--line,#e5e0d0);background:#fff;border-radius:99px;padding:3px 11px;cursor:pointer;color:var(--ink)}.copyfrom .cpy:hover{background:var(--y2,#FBEF9C)}
+.drop .pst{font-style:normal;font-size:8px;color:var(--muted);margin-top:2px;letter-spacing:.02em}.drop.filled .pst{display:none}
+@media (hover:none){.drop .pst{display:none}}
 .drop small{font-size:9.5px;letter-spacing:.12em;color:var(--muted);margin-top:3px}
 .drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
@@ -149,6 +152,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .pick-img{position:relative;aspect-ratio:1;background:var(--soft);border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .pick-img .gen img{object-fit:cover}
 .pick-img .gar{width:78%}
+.pick-img{cursor:pointer;outline:2px solid transparent;outline-offset:-2px;transition:outline-color .15s}.pick-img:hover{outline-color:#c9c3ad}.pick-img.cur{outline:2.5px solid var(--ink)}
 .pick-img .tag{position:absolute;left:5px;bottom:5px;font-size:9px;font-weight:600;letter-spacing:.06em;background:#FDFDF9;border-radius:99px;padding:1px 7px;text-transform:uppercase}
 .pick-meta{display:flex;align-items:center;gap:8px;padding:8px 4px 2px}
 .pick-meta b{font-size:13px;font-weight:600;white-space:nowrap}
@@ -709,9 +713,27 @@ function applyRef(slot,url){
   d.querySelector('img')?.remove(); d.classList.toggle('filled',!!url);
   if(url){ const img=new Image(); img.src=url; d.prepend(img); }
   if(slot.startsWith('wash-')) syncWashAuto();
+  syncCopy();
 }
+// "Copy photos from: Artwork · Body" — reuse the photos of another step in an empty one (one tap, front + back)
+const STEP_NAME={graphic:'Artwork',body:'Body',wash:'Wash',trim:'Trim'};
+const stepHas=st=>SIDES.some(x=>state.refs[`${st}-${x}`]);
+function syncCopy(){ ['graphic','body','wash','trim'].forEach(st=>{ const el=stepEl(st); if(!el) return;
+  let row=el.querySelector('.copyfrom'); if(!row){ row=document.createElement('div'); row.className='copyfrom hidden'; el.querySelector('.desc')?.after(row); }
+  const src=stepHas(st)?[]:['graphic','body','wash','trim'].filter(o=>o!==st&&stepHas(o));
+  row.innerHTML=src.length?'Copy photos from: '+src.map(o=>`<button type="button" class="cpy" data-from="${o}">${STEP_NAME[o]}</button>`).join(''):'';
+  row.classList.toggle('hidden',!src.length);
+  row.querySelectorAll('[data-from]').forEach(b=>b.onclick=()=>copyRefs(b.dataset.from,st)); }); }
+function copyRefs(from,to){ let n=0;
+  SIDES.forEach(sd=>{ const u=state.refs[`${from}-${sd}`]; if(!u) return; const slot=`${to}-${sd}`; applyRef(slot,u); n++;
+    if(to==='trim'&&state[sd].trimType==='none') state[sd].trimType='studs';
+    if(to==='body'){ delete state.useOrig[slot]; cleanBody(slot); } });
+  if(to==='body'&&state.bodyMode==='preset') setBodyMode('upload');
+  syncStep(to); syncCopy(); saveDraft(); toast(`${STEP_NAME[from]} photo${n>1?'s':''} copied to ${STEP_NAME[to]}`); }
+const loaders={}; let lastStep='graphic';
 $$('.drop').forEach(d=>{
   const slot=d.dataset.slot, [step,side]=slot.split('-'), input=d.querySelector('input');
+  d.querySelector('small')?.insertAdjacentHTML('afterend',`<i class="pst">or paste ${/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl+'}V</i>`);
   const z=document.createElement('span'); z.className='zoom'; z.textContent='+'; d.appendChild(z);
   const load=file=>{
     if(!file||!file.type.startsWith('image/')) return toast('Please use an image file');
@@ -722,6 +744,7 @@ $$('.drop').forEach(d=>{
       saveDraft(); };
     r.readAsDataURL(file);
   };
+  loaders[slot]=load;
   input.onchange=()=>load(input.files[0]);
   ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over')}));
   ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('over')}));
@@ -732,6 +755,16 @@ $$('.drop').forEach(d=>{
     if(e.target.closest('.x')){ applyRef(slot,null); input.value=''; if(step==='body'){ delete state.clean[slot]; delete state.useOrig[slot]; syncBodyClean(); } syncStep(step); saveDraft(); return; }
     openLB(state.refs[slot],`${cap(step)} · ${side}`);
   });
+});
+
+// paste an image (Cmd/Ctrl+V) into the step you are working on — its current Front/Back slot
+$$('.step[data-step]').forEach(el=>el.addEventListener('pointerdown',()=>{ if(['graphic','body','wash','trim'].includes(el.dataset.step)) lastStep=el.dataset.step; }));
+document.addEventListener('paste',e=>{
+  const it=[...(e.clipboardData?.items||[])].find(x=>x.kind==='file'&&x.type.startsWith('image/')); if(!it) return;
+  const f=it.getAsFile(); if(!f) return; e.preventDefault();
+  const step=lastStep, side=state.tab[step]||'front', slot=`${step}-${side}`; if(!loaders[slot]) return;
+  loaders[slot](f); const name={graphic:'Artwork',body:'Body',wash:'Wash & distress',trim:'Trim'}[step];
+  toast(`Pasted into ${name} · ${cap(side)}`);
 });
 
 /* ---------- lightbox ---------- */
@@ -837,12 +870,13 @@ function render(){
   const v=state.variations[state.active]; if(!v) return;
   const hero=$('#hero'); hero.querySelector('.gen,.gar')?.remove(); hero.appendChild(viewEl(v,state.view,true));
   $('#vlabel').textContent=`Design ${state.active+1}${v.provider?' · '+optLabel(v.provider):''} · ${cap(state.view)}`;
-  $('#viewSeg').classList.remove('hidden'); $$('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.view));
+  $$('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.view));
   const th=$('#thumbs'); th.innerHTML='';
   state.variations.forEach((x,i)=>{
     const c=document.createElement('button'); c.className='pick'+(i===state.active?' on':''); c.setAttribute('aria-pressed',i===state.active);
     const g=document.createElement('div'); g.className='pick-imgs';
-    SIDES.forEach(side=>{ const f=document.createElement('div'); f.className='pick-img'; f.appendChild(viewEl(x,side,false)); f.insertAdjacentHTML('beforeend',`<span class="tag">${side}</span>`); g.appendChild(f); });
+    SIDES.forEach(side=>{ const f=document.createElement('div'); f.className='pick-img'+(i===state.active&&side===state.view?' cur':''); f.title=`Show the ${side}`; f.appendChild(viewEl(x,side,false));
+      f.addEventListener('click',e=>{ e.stopPropagation(); const ch=state.active!==i||state.view!==side; state.active=i; state.view=side; if(ch){ render(); rememberActive(); } }); f.insertAdjacentHTML('beforeend',`<span class="tag">${side}</span>`); g.appendChild(f); });
     c.appendChild(g);
     c.insertAdjacentHTML('beforeend',`<div class="pick-meta"><b>Design ${i+1}</b><span>${optLabel(x.provider)}</span><span class="ck" aria-hidden="true"></span></div>`);
     c.onclick=()=>{ if(state.active!==i){ state.active=i; render(); rememberActive(); } };
@@ -954,8 +988,9 @@ function specSummary(){
   };
 }
 const EDITOR_BODY={tee:'tee',hoodie:'hoodie',zip:'fullzip',crew:'sweatshirt',trucker:'sweatshirt',sweatpant:'sweatpants',denim:'denim',shorts:'sweatpants'};
+function studioSetup(){ return JSON.parse(JSON.stringify({v:2,wv:2,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,direction:state.direction,color:state.color,colorName:state.colorName,useSplit:state.useSplit,useOrig:state.useOrig})); }
 function handoffOf(v){ const key=state.bodyMode==='preset'?(EDITOR_BODY[state.body]||'tee'):'tee';
-  return {key,body:state.bodyMode==='preset'?state.body:'tee',ai:{front:v.front,back:v.back,provider:v.provider||''},spec:specSummary(),refs:{...state.refs},notes:{front:state.front.note,back:state.back.note},washType:{front:state.front.washType,back:state.back.washType},distress:{front:state.front.dis,back:state.back.dis},trims:{front:{type:state.front.trimType,note:state.front.note.trim},back:{type:state.back.trimType,note:state.back.note.trim}},color:'',colorName:'',direction:state.direction,email:getEmail(),from:'reference-studio',at:Date.now()}; }
+  return {key,body:state.bodyMode==='preset'?state.body:'tee',ai:{front:v.front,back:v.back,provider:v.provider||''},spec:specSummary(),refs:{...state.refs},studio:studioSetup(),notes:{front:state.front.note,back:state.back.note},washType:{front:state.front.washType,back:state.back.washType},distress:{front:state.front.dis,back:state.back.dis},trims:{front:{type:state.front.trimType,note:state.front.note.trim},back:{type:state.back.trimType,note:state.back.note.trim}},color:'',colorName:'',direction:state.direction,email:getEmail(),from:'reference-studio',at:Date.now()}; }
 /* one studio design = one project: the id comes from the design images, so Edit and Save always find the same project */
 const designId=(()=>{ const memo=new WeakMap(); const h32=s=>{ let x=2166136261>>>0; const st=Math.max(1,Math.floor(s.length/6000)); for(let i=0;i<s.length;i+=st){ x^=s.charCodeAt(i); x=Math.imul(x,16777619)>>>0; } for(let i=Math.max(0,s.length-400);i<s.length;i++){ x^=s.charCodeAt(i); x=Math.imul(x,16777619)>>>0; } x^=s.length; return (Math.imul(x,16777619)>>>0).toString(36); };
   return v=>{ if(memo.has(v)) return memo.get(v); const id='d'+h32(String(v.front||''))+h32(String(v.back||'')); memo.set(v,id); return id; }; })();
@@ -1075,7 +1110,9 @@ if(MOCK) $('#mockbar').classList.remove('hidden');
   const q=new URLSearchParams(location.search);
   const b=q.get('body');
   const d=await DB.get('draft2');
-  if(d && !b){ curId=d.curId||null; restore(d); }
+  const ro=q.get('from')==='editor'?await DB.get('reopen'):null;
+  if(ro){ await DB.set('reopen',null); curId=null; restore({...ro,variations:[]}); saveDraft(); toast('Opened with the references and settings this design was made with',5000); history.replaceState(null,'','studio.html'); }
+  else if(d && !b){ curId=d.curId||null; restore(d); }
   else if(!d && !b){ const old=await DB.get('draft'); if(old) restore(old); }
   renderLists();
 })();
