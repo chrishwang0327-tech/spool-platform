@@ -75,6 +75,9 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .chip:hover{background:var(--y2);border-color:transparent}
 .chip.on{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
 .hint{font-size:11.5px;color:var(--muted);margin-top:6px}
+.hint a{color:var(--ink);font-weight:600}
+.bclean{font-size:12px;margin-top:8px;display:flex;flex-direction:column;gap:4px}.bclean div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bclean img{width:34px;height:34px;border-radius:8px;object-fit:cover;border:1px solid var(--line,#e5e0d0);cursor:zoom-in}.bclean a{color:var(--ink);font-weight:600}
 .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .seg{display:inline-flex;background:var(--soft);border-radius:99px;padding:3px}
 .seg button{padding:5px 13px;border-radius:99px;font-size:12.5px;color:var(--muted)}
@@ -296,7 +299,9 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
           <button class="chip" data-v="logo">Logo only</button>
           <button class="chip" data-v="style">Style only</button>
           <button class="chip" data-v="colors">Colors only</button>
+          <button class="chip" data-v="pattern">Pattern only</button>
         </div>
+        <div class="hint" id="useHint"></div>
         </div>
       </div>
     </div>
@@ -312,6 +317,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       <div>
         <div class="step-head"><span class="num">02</span><span class="step-title">Body</span><span class="opt">Optional</span></div>
         <div class="desc">The garment shape and color. <b>Empty = classic tee.</b></div>
+        <div class="bclean hidden" id="bodyClean"></div>
         <button type="button" class="optbtn">Options <span class="car">▾</span></button>
         <div class="more">
         <div class="seg" id="bodyMode"><button class="on" data-v="upload">My reference</button><button data-v="describe">Describe</button></div>
@@ -526,7 +532,9 @@ const BODIES = {
 const BRAND_SAFE='BRAND SAFETY: Do not copy any real brand name, logo, trademark, sponsor mark, team, event or place name, or person\'s name from the reference images. Where a reference shows such text or marks, replace it with wording from the design idea or notes, or with invented generic words and shapes. Text the user wrote in the idea or notes may be used exactly as written.';
 const COLORS=[['#f2efe6','Natural'],['#ffffff','White'],['#1c1c1c','Black'],['#8f8f8a','Heather grey'],['#2f3a4f','Navy'],['#5a6146','Olive'],['#7a5338','Brown'],['#b4c2cf','Sky blue']];
 const GARMENT_WORDS={tee:'short-sleeve crewneck t-shirt',hoodie:'pullover hoodie with kangaroo pocket',zip:'full-zip hoodie',crew:'crewneck sweatshirt',trucker:'trucker jacket',sweatpant:'sweatpants',denim:'5-pocket jeans',shorts:'shorts'};
-const USE_WORDS={full:'reproduce the full printed artwork faithfully',logo:'use only the logo / wordmark from it',style:'use only its illustration style and mood — create new artwork',colors:'use only its color palette — create new artwork'};
+const USE_WORDS={full:'reproduce the full printed artwork faithfully',pattern:'take only the surface prints, patterns and logos from it and lay them out flat as a graphic on the garment',logo:'use only the logo / wordmark from it',style:'use only its illustration style and mood — create new artwork',colors:'use only its color palette — create new artwork'};
+const OBJ_RULE='. If it shows a physical product (shoe, bag, cap, garment or any other object), do NOT draw that object or its shape anywhere — use only what is printed or patterned on its surface, laid flat on the garment';
+const useWords=u=>(USE_WORDS[u]||USE_WORDS.full)+(u&&u!=='full'?OBJ_RULE:'');
 const TRIM_WORDS={studs:'metal studs',rhinestones:'rhinestones',patches:'sewn-on patches',grommets:'metal grommets',chains:'metal chains'};
 const WASH_WORDS={auto:'clean, new',none:'clean, new',garment:'garment-dyed',pigment:'pigment-dyed with soft uneven color',vintage:'vintage sun-faded',acid:'acid-washed'};
 const SIDES=['front','back'];
@@ -540,7 +548,9 @@ const state={
   front:blankSide(), back:{...blankSide(),washType:'same'},
   bodyMode:'upload', body:'tee',
   direction:'', quality:'low', color:'', colorName:'',
-  variations:[], active:0, view:'front'
+  variations:[], active:0, view:'front',
+  useSplit:false,                           // artwork option set per side (else one choice for both)
+  clean:{}, useOrig:{}                      // body photos with prints removed: {'body-front':{of,src}}, and "use my original" switches
 };
 
 /* ---------- helpers ---------- */
@@ -575,7 +585,12 @@ function syncStep(step){
   el.querySelectorAll('.sidetabs button').forEach(b=>{ const s=b.dataset.v; const has=!!(state.refs[`${step}-${s}`]||state[s].note[step]||(step==='wash'&&!['none','auto'].includes(state[s].dis.level))||(step==='trim'&&state[s].trimType!=='none'));
     b.querySelector('.dot')?.remove(); if(has&&s!==side) b.insertAdjacentHTML('beforeend','<span class="dot"></span>'); });
   if(step==='wash'){ syncDistress(); syncWashAuto(); }
+  if(step==='graphic') syncUseHint();
 }
+function syncUseHint(){ const h=$('#useHint'); if(!h) return; const side=state.tab.graphic;
+  h.innerHTML=(state.useSplit?`Only the ${side} · <a href="#" id="useSame">Use the same for both</a>`:`Front and back · <a href="#" id="useSplit">Set separately</a>`)+'<br>Photo of a shoe, bag or product? Use <b>Pattern only</b> to take just its prints.';
+  $('#useSplit')?.addEventListener('click',e=>{e.preventDefault(); state.useSplit=true; syncStep('graphic'); saveDraft();});
+  $('#useSame')?.addEventListener('click',e=>{e.preventDefault(); state.useSplit=false; const v=state[side].graphicUse; SIDES.forEach(x=>state[x].graphicUse=v); syncStep('graphic'); saveDraft();}); }
 const NOTE_PH={
   graphic:{front:'Front: e.g. keep the logo, distressed, 2 colors max',back:'Back: e.g. big logo across the upper back'},
   body:{front:'Front: e.g. forest green, cut & sew color-block yoke, boxy fit',back:'Back: e.g. contrast back panel, no seam — or leave empty'},
@@ -587,7 +602,8 @@ const NOTE_PH={
   el.querySelectorAll('.sidetabs').forEach(seg=>seg.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.tab[step]=b.dataset.v; syncStep(step);}));
   el.querySelector('[data-note]').addEventListener('input',e=>{state[state.tab[step]].note[step]=e.target.value; saveDraft();});
   const chips=el.querySelector('[data-pick]');
-  if(chips) chips.addEventListener('click',e=>{const c=e.target.closest('.chip'); if(!c) return; state[state.tab[step]][chips.dataset.pick]=c.dataset.v; syncStep(step); saveDraft();});
+  if(chips) chips.addEventListener('click',e=>{const c=e.target.closest('.chip'); if(!c) return; const key=chips.dataset.pick;
+    if(step==='graphic'&&!state.useSplit) SIDES.forEach(x=>state[x][key]=c.dataset.v); else state[state.tab[step]][key]=c.dataset.v; syncStep(step); saveDraft();});
   syncStep(step);
 });
 
@@ -656,6 +672,34 @@ $$('.examples [data-ex]').forEach(b=>b.addEventListener('click',()=>{
   toast('Example loaded — hit Create, or change anything first');
 }));
 
+/* ---------- body photos: remove their prints first, so the AI never copies them ---------- */
+const refSig=u=>u?u.length+':'+u.slice(-40):'';
+const cleanJobs={};
+function bodyRef(slot){ const u=state.refs[slot]; if(!u) return null; const c=state.clean[slot]; return (!state.useOrig[slot]&&c&&c.of===refSig(u)&&c.src)?c.src:u; }
+async function cleanBody(slot){
+  const u=state.refs[slot]; if(!u||!AI_ENDPOINT) return; const sig=refSig(u);
+  if(state.clean[slot]?.of===sig) return; if(cleanJobs[slot]?.of===sig) return cleanJobs[slot].p;
+  const p=(async()=>{ try{
+      const tk=await window.SPOOL_AUTH?.token?.(); if(!tk) return;
+      syncBodyClean();
+      const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({task:'clean',prompt:'clean',images:[{dataUrl:await shrink(u,1024)}]})});
+      const d=await r.json().catch(()=>({})); const src=d.images?.[0]?.src||d.images?.[0];
+      if(!r.ok||typeof src!=='string') throw new Error(d.error||'clean failed');
+      if(refSig(state.refs[slot])===sig){ state.clean[slot]={of:sig,src:await shrink(src,1024)}; saveDraft(); }
+    }catch(e){ console.warn('body clean',e); if(refSig(state.refs[slot])===sig) state.clean[slot]={of:sig,src:null,failed:true}; }
+    finally{ if(cleanJobs[slot]?.of===sig) delete cleanJobs[slot]; syncBodyClean(); } })();
+  cleanJobs[slot]={of:sig,p}; return p;
+}
+function syncBodyClean(){ const el=$('#bodyClean'); if(!el) return; const rows=[];
+  ['body-front','body-back'].forEach(slot=>{ const u=state.refs[slot]; if(!u) return; const side=slot.split('-')[1], c=state.clean[slot], ok=c&&c.of===refSig(u);
+    if(cleanJobs[slot]) rows.push(`<div>⏳ ${cap(side)}: removing prints from your photo…</div>`);
+    else if(ok&&c.src) rows.push(state.useOrig[slot]?`<div>${cap(side)}: using your original photo · <a href="#" data-orig="${slot}" data-on="0">Use blank version</a></div>`
+      :`<div><img src="${c.src}" data-view="${slot}" alt="">${cap(side)}: prints removed, so they won’t be copied · <a href="#" data-orig="${slot}" data-on="1">Use my original</a></div>`);
+    else if(ok&&c.failed) rows.push(`<div>${cap(side)}: couldn’t remove the prints — your photo is used as is.</div>`); });
+  el.innerHTML=rows.join(''); el.classList.toggle('hidden',!rows.length);
+  el.querySelectorAll('[data-orig]').forEach(a=>a.onclick=e=>{ e.preventDefault(); state.useOrig[a.dataset.orig]=a.dataset.on==='1'; syncBodyClean(); saveDraft(); });
+  el.querySelectorAll('[data-view]').forEach(i=>i.onclick=()=>openLB(state.clean[i.dataset.view]?.src,'Body without prints')); }
+
 /* ---------- uploads ---------- */
 function applyRef(slot,url){
   const d=document.querySelector(`.drop[data-slot="${slot}"]`); if(!d) return; state.refs[slot]=url||null;
@@ -671,6 +715,7 @@ $$('.drop').forEach(d=>{
     const r=new FileReader();
     r.onload=()=>{ applyRef(slot,r.result); openStep(step,true); state.tab[step]=side; if(step==='trim'&&state[side].trimType==='none') state[side].trimType='studs'; syncStep(step);
       if(step==='body'&&side==='front'&&state.bodyMode==='preset') setBodyMode('upload');
+      if(step==='body'){ delete state.useOrig[slot]; cleanBody(slot); }
       saveDraft(); };
     r.readAsDataURL(file);
   };
@@ -681,7 +726,7 @@ $$('.drop').forEach(d=>{
   d.addEventListener('click',e=>{
     if(!d.classList.contains('filled')){ state.tab[step]=side; syncStep(step); return; }
     e.preventDefault();
-    if(e.target.closest('.x')){ applyRef(slot,null); input.value=''; syncStep(step); saveDraft(); return; }
+    if(e.target.closest('.x')){ applyRef(slot,null); input.value=''; if(step==='body'){ delete state.clean[slot]; delete state.useOrig[slot]; syncBodyClean(); } syncStep(step); saveDraft(); return; }
     openLB(state.refs[slot],`${cap(step)} · ${side}`);
   });
 });
@@ -700,8 +745,8 @@ function frontJob(){
   L.push(`Create a professional e-commerce product photo of ONE ${garment}, FRONT view, laid flat / ghost-mannequin style, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.`);
   const F=state.front;
   return (async()=>{
-    if(state.refs['graphic-front']) add(await shrink(state.refs['graphic-front']),`is the FRONT GRAPHIC: ${USE_WORDS[F.graphicUse]}. If it shows a person or a garment, extract ONLY the printed artwork and ignore the person and that garment. Place it on the front (chest / center front) unless the notes say otherwise.`);
-    if(state.refs['body-front']) add(await shrink(state.refs['body-front']),'is the BODY reference (front): use it ONLY for garment type, silhouette, fit, panels, seams and cut & sew construction. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
+    if(state.refs['graphic-front']) add(await shrink(state.refs['graphic-front']),`is the FRONT GRAPHIC: ${useWords(F.graphicUse)}. If it shows a person or a garment, extract ONLY the printed artwork and ignore the person and that garment. Place it on the front (chest / center front) unless the notes say otherwise.`);
+    if(state.refs['body-front']) add(await shrink(bodyRef('body-front')),'is the BODY reference (front): use it ONLY for garment type, silhouette, fit, panels, seams and cut & sew construction. Any print, logo or text on it is NOT part of the design. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
     else if(state.bodyMode==='preset') add(await presetPNG(state.body,'#f2efe6'),'is a simple flat sketch of the garment type only — render it as a real garment. It has no print.');
     if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH & DISTRESS reference: copy only its wash, dye, fading and distressing — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
     if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
@@ -716,6 +761,7 @@ function frontJob(){
     if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
     if(state.direction) L.push(`Design idea: ${state.direction}.`);
     L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
+    if(state.refs['body-front']) L.push('BODY PHOTO RULE: the BODY reference may show prints, logos, text, slogans, labels or patches. Treat them as if they were never there — none of them may appear in the result: not the words, not the logo, not its placement, not its colors. A result that shows any text or graphic from the BODY reference is wrong.');
     L.push(BRAND_SAFE);
     L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
     return {prompt:L.join('\n'),images:images.filter(Boolean)};
@@ -725,8 +771,8 @@ async function backJob(frontUrl){
   const images=[await shrink(frontUrl,1024)], L=[], add=(url,line)=>{ if(!url||images.length>=4) return; images.push(url); L.push(`Reference image ${images.length} ${line}`); };
   const B=state.back, F=state.front;
   L.push('Reference image 1 shows the FRONT of a garment. Create a professional e-commerce product photo of the BACK view of this exact same garment — same garment type, base color, fabric, fit and proportions — laid flat / ghost-mannequin style, back facing the camera, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text. The garment type, cut and silhouette MUST stay exactly as in reference image 1 — never turn it into a different garment (for example a shirt or jacket) because another reference image shows one.');
-  if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK GRAPHIC: ${USE_WORDS[B.graphicUse]}. Extract only the printed artwork, ignore any person or garment in it — the garment in this image is NOT the product; the product stays the same garment as reference image 1. Print it large across the back panel of that garment unless the notes say otherwise.`);
-  if(state.refs['body-back']) add(await shrink(state.refs['body-back']),'is the BACK BODY reference: use it ONLY for back panels, seams and cut & sew construction. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
+  if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK GRAPHIC: ${useWords(B.graphicUse)}. Extract only the printed artwork, ignore any person or garment in it — the garment in this image is NOT the product; the product stays the same garment as reference image 1. Print it large across the back panel of that garment unless the notes say otherwise.`);
+  if(state.refs['body-back']) add(await shrink(bodyRef('body-back')),'is the BACK BODY reference: use it ONLY for back panels, seams and cut & sew construction. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
   if(state.refs['trim-back']&&B.trimType!=='none') add(await shrink(state.refs['trim-back']),`is the TRIM reference for the back: add ${TRIM_WORDS[B.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
   const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?null:state.refs['wash-back'], followFront=!washRef&&!!state.refs['wash-front']&&(B.washType==='same'||(B.washType==='auto'&&F.washType==='auto'));
   if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
@@ -741,6 +787,7 @@ async function backJob(frontUrl){
   L.push(B.trimType!=='none'?`Trims on the back: ${TRIM_WORDS[B.trimType]}${B.note.trim?' — '+B.note.trim:''}.`:'No trims on the back.');
   if(state.direction) L.push(`Design idea (back view): ${state.direction}.`);
   L.push(state.refs['graphic-back']||B.note.graphic?'STRICT: The only artwork allowed on the back is from the BACK GRAPHIC reference and the back graphic notes. Do not copy the front print or any artwork from any other reference image onto the back.':'STRICT: Do not copy the front print or any artwork from any reference image onto the back.');
+  if(state.refs['body-back']||state.refs['body-front']) L.push('BODY PHOTO RULE: the BODY reference may show prints, logos, text, slogans, labels or patches. Treat them as if they were never there — none of them may appear in the result: not the words, not the logo, not its placement, not its colors. A result that shows any text or graphic from the BODY reference is wrong.');
   L.push(BRAND_SAFE);
   L.push('Realistic fabric, sharp print detail, square image.');
   return {prompt:L.join('\n'),images};
@@ -751,6 +798,7 @@ async function callAI(body){
   const d=await r.json(); if(!r.ok||!d.images?.length){ const er=new Error(d.error||'No images'); er.code=d.code||''; throw er; } if(d.errors?.length) console.warn('AI partial errors',d.errors); return d.images;
 }
 async function generate(){
+  const pend=Object.values(cleanJobs).map(j=>j.p); if(pend.length){ setSpinPhase('Removing prints from your body photo'); await Promise.race([Promise.all(pend),new Promise(r=>setTimeout(r,45000))]); }
   if(!AI_ENDPOINT){ await new Promise(r=>setTimeout(r,1200)); return await mockVariations(); }
   const fronts=await callAI({...(await frontJob()),n:2});
   setSpinPhase('Front done — now the back');
@@ -937,7 +985,7 @@ const DB=(()=>{let dbp;const open=()=>dbp||(dbp=(async()=>{ const sc=window.SPOO
   const tx=async(store,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(store,mode);const out=fn(t.objectStore(store));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn('save failed',e);return null;}};
   return{get:k=>tx('kv','readonly',s=>s.get(k)),set:(k,v)=>tx('kv','readwrite',s=>s.put(v,k)),all:()=>tx('designs','readonly',s=>s.getAll()),put:v=>tx('designs','readwrite',s=>s.put(v)),del:id=>tx('designs','readwrite',s=>s.delete(id))};})();
 
-function snapshot(){ return JSON.parse(JSON.stringify({v:2,wv:2,refs:state.refs,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,direction:state.direction,quality:state.quality,color:state.color,colorName:state.colorName,variations:state.variations,active:state.active,view:state.view,recipe:$('#recipe').innerHTML})); }
+function snapshot(){ return JSON.parse(JSON.stringify({v:2,wv:2,refs:state.refs,front:state.front,back:state.back,bodyMode:state.bodyMode,body:state.body,direction:state.direction,quality:state.quality,color:state.color,colorName:state.colorName,variations:state.variations,active:state.active,useSplit:state.useSplit,clean:state.clean,useOrig:state.useOrig,view:state.view,recipe:$('#recipe').innerHTML})); }
 let restoring=false, curId=null;
 function restore(s){
   if(!s) return; restoring=true;
@@ -955,10 +1003,12 @@ function restore(s){
   SIDES.forEach(x=>{ const d=state[x].dis; state[x].dis=Object.assign(blankDis(),d||{}); state[x].dis.where=[...(state[x].dis.where||[])]; });
   if(s.distress&&s.distress.level&&s.distress.level!=='none'){ // older single distress setting → per side
     SIDES.forEach(x=>{ if(!s[x]?.dis && (s.distress.side==='both'||s.distress.side===x)) state[x].dis={level:s.distress.level,where:[...(s.distress.where||[])],note:s.distress.note||''}; }); }
+  state.useSplit=s.useSplit??(state.front.graphicUse!==state.back.graphicUse); state.clean={...(s.clean||{})}; state.useOrig={...(s.useOrig||{})};
   state.direction=s.direction||''; $('#p-global').value=state.direction;
   state.quality='low'; state.color=s.color&&/^#[0-9a-f]{6}$/i.test(s.color)?s.color:''; state.colorName=s.colorName||''; syncColor();
   $$('.step').forEach(el=>el.classList.remove('open'));
   ['graphic','body','wash','trim'].forEach(syncStep); syncOpen();
+  syncBodyClean(); setTimeout(()=>['body-front','body-back'].forEach(k=>{ if(state.refs[k]) cleanBody(k); }),0);
   state.variations=s.variations||[]; state.active=Math.min(s.active||0,Math.max(0,state.variations.length-1)); state.view=s.view||'front';
   ['#fail','#spin'].forEach(x=>$(x).classList.add('hidden'));
   if(state.variations.length){ $('#empty').classList.add('hidden'); $('#result').classList.remove('hidden'); $('#recipe').innerHTML=s.recipe||''; render(); }
