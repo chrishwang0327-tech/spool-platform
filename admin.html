@@ -50,7 +50,7 @@ async function designs(){
   const rows=(data||[]).filter(r=>!filt()||(r.email||'').toLowerCase().includes(filt()));
   if(!rows.length) return out.innerHTML='<div class="msg">No designs yet.</div>';
   const urls=await signed('creations',rows.flatMap(r=>(r.thumbs||[]).map(t=>t.path)));
-  out.innerHTML=`<div class="grid">${rows.map(r=>`<div class="card"><div class="thumbs">${(r.thumbs||[]).map(t=>urls[t.path]?`<img src="${urls[t.path]}" alt="Design ${t.design} ${t.side}" title="Design ${t.design} · ${t.side} · ${esc(t.option||'')}">`:'').join('')}</div>
+  out.innerHTML=`<div class="grid">${rows.map(r=>`<div class="card"><div class="thumbs">${(r.thumbs||[]).map(t=>urls[t.path]?`<img src="${esc(urls[t.path])}" alt="Design ${esc(t.design)} ${esc(t.side)}" title="Design ${esc(t.design)} · ${esc(t.side)} · ${esc(t.option||'')}">`:'').join('')}</div>
     <div class="meta"><b>${esc(r.email||'—')}</b> · ${when(r.created_at)}<br>${esc(r.idea||'')}${r.recipe?`<br><span style="opacity:.8">${esc(r.recipe)}</span>`:''}</div></div>`).join('')}</div>`;
 }
 async function samples(){
@@ -63,7 +63,7 @@ async function samples(){
     <td>${when(r.created_at)}</td><td><b>${esc(r.name)}</b>${r.brand?' · '+esc(r.brand):''}<br>${esc(r.email)}${r.phone?'<br>'+esc(r.phone):''}<br><span class="meta">${esc([r.city,r.state,r.zip,r.country].filter(Boolean).join(', '))}</span></td>
     <td>${esc(r.design?.name||'')}<br><span class="meta">${esc([r.design?.body,r.design?.color].filter(Boolean).join(' · '))}</span></td>
     <td>${esc(r.sample_size)} × ${esc(r.sample_qty)}</td><td>${esc(r.production_qty)}${r.needed_by?'<br>by '+esc(r.needed_by):''}${r.target_price?'<br>target '+esc(r.target_price):''}</td>
-    <td class="files">${Object.entries({...(r.images||{}),...(r.files||{})}).map(([k,p])=>urls[p]?`<a href="${urls[p]}" target="_blank" rel="noopener" download="${esc(k)}">${esc(k)}</a>`:'').join('')}</td><td><span class="pill">${esc(r.status)}</span></td></tr>`).join('')}</table></div>
+    <td class="files">${Object.entries({...(r.images||{}),...(r.files||{})}).map(([k,p])=>urls[p]?`<a href="${esc(urls[p])}" target="_blank" rel="noopener" download="${esc(k)}">${esc(k)}</a>`:'').join('')}</td><td><span class="pill">${esc(r.status)}</span></td></tr>`).join('')}</table></div>
     <p class="meta" style="margin-top:10px">To change a status, edit the <b>status</b> column in Supabase → Table Editor → sample_requests.</p>`;
 }
 async function users(){
