@@ -863,7 +863,8 @@ $('#studioBtn')?.addEventListener('click',async e=>{ if(!P||!P.studio) return; e
   try{ await flushSave?.(); }catch(_){}
   const refs={}; for(const sd of ['front','back']) if(P.studio.art?.[sd]) refs['graphic-'+sd]=P.studio.art[sd];
   for(const r of (P.refs||[])) if(r&&r.src&&r.side&&['body','wash','trim'].includes(r.kind)&&!refs[r.kind+'-'+r.side]) refs[r.kind+'-'+r.side]=r.src;
-  const {art,...set}=P.studio; await studioDB.put('kv',{...set,refs},'reopen'); location.href='studio.html?from=editor'; });
+  const {art,...set}=P.studio; const f=P.sides.front.original, b=P.sides.back.original;
+  await studioDB.put('kv',{...set,refs,variations:(f||b)?[{front:f||null,back:b||null,provider:P.provider||'',pid:P.id}]:[],active:0,view:'front'},'reopen'); location.href='studio.html?from=editor'; });
 
 /* ---------- AI flat sketches (construction reference) ---------- */
 async function aiFlat(src){
