@@ -13,5 +13,8 @@ where not exists (
   select 1 from public.generations g where g.kind = 'mail:' || lower(s.id::text)
 );
 
--- 2) Accounts can no longer insert usage rows directly.
+-- 2) The Worker's secret key (service_role) needs to read and write the table.
+grant select, insert on public.generations to service_role;
+
+-- 3) Accounts can no longer insert usage rows directly.
 drop policy if exists "gen: add own" on public.generations;
