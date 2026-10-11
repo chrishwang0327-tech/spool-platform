@@ -61,7 +61,17 @@ export default {
       new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (req.method === 'GET') return json({ ok: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY });
+    if (req.method === 'GET') {
+      // supabase: "ok" when SUPABASE_SECRET_KEY works, "missing" when it isn't set, "not a secret key", or the error status
+      let supabase = 'missing';
+      if (env.SUPABASE_SECRET_KEY) {
+        try { const r = await fetch(`${SB_URL}/rest/v1/generations?select=id&limit=1`, { headers: secretHeaders(env.SUPABASE_SECRET_KEY.trim()) }); const rows = r.ok ? await r.json().catch(() => []) : null;
+          // the secret key bypasses row security and sees rows; a publishable/anon key sees none
+          supabase = !r.ok ? `error ${r.status}` : rows.length ? 'ok' : 'not a secret key'; }
+        catch { supabase = 'error'; }
+      }
+      return json({ ok: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
+    }
     if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
     if (!okOrigin) return json({ error: 'Origin not allowed' }, 403);
     if (Number(req.headers.get('Content-Length') || 0) > MAX_BODY) return json({ error: 'Images too large' }, 413);
@@ -320,11 +330,14 @@ async function dayCap(env, token, h, kind, freeCap, proCap, message, code) {
 }
 // usage rows are written with the Worker's secret key (accounts can only read their own rows);
 // without SUPABASE_SECRET_KEY it falls back to the account's token, as before
+const secretHeaders = k => k.startsWith('eyJ') ? { apikey: k, Authorization: `Bearer ${k}` } : { apikey: k };
 function logUse(env, token, kind) {
-  const k = env.SUPABASE_SECRET_KEY, uid = uidOf(token);
-  const h = k && uid ? (k.startsWith('eyJ') ? { apikey: k, Authorization: `Bearer ${k}` } : { apikey: k }) : { apikey: SB_KEY, Authorization: `Bearer ${token}` };
+  const k = (env.SUPABASE_SECRET_KEY || '').trim(), uid = uidOf(token);
+  const h = k && uid ? secretHeaders(k) : { apikey: SB_KEY, Authorization: `Bearer ${token}` };
   const row = k && uid ? { kind, user_id: uid } : { kind };
-  return fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) }).catch(() => {});
+  return fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) })
+    .then(async r => { if (!r.ok) console.error('usage row not saved', kind, r.status, (await r.text()).slice(0, 200)); })
+    .catch(e => console.error('usage row not saved', kind, String(e)));
 }
 const envInt = (v, d) => Math.max(1, parseInt(v || String(d), 10) || d);
 
