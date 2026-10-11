@@ -26,6 +26,8 @@
  *   GEMINI_API_KEY   your Gemini API key (aistudio.google.com)
  *   RESEND_API_KEY   Resend API key (resend.com) — sends sample request emails
  *   STRIPE_SECRET_KEY Stripe secret key (sk_test_… while testing, sk_live_… when live)
+ *   SUPABASE_SECRET_KEY Supabase secret key (sb_secret_… or the service_role key) — only the Worker
+ *                    writes usage rows to "generations", so accounts can't add tech pack / sample rows themselves
  * Optional plain variables:
  *   OPENAI_MODEL     default "gpt-image-2"
  *   GEMINI_MODEL     default "gemini-3.1-flash-image"
@@ -59,7 +61,17 @@ export default {
       new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (req.method === 'GET') return json({ ok: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY });
+    if (req.method === 'GET') {
+      // supabase: "ok" when SUPABASE_SECRET_KEY works, "missing" when it isn't set, "not a secret key", or the error status
+      let supabase = 'missing';
+      if (env.SUPABASE_SECRET_KEY) {
+        try { const r = await fetch(`${SB_URL}/rest/v1/generations?select=id&limit=1`, { headers: secretHeaders(env.SUPABASE_SECRET_KEY.trim()) }); const rows = r.ok ? await r.json().catch(() => []) : null;
+          // the secret key bypasses row security and sees rows; a publishable/anon key sees none
+          supabase = !r.ok ? `error ${r.status}` : rows.length ? 'ok' : 'not a secret key'; }
+        catch { supabase = 'error'; }
+      }
+      return json({ ok: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
+    }
     if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
     if (!okOrigin) return json({ error: 'Origin not allowed' }, 403);
     if (Number(req.headers.get('Content-Length') || 0) > MAX_BODY) return json({ error: 'Images too large' }, 413);
@@ -108,7 +120,7 @@ export default {
       const h = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
       const capErr = await dayCap(env, token, h, 'clean', envInt(env.CLEAN_FREE_DAILY, 10), envInt(env.CLEAN_DAILY, 20), "You've reached today's limit for moving artwork. It resets at midnight UTC.", 'clean_limit');
       if (capErr) return json(capErr, 429);
-      await logUse(h, 'clean');
+      await logUse(env, token, 'clean');
       const P_CLEAN = 'REMOVE ALL PRINTS: Edit this garment product photo. Remove every printed graphic, logo, text, patch and trim from the garment so it is completely blank. Keep the garment type, color, wash, fabric texture, folds, distressing, camera angle and background exactly the same.';
       try {
         const out = env.OPENAI_API_KEY ? await openai(env, P_CLEAN, [src], { n: 1, quality: 'low', size: '1024x1024' }) : await gemini(env, P_CLEAN, [src], '1:1');
@@ -125,7 +137,7 @@ export default {
       const h = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
       const capErr = await dayCap(env, token, h, 'flat', envInt(env.FLAT_FREE_DAILY, 6), envInt(env.FLAT_DAILY, 20), "You've reached today's limit for flat sketches. It resets at midnight UTC.", 'flat_limit');
       if (capErr) return json(capErr, 429);
-      await logUse(h, 'flat');
+      await logUse(env, token, 'flat');
       const P_FLAT = 'FLAT TECHNICAL SKETCH: Redraw this blank garment as a clean black-line technical flat sketch (fashion CAD style) on a pure white background. Trace the exact silhouette, proportions, seams, stitching, pockets, hood, cuffs, hem and collar exactly as in the photo. Construction detail lines only: no shading, no color fill, no artwork, no text, no model, no shadow. Same camera angle as the photo.';
       try {
         const out = env.OPENAI_API_KEY ? await openai(env, P_FLAT, [src], { n: 1, quality: 'low', size: '1024x1024' }) : await gemini(env, P_FLAT, [src], '1:1');
@@ -153,7 +165,7 @@ export default {
     if (body.task === 'detect') {
       if (!env.GEMINI_API_KEY) return json({ error: 'Detect needs GEMINI_API_KEY' }, 500);
       if (!images.length) return json({ error: 'Missing image' }, 400);
-      { const hd = { apikey: SB_KEY, Authorization: `Bearer ${token}` }; const capErr = await dayCap(env, token, hd, 'detect', envInt(env.DETECT_DAILY, 200), envInt(env.DETECT_DAILY, 200) * 3, "You've reached today's limit for auto-detect. It resets at midnight UTC.", 'detect_limit'); if (capErr) return json(capErr, 429); await logUse(hd, 'detect'); }
+      { const hd = { apikey: SB_KEY, Authorization: `Bearer ${token}` }; const capErr = await dayCap(env, token, hd, 'detect', envInt(env.DETECT_DAILY, 200), envInt(env.DETECT_DAILY, 200) * 3, "You've reached today's limit for auto-detect. It resets at midnight UTC.", 'detect_limit'); if (capErr) return json(capErr, 429); await logUse(env, token, 'detect'); }
       try { return json(await geminiDetect(env, images[0])); }
       catch (e) { return json({ error: String(e?.message || e).slice(0, 300) }, 502); }
     }
@@ -316,7 +328,17 @@ async function dayCap(env, token, h, kind, freeCap, proCap, message, code) {
   if (pro && used < proCap) return null;
   return { error: message, code };
 }
-const logUse = (h, kind) => fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ kind }) }).catch(() => {});
+// usage rows are written with the Worker's secret key (accounts can only read their own rows);
+// without SUPABASE_SECRET_KEY it falls back to the account's token, as before
+const secretHeaders = k => k.startsWith('eyJ') ? { apikey: k, Authorization: `Bearer ${k}` } : { apikey: k };
+function logUse(env, token, kind) {
+  const k = (env.SUPABASE_SECRET_KEY || '').trim(), uid = uidOf(token);
+  const h = k && uid ? secretHeaders(k) : { apikey: SB_KEY, Authorization: `Bearer ${token}` };
+  const row = k && uid ? { kind, user_id: uid } : { kind };
+  return fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) })
+    .then(async r => { if (!r.ok) console.error('usage row not saved', kind, r.status, (await r.text()).slice(0, 200)); })
+    .catch(e => console.error('usage row not saved', kind, String(e)));
+}
 const envInt = (v, d) => Math.max(1, parseInt(v || String(d), 10) || d);
 
 async function sbCount(url, h) {
@@ -342,7 +364,6 @@ async function quotaInfo(env, token, withPlan) {
   return info;
 }
 async function useQuota(env, token, kind, need) {
-  const h = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
   const daily = Math.max(1, parseInt(env.DAILY_LIMIT || '30', 10) || 30);
   try {
     const info = await quotaInfo(env, token);
@@ -358,7 +379,7 @@ async function useQuota(env, token, kind, need) {
       if (info.todayCalls >= dailyMax)
         return { ok: false, code: 'daily_limit', limit: dailyMax, used: info.todayCalls, error: `You've reached today's limit. It resets at midnight UTC.` };
     }
-    await fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ kind }) });
+    await logUse(env, token, kind);
     info.usedCalls += 1; info.designsLeft = info.pro ? null : Math.max(0, Math.floor((info.limitCalls - info.usedCalls) / 3));
     return { ok: true, info };
   } catch { return QUOTA_DOWN; }
@@ -435,7 +456,8 @@ async function techpackInfo(env, token) {
   const free = Math.max(0, parseInt(env.FREE_TECHPACKS || '1', 10));
   const [rows, sampled, adm] = await Promise.all([
     fetch(`${SB_URL}/rest/v1/generations?select=kind&kind=like.tp:*&limit=500`, { headers: h }).then(r => r.ok ? r.json() : []).catch(() => []),
-    sbCount(`${SB_URL}/rest/v1/sample_requests?select=id&user_id=eq.${encodeURIComponent(uidOf(token))}`, h).then(n => n || 0).catch(() => 0),
+    // only sample requests the Worker actually emailed count (rows "mail:<id>", written by the Worker)
+    sbCount(`${SB_URL}/rest/v1/generations?select=id&kind=like.mail:*`, h).then(n => n || 0).catch(() => 0),
     fetch(`${SB_URL}/rest/v1/rpc/is_admin`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: '{}' }).then(r => r.ok ? r.json() : false).catch(() => false)
   ]);
   const projects = [...new Set((Array.isArray(rows) ? rows : []).map(x => String(x.kind).slice(3)))];
@@ -444,13 +466,12 @@ async function techpackInfo(env, token) {
 }
 async function techpackCheck(env, token, email, project) {
   if (!project) return { ok: false, code: 'bad_request', error: 'Missing project' };
-  const h = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
   const t = await techpackInfo(env, token);
   let pro = false; try { pro = (await planOf(env, email)).pro; } catch {}
   const allowed = t.admin || pro || t.projects.includes(project) || t.used < t.free;
   if (!allowed) return { ok: false, code: 'techpack_limit', error: `You've used your free tech pack. Upgrade to SPOOL Studio for unlimited tech packs, or request a sample of this design (each sample request adds one).` };
   if (!t.projects.includes(project))
-    await fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ kind: 'tp:' + project }) }).catch(() => {});
+    await logUse(env, token, 'tp:' + project);
   return { ok: true, pro, via: t.admin ? 'admin' : pro ? 'studio' : 'free' };
 }
 
@@ -501,7 +522,7 @@ ${links.length ? `<p style="margin:14px 0 4px"><b>Files</b> <span style="color:#
   const from = env.MAIL_FROM || 'SPOOL <noreply@spoolnyc.com>';
   await send({ from, to: [env.SAMPLE_TO || 'chris@noboundaryapparel.com'], reply_to: row.email || undefined,
     subject: `Sample request: ${d.name || 'SPOOL design'} — ${row.name || row.email}`, html, attachments });
-  await logUse(h, mailKind);
+  await logUse(env, token, mailKind);
   // confirmation goes to the signed-in account's (verified) email, never to an address typed in the form
   const to = account || '';
   if (to) { try { await send({ from, to: [to], reply_to: 'info@spoolnyc.com', subject: 'We got your SPOOL sample request',
