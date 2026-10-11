@@ -7,13 +7,14 @@
  *                  body.wide = true → landscape 3:2. body.provider = "openai" | "gemini" forces one model.
  *  task "extract": 1 image — the print graphic alone, transparent background when supported.
  *  task "sample":  { id } of a row in Supabase "sample_requests" (saved by the site) → emails it to
- *                  SAMPLE_TO with the design images attached, plus a short confirmation to the customer.
+ *                  SAMPLE_TO with the design images attached, plus a short confirmation to the account email.
+ *                  Each request id is emailed once; at most SAMPLE_DAILY (default 5) requests per account per day.
  *  task "plan":     { pro, status, renews, techpacks } — SPOOL Studio subscription status (Stripe).
  *  task "checkout": { url } — Stripe Checkout page for SPOOL Studio.
  *  task "portal":   { url } — Stripe customer portal (card, invoices, cancel).
  *  task "clean":    1 image → the same garment with every print removed (blank body). Used by the editor to
  *                  move / resize artwork. Fixed prompt, low quality, not counted in the free designs
- *                  (own daily cap CLEAN_DAILY, default 40).
+ *                  (own daily cap: CLEAN_FREE_DAILY default 10, CLEAN_DAILY for Studio default 20).
  *  task "techpack": { project } → { ok } if this account may download a tech pack PDF
  *                  (Studio, admin, or within 1 free + 1 per sample request), else { ok:false, code }.
  *
@@ -78,7 +79,7 @@ export default {
     if (body.task === 'sample') {
       const uid = who || await checkUser(token);
       if (!uid) return json({ error: 'Sign in to request a sample' }, 401);
-      try { return json(await sendSample(env, token, String(body.id || ''))); }
+      try { return json(await sendSample(env, token, String(body.id || ''), emailOf(token))); }
       catch (e) { return json({ error: String(e?.message || e).slice(0, 300) }, 502); }
     }
 
@@ -333,7 +334,8 @@ async function quotaInfo(env, token, withPlan) {
     sbCount(`${SB_URL}/rest/v1/generations?select=id&kind=in.(design,extract)&created_at=gte.${encodeURIComponent(day.toISOString())}`, h),
     fetch(`${SB_URL}/rest/v1/credits?select=email,extra_designs`, { headers: h }).then(r => r.ok ? r.json() : []).catch(() => [])
   ]);
-  const extra = (Array.isArray(cr) ? cr : []).reduce((m, x) => Math.max(m, x.extra_designs || 0), 0);
+  const me = emailOf(token);
+  const extra = (Array.isArray(cr) ? cr : []).filter(x => me && String(x.email || '').toLowerCase() === me).reduce((m, x) => Math.max(m, x.extra_designs || 0), 0);
   const limitCalls = (free + extra) * per;
   const info = { admin: adm === true, usedCalls: total, todayCalls: today, limitCalls, designsLeft: total === null ? null : Math.max(0, Math.floor((limitCalls - total) / per)), freeDesigns: free + extra, pro: false };
   if (withPlan && !info.admin) { try { info.pro = (await planOf(env, emailOf(token))).pro; } catch {} }
@@ -344,7 +346,7 @@ async function useQuota(env, token, kind, need) {
   const daily = Math.max(1, parseInt(env.DAILY_LIMIT || '30', 10) || 30);
   try {
     const info = await quotaInfo(env, token);
-    if (info.usedCalls === null) return { ok: true }; // table missing → don't block people
+    if (info.usedCalls === null || info.todayCalls === null) return QUOTA_DOWN; // can't count → don't run paid AI calls
     if (!info.admin) {
       // over the free designs → only SPOOL Studio subscribers keep going (Stripe is checked only here, not on every call)
       if (info.usedCalls + need > info.limitCalls) {
@@ -359,8 +361,9 @@ async function useQuota(env, token, kind, need) {
     await fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ kind }) });
     info.usedCalls += 1; info.designsLeft = info.pro ? null : Math.max(0, Math.floor((info.limitCalls - info.usedCalls) / 3));
     return { ok: true, info };
-  } catch { return { ok: true }; }
+  } catch { return QUOTA_DOWN; }
 }
+const QUOTA_DOWN = { ok: false, code: 'quota_unavailable', error: "We couldn't check your design limit just now. Please try again in a minute." };
 
 /* ---------- SPOOL Studio subscription (Stripe) ----------
    No webhooks / no extra tables: the Stripe customer is found by the account's email, and the
@@ -454,13 +457,19 @@ async function techpackCheck(env, token, email, project) {
 /* ---------- sample request email (Resend) ---------- */
 const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function b64(buf) { let s = ''; const a = new Uint8Array(buf); for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000)); return btoa(s); }
-async function sendSample(env, token, id) {
+async function sendSample(env, token, id, account) {
   if (!env.RESEND_API_KEY) throw new Error('Email is not set up yet (RESEND_API_KEY)');
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error('Bad request id');
   const h = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
   const r = await fetch(`${SB_URL}/rest/v1/sample_requests?id=eq.${id}&select=*`, { headers: h });
   const row = (await r.json().catch(() => []))[0];
   if (!row) throw new Error('Request not found');
+  // each request is emailed once, and a few requests per day at most (stops email flooding)
+  const mailKind = 'mail:' + id.toLowerCase();
+  if (await sbCount(`${SB_URL}/rest/v1/generations?select=id&kind=eq.${mailKind}`, h)) return { ok: true, already: true };
+  const day = new Date(); day.setUTCHours(0, 0, 0, 0);
+  const today = (await sbCount(`${SB_URL}/rest/v1/generations?select=id&kind=like.mail:*&created_at=gte.${encodeURIComponent(day.toISOString())}`, h)) || 0;
+  if (today >= envInt(env.SAMPLE_DAILY, 5)) throw new Error("You've sent the most sample requests for today. Email info@spoolnyc.com and we'll help.");
   const attachments = [];
   for (const [label, path] of Object.entries(row.images || {})) {
     if (!path || attachments.length >= 6) continue;
@@ -492,7 +501,10 @@ ${links.length ? `<p style="margin:14px 0 4px"><b>Files</b> <span style="color:#
   const from = env.MAIL_FROM || 'SPOOL <noreply@spoolnyc.com>';
   await send({ from, to: [env.SAMPLE_TO || 'chris@noboundaryapparel.com'], reply_to: row.email || undefined,
     subject: `Sample request: ${d.name || 'SPOOL design'} — ${row.name || row.email}`, html, attachments });
-  if (row.email) { try { await send({ from, to: [row.email], reply_to: 'info@spoolnyc.com', subject: 'We got your SPOOL sample request',
+  await logUse(h, mailKind);
+  // confirmation goes to the signed-in account's (verified) email, never to an address typed in the form
+  const to = account || '';
+  if (to) { try { await send({ from, to: [to], reply_to: 'info@spoolnyc.com', subject: 'We got your SPOOL sample request',
     html: `<div style="font-family:Arial,sans-serif;font-size:14px;color:#201D18"><p>Hi ${esc(row.name || '')},</p><p>Thanks — we received your sample request for <b>${esc(d.name || 'your design')}</b>. We'll review it and reply with a quote within 1–2 business days.</p><p>Questions? Just reply to this email.</p><p>— SPOOL</p></div>` }); } catch {} }
   return { ok: true };
 }
