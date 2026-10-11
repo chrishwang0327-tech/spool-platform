@@ -1,3 +1,10 @@
+/*
+ * ⚠️ OUT OF DATE — DO NOT DEPLOY THIS FILE.
+ * The live Worker (spool-studio-ai.chrishwang0327.workers.dev) also handles sign-in tokens,
+ * plans/limits and Stripe (tasks: plan, checkout, portal, techpack, sample). This copy has none
+ * of that: deploying it would break checkout and AI generation and remove usage limits.
+ * Replace this file with the code from Cloudflare → Workers → spool-studio-ai before editing.
+ */
 /**
  * SPOOL Reference Studio — AI image Worker (Cloudflare Workers)
  *
