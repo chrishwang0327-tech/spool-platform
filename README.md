@@ -17,7 +17,8 @@ Static site for spoolnyc.com, published with GitHub Pages (`CNAME`). No build st
 
 ## Backend
 - Cloudflare Worker `spool-studio-ai` — AI image generation, plans/limits, Stripe checkout and portal, sample emails.
-  `spool-ai-worker.js` in this repo is an **old copy**; the live code is only in Cloudflare.
+  `spool-ai-worker.js` is a copy of the live code — after changing it, paste it into Cloudflare
+  (Workers → spool-studio-ai → Edit code) and deploy; the repo does not deploy it.
 - Supabase project — auth, tables (`projects`, `events`, `sample_requests`, `creations`, `brand_kits`),
   storage buckets (`projects`, `samples`) and admin RPCs. Only `supabase/migrations/` for
   `spool_email_requests` is in this repo; the rest of the schema and RLS policies live in Supabase.
