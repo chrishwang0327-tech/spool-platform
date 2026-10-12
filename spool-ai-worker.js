@@ -265,8 +265,8 @@ async function geminiDetect(env, image) {
   if (!m) throw new Error('Bad image');
   const prompt = 'This is a garment product photo. First name the garment type as exactly one of: tee, hoodie, zip, crew, trucker, sweatpant, denim, shorts ' +
     '(hoodie = pullover with a hood; zip = full-zip hoodie or zip jacket; crew = crewneck sweatshirt with long sleeves and no hood; tee = short-sleeve t-shirt; trucker = jacket with collar and buttons; denim = jeans). ' +
-    'Then find each separate design element ON the garment: printed graphics, text blocks, logos, patches, embroidery, rhinestone or stud areas. ' +
-    'Group letters of one word or one slogan together. Ignore the garment itself, seams, collar, cuffs, hems, pockets, wrinkles, distressing and the background. ' +
+    'Then find each separate design element ON the garment: printed graphics, text blocks, logos, patches, embroidery, rhinestone or stud areas — on the body AND on the sleeves (shoulder, upper arm, forearm and cuff area). ' +
+    'Group letters of one word or one slogan together. Ignore the garment itself, seams, collar, plain rib cuffs, hems, pockets, wrinkles, distressing and the background. ' +
     'Return JSON: {"garment": "hoodie", "items": [{"label": "short name, 1-4 words", "box_2d": [ymin, xmin, ymax, xmax]}]} with at most 8 items and coordinates normalized 0-1000. Use "items": [] if there are none.';
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
