@@ -783,10 +783,6 @@ lb.addEventListener('click',e=>{ if(e.target!==$('#lbImg')) lb.classList.remove(
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') lb.classList.remove('open'); });
 
 /* ---------- prompts ---------- */
-// sleeve artwork rule — test with ?sleevetest=1 before turning it on for everyone
-const SLEEVE_TEST=new URLSearchParams(location.search).has('sleevetest');
-const SLEEVE_FRONT='SLEEVE ARTWORK: if the FRONT GRAPHIC reference shows artwork on a sleeve, put that artwork on the same sleeve of the product (left or right as worn), at the same place along the sleeve — never move it to the chest. The sleeve length of the product always follows the body reference or garment type: never lengthen or shorten a sleeve to fit artwork. If the product sleeve is shorter than the sleeve in the reference, scale that sleeve artwork down evenly so it fits on the upper sleeve. If the reference has no sleeve artwork, add none.';
-const SLEEVE_BACK='SLEEVE ARTWORK: keep any sleeve artwork visible in reference image 1 on the same sleeves, as seen from the back, without moving or resizing it. Add no other sleeve artwork.';
 function frontJob(){
   const images=[], L=[], add=(url,line)=>{ images.push(url); L.push(`Reference image ${images.length} ${line}`); };
   const noBody=!state.refs['body-front']&&!(state.bodyMode==='describe'&&state.front.note.body);
@@ -801,8 +797,6 @@ function frontJob(){
     if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
     if(state.bodyMode==='describe'&&F.note.body) L.push(`Garment: ${F.note.body}.`); else if(F.note.body) L.push(`Front construction: ${F.note.body}.`);
     if(F.note.graphic) L.push(`Front graphic notes: ${F.note.graphic}.`);
-    const sleeveRule=SLEEVE_TEST&&!!state.refs['graphic-front']&&F.graphicUse==='full';
-    if(sleeveRule) L.push(SLEEVE_FRONT);
     const ideaOnly=!state.refs['graphic-front']&&!F.note.graphic&&!!state.direction;
     if(!state.refs['graphic-front']&&!F.note.graphic) L.push(ideaOnly?'Front print: only artwork the design idea places on the front or chest (or does not place on a specific side); if the idea only describes a back print, or no print, keep the front plain.':'No print on the front.');
     L.push(state.color?`Garment base color: ${state.colorName&&state.colorName!=='custom color'?state.colorName+' ':''}(${state.color}). Apply this color to the garment fabric only — keep graphics, trims, wash and silhouette as specified.`:state.refs['body-front']?'Garment color: keep the color of the body reference unless the notes or design idea say otherwise.':'Garment color: as given in the notes or design idea; otherwise natural off-white.');
@@ -811,7 +805,7 @@ function frontJob(){
     L.push(disAuto('front')?(fRef?`Distressing on the front: match the distressing in the WASH & DISTRESS reference (rips, holes, fraying, cracked print). If it has none, keep the garment intact.${F.dis.note?' '+F.dis.note+'.':''}`:'No distressing — the garment is clean and intact.'):disOn('front')?`Distressing on the front: ${disText('front')}.`:'No distressing — the garment is clean and intact.');
     if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
     if(state.direction) L.push(`Design idea: ${state.direction}.`);
-    L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.'+(sleeveRule?' Sleeve artwork from the FRONT GRAPHIC reference goes on the sleeves only.':''):'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
+    L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
     if(state.refs['body-front']) L.push('BODY PHOTO RULE: the BODY reference may show prints, logos, text, slogans, labels or patches. Treat them as if they were never there — none of them may appear in the result: not the words, not the logo, not its placement, not its colors. A result that shows any text or graphic from the BODY reference is wrong.');
     L.push(BRAND_SAFE);
     L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
@@ -829,7 +823,6 @@ async function backJob(frontUrl){
   if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
   if(B.note.body) L.push(`Back construction: ${B.note.body}.`); else if(!state.refs['body-back']) L.push('Back construction: same as the front, no extra panels.');
   if(B.note.graphic) L.push(`Back graphic notes: ${B.note.graphic}.`);
-  if(SLEEVE_TEST&&!!state.refs['graphic-front']&&F.graphicUse==='full') L.push(SLEEVE_BACK);
   if(!state.refs['graphic-back']&&!B.note.graphic) L.push(state.direction?'Back print: only if the design idea explicitly describes a back print; otherwise a plain back with no print.':'Plain back — no print.');
   const bNote=B.note.wash?', '+B.note.wash:(B.washType==='same'&&F.note.wash?', '+F.note.wash:'');
   L.push(washRef&&B.washType==='auto'?`Back wash: match the WASH & DISTRESS reference for the back exactly — same dye, fading and wash effect${bNote}.`
