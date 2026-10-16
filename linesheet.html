@@ -227,7 +227,8 @@ function removeStyle(id){ const i=SH.styles.findIndex(x=>x.id===id); if(i<0) ret
   undoToast(`Removed "${st.name||'Style'}"`,()=>{ SH.styles.splice(i,0,st); save(); renderStyles(); renderPages(); }); }
 
 /* ---------- styles list ---------- */
-const sizeRange=st=>{ const s=styleSizes(st); if(!s.length) return ''; if(st.type==='custom'||st.type==='one') return s.join(', '); const L=SCALE[st.type].filter(z=>s.includes(z)||(st.type==='bottoms'?+z%2===0:st.type==='shoes'?!z.includes('.5'):true)), i0=L.indexOf(s[0]), i1=L.indexOf(s[s.length-1]);   // half sizes / odd waists only count when picked return s.length===i1-i0+1&&s.length>1?`${s[0]}–${s[s.length-1]}`:s.join(', '); };
+// half sizes / odd waists only count toward a range when they're picked
+const sizeRange=st=>{ const s=styleSizes(st); if(!s.length) return ''; if(st.type==='custom'||st.type==='one') return s.join(', '); const L=SCALE[st.type].filter(z=>s.includes(z)||(st.type==='bottoms'?+z%2===0:st.type==='shoes'?!z.includes('.5'):true)), i0=L.indexOf(s[0]), i1=L.indexOf(s[s.length-1]); return s.length===i1-i0+1&&s.length>1?`${s[0]}–${s[s.length-1]}`:s.join(', '); };
 const money=v=>{ v=String(v||'').trim(); if(!v) return ''; return /^[\d.,]+$/.test(v)?'$'+v:v; };
 const imgOf=st=>SH.photo==='product'?(st.productImg||st.modelImg):(st.modelImg||st.productImg);
 function renderStyles(){ const box=$('#styles'); $('#stylesH').firstChild.textContent=`Styles · ${SH.styles.length} `;
