@@ -49,6 +49,23 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
 .tile{border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left;background:#FDFDF9}
 .tile b{display:block;font-weight:600;font-size:13.5px}.tile small{color:var(--muted);font-size:11.5px}
 .tile.on{border-color:var(--ink);background:var(--y2)}
+.mine-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:stretch}
+.mytile{display:flex;align-items:center;gap:12px;flex:1 1 260px;padding:8px 14px 8px 8px}
+.mytile img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--soft);flex:none}
+.mytile span{min-width:0}.mytile b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mylinks{display:flex;flex-direction:column;justify-content:center;gap:4px;font-size:12px}.mylinks button{text-decoration:underline;font-weight:500;text-align:left}
+.addmine{flex:1 1 180px;border:1.5px dashed #c9c3ad;border-radius:14px;padding:12px 14px;text-align:left;background:#FDFDF9}
+.addmine b{display:block;font-weight:600;font-size:13.5px}.addmine small{color:var(--muted);font-size:11.5px}.addmine:hover{border-color:var(--ink);background:var(--y2)}
+.orlbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:16px}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(32,29,24,.5);display:flex;align-items:center;justify-content:center;padding:20px}
+.mbox{background:var(--bg);border-radius:22px;width:min(760px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px 12px}.mhead h2{font-size:20px;font-weight:600}.mhead .btn{flex:none}
+.mlist{overflow:auto;padding:0 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pick{background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden;text-align:left}
+.pick:hover{border-color:var(--ink)}.pick:disabled{opacity:.5}
+.pick img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center top;display:block;background:var(--soft)}
+.pick div{padding:7px 9px}.pick b{font-size:12.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pick small{color:var(--muted);font-size:11px}
+.mempty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:24px;text-align:center;border:1.5px dashed var(--line);border-radius:14px}
 .sub{margin-top:18px}.sub .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--line);border-radius:99px;padding:6px 13px;font-size:12.5px;background:#FDFDF9}.chip.on{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
@@ -104,7 +121,7 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
   .cat{flex:0 0 auto;padding:10px 13px}.cat small{display:none}
   .garment{min-width:0;width:100%}
 }
-@media (max-width:520px){.opts{grid-template-columns:repeat(2,1fr)}.tiles{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
+@media (max-width:520px){.mylinks{flex-direction:row;gap:14px;flex:1 1 100%}.opts{grid-template-columns:repeat(2,1fr)}.tiles{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="auth.js?v=20261016f"></script>
@@ -163,6 +180,11 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
   <div class="mine-head"><div><h2>My model photos</h2><p>Saved on this device. Click one to open it.</p></div><a class="btn" style="flex:none" href="linesheet.html">Open line sheet →</a></div>
   <div class="mine-grid" id="mineGrid"></div>
 </section>
+<div class="modal hidden" id="pModal"><div class="mbox">
+  <div class="mhead"><h2 id="pTitle">Pick from My projects</h2><button class="btn" id="pClose">Close</button></div>
+  <div class="mlist" id="pList"></div>
+</div></div>
+<input type="file" accept="image/*" id="myFile" hidden>
 <div class="lb" id="lb"><img id="lbImg" alt=""></div>
 <div class="toast" id="toast"></div>
 
@@ -195,17 +217,19 @@ const CATS=[
   {k:'hair',label:'Hair',opts:[['own',"Model's own",'As in the model card'],['fade','Short fade'],['twists','Twists'],['locs','Locs'],['braids','Braids'],['buzz','Buzz cut'],['curly','Curly'],['long','Long straight'],['wavy','Wavy, shoulder length'],['bun','Bun']],
     words:{fade:'short fade haircut',twists:'short twists',locs:'shoulder-length locs',braids:'long box braids',buzz:'buzz cut',curly:'natural curly hair',long:'long straight hair',wavy:'wavy shoulder-length hair',bun:'hair in a neat bun'},
     sub:{lbl:'Hair color',key:'hairColor',opts:[['','Natural'],['black','Black'],['brown','Dark brown'],['blonde','Blonde'],['red','Red'],['grey','Grey']]}},
-  {k:'outfit',label:'Outfit',opts:[['auto','Auto','Goes with the garment'],['black jeans','Black jeans'],['blue jeans','Blue jeans'],['cargo','Cargo pants'],['sweatpants','Grey sweatpants'],['shorts','Shorts'],['white tee','Plain white tee','For bottoms'],['black tee','Plain black tee','For bottoms']],
+  {k:'outfit',label:'Outfit',mine:'Your own pants, skirt or other piece',opts:[['auto','Auto','Goes with the garment'],['black jeans','Black jeans'],['blue jeans','Blue jeans'],['cargo','Cargo pants'],['sweatpants','Grey sweatpants'],['shorts','Shorts'],['white tee','Plain white tee','For bottoms'],['black tee','Plain black tee','For bottoms']],
     words:{'black jeans':'straight black jeans','blue jeans':'straight mid-blue jeans',cargo:'loose olive cargo pants',sweatpants:'plain grey sweatpants',shorts:'plain black knee-length shorts','white tee':'a plain white t-shirt','black tee':'a plain black t-shirt'}},
-  {k:'shoes',label:'Shoes',opts:[['auto','Auto','Goes with the outfit'],['white','White sneakers'],['black','Black sneakers'],['skate','Skate shoes'],['boots','Leather boots'],['runners','Running shoes']],
+  {k:'shoes',label:'Shoes',mine:'Your own shoe design',opts:[['auto','Auto','Goes with the outfit'],['white','White sneakers'],['black','Black sneakers'],['skate','Skate shoes'],['boots','Leather boots'],['runners','Running shoes']],
     words:{white:'clean white leather sneakers',black:'black low-top sneakers',skate:'black and white canvas skate shoes',boots:'brown leather work boots',runners:'grey running shoes'}},
   {k:'pose',label:'Pose',opts:[['standing','Standing','Relaxed, arms down'],['pockets','Hands in pockets'],['walking','Walking']],
     words:{standing:'relaxed standing pose, arms down at the sides',pockets:'relaxed standing pose, hands in pockets (garment fully visible)',walking:'mid-stride walking pose'}},
-  {k:'bg',label:'Background',opts:[['grey','Studio grey'],['white','Studio white'],['concrete','Concrete wall'],['street','City street']],
-    words:{grey:'seamless light grey studio backdrop',white:'seamless white studio backdrop',concrete:'plain raw concrete wall and floor',street:'quiet city sidewalk, softly blurred'}}
+  {k:'bg',label:'Background',opts:[['grey','Studio grey'],['white','Studio white'],['cream','Warm cream'],['black','Studio black'],['yellow','Color · yellow'],['concrete','Concrete wall'],['street','City street'],['loft','Loft interior']],
+    words:{grey:'seamless light grey studio backdrop',white:'seamless white studio backdrop',cream:'seamless warm cream studio backdrop',black:'seamless matte black studio backdrop with soft rim light',yellow:'seamless bright lemon-yellow studio backdrop',concrete:'plain raw concrete wall and floor',street:'quiet city sidewalk, softly blurred',loft:'bright loft interior with white brick wall and pale wood floor, softly blurred'}}
 ];
 const FITS=[['slim','Slim'],['regular','Regular'],['oversized','Oversized']];
-const S={garment:{front:null,back:null,pid:null,name:''},model:'marcus',hair:'own',hairColor:'',outfit:'auto',shoes:'auto',pose:'standing',bg:'grey',fit:'regular',cat:'model',
+const FRAMES=[['full','Full body'],['shoes','Shoe close-up']];
+const S={garment:{front:null,back:null,pid:null,name:''},model:'marcus',hair:'own',hairColor:'',outfit:'auto',shoes:'auto',pose:'standing',bg:'grey',fit:'regular',frame:'full',cat:'model',
+  custom:{outfit:null,shoes:null},   // the customer's own pieces: {front, back, name, pid} — used when outfit/shoes === 'mine'
   shoot:null, view:'front', fixing:false};   // shoot = {id, pid, name, versions:[{sheet,front,side,back,provider,note}], cur}
 
 /* ---------- storage (this device; scoped to the signed-in account like the other pages) ---------- */
@@ -229,18 +253,18 @@ async function refFor(id){ if(id in modelRef) return modelRef[id]; try{ const r=
 /* ---------- garment ---------- */
 function renderGarment(){ const g=S.garment, has=!!g.front;
   $('#gThs').innerHTML=has?`<div class="th" data-g="front"><img src="${g.front}" alt="Front"><span class="tg">front</span></div>`+(g.back?`<div class="th" data-g="back"><img src="${g.back}" alt="Back"><span class="tg">back</span></div>`:`<div class="th" data-addback title="Add a back photo">+</div>`):'<div class="th" data-g="front">+</div>';
-  $('#gFrom').textContent=g.pid?'Garment · from project':has?'Your garment':'Step 1';
+  $('#gFrom').textContent=g.pid?'Garment · from project':has?'Your garment':mine('shoes')?'Optional — you are shooting your shoes':'Step 1';
   $('#gName').textContent=has?(g.name||'Your photo'):'Add a photo of the garment';
   $('#gChange').textContent=has?'Change':'Upload'; syncGen(); }
 $('#gThs').addEventListener('click',e=>{ if(e.target.closest('[data-addback]')) return $('#gBackFile').click(); const t=e.target.closest('[data-g]'); if(!t) return; if(S.garment[t.dataset.g]) openLB(S.garment[t.dataset.g]); else $('#gFile').click(); });
 $('#gChange').onclick=()=>$('#gFile').click();
-$('#gFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1280); S.garment={front:d,back:null,pid:null,name:''}; renderGarment(); saveDraft(); }catch(er){ toast(er.message); } };
+$('#gFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1280); S.garment={front:d,back:null,pid:null,name:''}; S.frame='full'; renderAll(); saveDraft(); }catch(er){ toast(er.message); } };
 $('#gBackFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ S.garment.back=await shrink(await readFile(f),1280); renderGarment(); saveDraft(); }catch(er){ toast(er.message); } };
 document.addEventListener('paste',e=>{ const it=[...(e.clipboardData?.items||[])].find(x=>x.kind==='file'&&x.type.startsWith('image/')); if(!it||e.target.closest('textarea,input')) return; e.preventDefault();
-  readFile(it.getAsFile()).then(d=>shrink(d,1280)).then(d=>{ S.garment={front:d,back:null,pid:null,name:''}; renderGarment(); saveDraft(); toast('Garment photo pasted'); }).catch(er=>toast(er.message)); });
+  readFile(it.getAsFile()).then(d=>shrink(d,1280)).then(d=>{ S.garment={front:d,back:null,pid:null,name:''}; S.frame='full'; renderAll(); saveDraft(); toast('Garment photo pasted'); }).catch(er=>toast(er.message)); });
 
 /* ---------- settings UI ---------- */
-const optName=(k,v)=>{ if(k==='model') return MODELS.find(m=>m.id===v)?.name||''; const c=CATS.find(c=>c.k===k); return (c.opts.find(o=>o[0]===v)||[])[1]||''; };
+const optName=(k,v,cu=S.custom)=>{ if(k==='model') return MODELS.find(m=>m.id===v)?.name||''; if(v==='mine') return cu?.[k]?.name||'My design'; const c=CATS.find(c=>c.k===k); return (c.opts.find(o=>o[0]===v)||[])[1]||''; };
 const avatar=m=>`<svg viewBox="0 0 100 110"><path d="M18 110 Q20 78 50 74 Q80 78 82 110 Z" fill="#201D18" opacity=".85"/><circle cx="50" cy="44" r="${m.g==='f'?19:20}" fill="${m.skin}"/>${m.g==='f'?'<path d="M30 46 Q28 20 50 22 Q72 20 70 46 Q72 70 64 72 L64 44 Q50 34 36 44 L36 72 Q28 70 30 46Z" fill="#2a211b"/>':'<path d="M31 40 Q34 22 50 23 Q66 22 69 40 Q60 30 50 31 Q40 30 31 40Z" fill="#2a211b"/>'}<rect x="44" y="60" width="12" height="14" fill="${m.skin}"/></svg>`;
 function renderCats(){ $('#cats').innerHTML=CATS.map(c=>{ const v=c.k==='model'?optName('model',S.model):optName(c.k,S[c.k])+(c.k==='hair'&&S.hairColor?' · '+S.hairColor:'');
   return `<button type="button" class="cat${S.cat===c.k?' on':''}" data-k="${c.k}">${c.label}<small>${esc(v)}</small></button>`; }).join(''); }
@@ -249,31 +273,57 @@ function renderOpts(){ const c=CATS.find(x=>x.k===S.cat); let h='';
   if(c.k==='model'){ $('#optH').innerHTML='Model <span>Same model on every angle and every design</span>';
     h=`<div class="opts">${MODELS.map(m=>`<button type="button" class="mc${S.model===m.id?' on':''}" data-m="${m.id}"><div class="ph" data-ph="${m.id}">${avatar(m)}</div><div class="meta"><b>${m.name}</b><small>${m.tag}</small></div><span class="ck">✓</span></button>`).join('')}</div>
       <div class="sub"><div class="lbl">Fit on the model</div><div class="chips">${FITS.map(([v,l])=>`<button type="button" class="chip${S.fit===v?' on':''}" data-fit="${v}">${l}</button>`).join('')}</div></div>`; }
-  else { $('#optH').innerHTML=`${c.label} <span></span>`;
-    h=`<div class="tiles">${c.opts.map(([v,l,d])=>`<button type="button" class="tile${S[c.k]===v?' on':''}" data-v="${v}"><b>${l}</b>${d?`<small>${d}</small>`:''}</button>`).join('')}</div>`;
+  else { $('#optH').innerHTML=`${c.label} <span>${c.mine?'Use your own design or pick one':''}</span>`;
+    if(c.mine){ const my=S.custom[c.k];
+      h=`<div class="mine-row">${my?`<button type="button" class="tile mytile${S[c.k]==='mine'?' on':''}" data-v="mine"><img src="${my.front}" alt=""><span><b>${esc(my.name||'My design')}</b><small>Your design${my.back?' · front + back':''}</small></span></button>
+          <div class="mylinks"><button type="button" data-pick="proj">From My projects</button><button type="button" data-pick="up">Upload another</button><button type="button" data-pick="rm">Remove</button></div>`
+        :`<button type="button" class="addmine" data-pick="proj"><b>+ From My projects</b><small>${c.mine}</small></button><button type="button" class="addmine" data-pick="up"><b>+ Upload a photo</b><small>A clear photo of just that piece</small></button>`}</div>`;
+      if(c.k==='shoes'&&S.shoes==='mine') h+=`<div class="sub"><div class="lbl">Framing</div><div class="chips">${FRAMES.map(([v,l])=>`<button type="button" class="chip${S.frame===v?' on':''}" data-frame="${v}">${l}</button>`).join('')}</div></div>`;
+      h+='<div class="orlbl">Or pick one</div>'; }
+    h+=`<div class="tiles">${c.opts.map(([v,l,d])=>`<button type="button" class="tile${S[c.k]===v?' on':''}" data-v="${v}"><b>${l}</b>${d?`<small>${d}</small>`:''}</button>`).join('')}</div>`;
     if(c.sub) h+=`<div class="sub"><div class="lbl">${c.sub.lbl}</div><div class="chips">${c.sub.opts.map(([v,l])=>`<button type="button" class="chip${S[c.sub.key]===v?' on':''}" data-sub="${v}">${l}</button>`).join('')}</div></div>`; }
   $('#optBody').innerHTML=h;
   if(c.k==='model') MODELS.forEach(async m=>{ const r=await refFor(m.id); const ph=document.querySelector(`[data-ph="${m.id}"]`); if(r&&ph) ph.innerHTML=`<img src="${r}" alt="${m.name}">`; }); }
 $('#optBody').addEventListener('click',e=>{ const c=CATS.find(x=>x.k===S.cat);
-  const m=e.target.closest('[data-m]'), f=e.target.closest('[data-fit]'), t=e.target.closest('.tile'), sb=e.target.closest('[data-sub]');
-  if(m) S.model=m.dataset.m; else if(f) S.fit=f.dataset.fit; else if(t) S[c.k]=t.dataset.v; else if(sb) S[c.sub.key]=sb.dataset.sub; else return;
+  const pk=e.target.closest('[data-pick]'); if(pk){ const a=pk.dataset.pick;
+    if(a==='rm'){ S.custom[c.k]=null; if(S[c.k]==='mine') S[c.k]='auto'; renderAll(); saveDraft(); } else if(a==='up'){ pickFor=c.k; $('#myFile').click(); } else openPicker(c.k); return; }
+  const m=e.target.closest('[data-m]'), f=e.target.closest('[data-fit]'), fr=e.target.closest('[data-frame]'), t=e.target.closest('.tile'), sb=e.target.closest('[data-sub]');
+  if(m) S.model=m.dataset.m; else if(f) S.fit=f.dataset.fit; else if(fr) S.frame=fr.dataset.frame; else if(t) S[c.k]=t.dataset.v; else if(sb) S[c.sub.key]=sb.dataset.sub; else return;
   renderAll(); saveDraft(); });
-function renderPicked(){ const p=[optName('model',S.model),FITS.find(f=>f[0]===S.fit)[1]+' fit',S.hair==='own'?'':optName('hair',S.hair),S.hairColor?S.hairColor+' hair':'',S.outfit==='auto'?'':optName('outfit',S.outfit),S.shoes==='auto'?'':optName('shoes',S.shoes),optName('pose',S.pose),optName('bg',S.bg)].filter(Boolean);
+function renderPicked(){ const p=[optName('model',S.model),S.garment.front?FITS.find(f=>f[0]===S.fit)[1]+' fit':'',S.shoes==='mine'&&S.frame==='shoes'?'Shoe close-up':'',S.hair==='own'?'':optName('hair',S.hair),S.hairColor?S.hairColor+' hair':'',S.outfit==='auto'?'':optName('outfit',S.outfit),S.shoes==='auto'?'':optName('shoes',S.shoes),optName('pose',S.pose),optName('bg',S.bg)].filter(Boolean);
   $('#picked').innerHTML=p.map(x=>`<span>${esc(x)}</span>`).join(''); }
-function syncGen(){ const b=$('#gen'); if(b.dataset.busy) return; b.disabled=!S.garment.front; $('#genHint').textContent=S.garment.front?'About 1 minute. Uses one AI generation.':'Add a photo of the garment first.'; }
-function renderAll(){ renderCats(); renderOpts(); renderPicked(); syncGen(); }
+const mine=k=>S[k]==='mine'&&S.custom[k]?S.custom[k]:null;   // the customer's own piece when it's selected
+const canGen=()=>!!(S.garment.front||mine('shoes'));            // a shoe-only brand can shoot without a garment
+function syncGen(){ const b=$('#gen'); if(b.dataset.busy) return; b.disabled=!canGen(); $('#genHint').textContent=canGen()?'About 1 minute. Uses one AI generation.':'Add a photo of the garment first — or your own shoes under Shoes.'; }
+function renderAll(){ renderGarment(); renderCats(); renderOpts(); renderPicked(); syncGen(); }
+
+/* ---------- the customer's own pieces → ONE styling board image
+   (the Worker takes at most 4 reference images: garment front, garment back, model, board) ---------- */
+async function styleBoard(cu){ const P=[];
+  if(cu.outfit){ P.push({src:cu.outfit.front,d:'the OUTFIT PIECE (front)'}); if(cu.outfit.back) P.push({src:cu.outfit.back,d:'the same outfit piece from the back'}); }
+  if(cu.shoes){ P.push({src:cu.shoes.front,d:'the SHOES'}); if(cu.shoes.back) P.push({src:cu.shoes.back,d:'the same shoes from another angle'}); }
+  if(!P.length) return null;
+  const W=600,H=760,G=24, c=document.createElement('canvas'); c.width=P.length*W+(P.length+1)*G; c.height=H+2*G; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+  for(let n=0;n<P.length;n++){ try{ const i=await loadImg(P[n].src), s=Math.min(W/i.width,H/i.height); x.drawImage(i,G+n*(W+G)+(W-i.width*s)/2,G+(H-i.height*s)/2,i.width*s,i.height*s); }catch(e){} }
+  return {img:c.toDataURL('image/jpeg',.9),desc:P.map((p,n)=>`panel ${n+1} from the left is ${p.d}`).join('; ')}; }
+const boardRule=(i,b)=>`Reference image ${i} is a STYLING BOARD of the customer's own pieces, side by side on white: ${b.desc}. The model wears THESE EXACT pieces — same type, color, material, cut, every print, logo, text and detail in the same place. Do not redesign or simplify them.`;
 
 /* ---------- prompt ---------- */
-function modelPrompt(hasBack,hasRef){ const M=MODELS.find(m=>m.id===S.model), C=k=>CATS.find(c=>c.k===k), L=[];
-  L.push('Create ONE realistic fashion lookbook photo on a wide canvas: the SAME model shown three times side by side, left to right — 1) FRONT view facing the camera, 2) SIDE view (left profile), 3) BACK view (facing away). Full body, head to toe, in every view; same size and scale; evenly spaced in three equal columns; nothing overlapping or cut off. It must be the exact same person, hair, outfit and lighting in all three views.');
-  L.push(`Reference image 1 is the GARMENT${hasBack?' (front); reference image 2 is the same garment from the back':''}. The model wears THIS EXACT garment — same type, color, wash, fabric, cut, every print, text, patch, embroidery and trim in the same place and the same size. Do not redesign, simplify or invent anything on it; keep all text exactly as printed. Show its back design in the BACK view${hasBack?'':' (if the photo shows no back, keep the back plain)'}.`);
-  if(hasRef) L.push(`Reference image ${hasBack?3:2} is the MODEL: use this exact person — same face, skin tone and body.`);
+// R = which reference images were sent, in order: {garment, back, model, board}
+function modelPrompt(R){ const M=MODELS.find(m=>m.id===S.model), C=k=>CATS.find(c=>c.k===k), L=[], close=!!mine('shoes')&&S.frame==='shoes'; let i=1;
+  L.push(close?'Create ONE realistic footwear lookbook photo on a wide canvas: the SAME model\'s feet and legs shown three times side by side, left to right — 1) FRONT view, 2) SIDE view (left profile), 3) BACK view. Framed from the knees down, the shoes large and sharp, filling most of each view; same size and scale; evenly spaced in three equal columns; nothing cut off. It must be the exact same shoes, legs, outfit and lighting in all three views.'
+    :'Create ONE realistic fashion lookbook photo on a wide canvas: the SAME model shown three times side by side, left to right — 1) FRONT view facing the camera, 2) SIDE view (left profile), 3) BACK view (facing away). Full body, head to toe, in every view; same size and scale; evenly spaced in three equal columns; nothing overlapping or cut off. It must be the exact same person, hair, outfit and lighting in all three views.');
+  if(R.garment){ L.push(`Reference image ${i} is the MAIN GARMENT${R.back?` (front); reference image ${i+1} is the same garment from the back`:''}. The model wears THIS EXACT garment — same type, color, wash, fabric, cut, every print, text, patch, embroidery and trim in the same place and the same size. Do not redesign, simplify or invent anything on it; keep all text exactly as printed. Show its back design in the BACK view${R.back?'':' (if the photo shows no back, keep the back plain)'}.`); i+=R.back?2:1; }
+  if(close&&R.garment) L.push('In this close-up framing only the part of the main garment that falls below the knees shows, if any.');
+  if(R.model){ L.push(`Reference image ${i} is the MODEL: use this exact person — same face, skin tone and body.`); i++; }
+  if(R.board){ L.push(boardRule(i,R.board)+(R.garment?' The main garment always stays fully visible on the outside; wear the other pieces with it the way they are normally worn.':'')); i++; }
   L.push(`Model: ${M.desc}.`);
   if(S.hair!=='own'||S.hairColor) L.push(`Hair: ${S.hair==='own'?'the model\'s own style':C('hair').words[S.hair]}${S.hairColor?', '+S.hairColor+' color':''}.`);
-  L.push(`Fit: the garment fits ${S.fit==='oversized'?'oversized and roomy':S.fit==='slim'?'slim, close to the body':'regular, true to size'}.`);
-  L.push(S.outfit==='auto'?'Rest of the outfit: simple plain pieces that go with the garment (no prints, no logos).':`Rest of the outfit: ${C('outfit').words[S.outfit]} (no prints, no logos).`);
-  L.push(S.shoes==='auto'?'Shoes: simple plain sneakers that go with the outfit.':`Shoes: ${C('shoes').words[S.shoes]}.`);
-  L.push(`Pose: ${C('pose').words[S.pose]} (adapted for the side and back views).`);
+  if(R.garment) L.push(`Fit: the garment fits ${S.fit==='oversized'?'oversized and roomy':S.fit==='slim'?'slim, close to the body':'regular, true to size'}.`);
+  else L.push('Top: a simple plain top with no prints or logos.');
+  L.push(mine('outfit')?'Outfit piece: the one from the styling board, exactly as shown; anything else plain.':S.outfit==='auto'?`Rest of the outfit: simple plain pieces that go with the ${R.garment?'garment':'shoes'} (no prints, no logos).`:`Rest of the outfit: ${C('outfit').words[S.outfit]} (no prints, no logos).`);
+  L.push(mine('shoes')?'Shoes: the ones from the styling board, exactly as shown, clearly visible on both feet.':S.shoes==='auto'?'Shoes: simple plain sneakers that go with the outfit.':`Shoes: ${C('shoes').words[S.shoes]}.`);
+  L.push(close?'Pose: standing naturally, weight even, feet fully visible.':`Pose: ${C('pose').words[S.pose]} (adapted for the side and back views).`);
   L.push(`Background: ${C('bg').words[S.bg]}, the same in all three views. Soft even e-commerce lighting, sharp detail, realistic photo. No text, labels, logos or watermarks added to the image.`);
   return L.join('\n'); }
 
@@ -281,8 +331,8 @@ function modelPrompt(hasBack,hasRef){ const M=MODELS.find(m=>m.id===S.model), C=
 async function callAI(body){ const tk=await window.SPOOL_AUTH?.token?.();
   const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
   const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length){ const er=new Error(d.error||'The AI could not finish this one'); er.code=d.code||''; throw er; } return d.images[0]; }
-async function mockSheet(label){ const g=await loadImg(S.garment.front), c=document.createElement('canvas'); c.width=1536; c.height=1024; const x=c.getContext('2d');
-  x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',concrete:'#b9b6ae',street:'#c9ccd1'}[S.bg]; x.fillRect(0,0,1536,1024);
+async function mockSheet(label){ const g=await loadImg(S.garment.front||mine('shoes')?.front||S.shoot?.garment), c=document.createElement('canvas'); c.width=1536; c.height=1024; const x=c.getContext('2d');
+  x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',cream:'#efe6d2',black:'#2b2a28',yellow:'#f7e24a',concrete:'#b9b6ae',street:'#c9ccd1',loft:'#e4ddd2'}[S.bg]||'#d9d9d6'; x.fillRect(0,0,1536,1024);
   ['FRONT','SIDE','BACK'].forEach((v,n)=>{ const s=Math.min(440/g.width,620/g.height); x.globalAlpha=n===2?.55:1; x.drawImage(g,n*512+256-g.width*s/2,180,g.width*s,g.height*s); x.globalAlpha=1;
     x.fillStyle='rgba(32,29,24,.6)'; x.font='600 26px Outfit, sans-serif'; x.textAlign='center'; x.fillText(`MOCK · ${v} · ${optName('model',S.model).toUpperCase()}`,n*512+256,90); if(label){ x.font='20px Outfit, sans-serif'; x.fillText(label,n*512+256,130); } });
   await new Promise(r=>setTimeout(r,1000)); return c.toDataURL('image/jpeg',.9); }
@@ -293,27 +343,30 @@ function busy(on,txt){ $('#spin').classList.toggle('hidden',!on); clearInterval(
   spinT=setInterval(()=>{ const s=(Date.now()-t0)/1000; $('#spinTime').textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); $('#spinBar').style.width=Math.min(95,3+s*1.4)+'%'; },1000); }
 async function needSignIn(){ if(!window.SPOOL_AUTH) return true; const u=await window.SPOOL_AUTH.requireLogin('Sign in to make model photos. They are saved to your account.'); return !!u; }
 function failed(e){ console.error(e); if(e.code==='free_limit'||e.code==='daily_limit'){ toast(e.message,6000); if(e.code==='free_limit') window.SPOOL_AUTH?.upgrade(e.message,{why:'model'}); } else toast('Couldn’t finish: '+e.message,5000); }
-async function generate(){ if(!S.garment.front) return toast('Add a photo of the garment first'); if(!(await needSignIn())) return;
-  busy(true); window.SPOOL_TRACK?.('model_generate',{model:S.model,pose:S.pose,bg:S.bg,project:!!S.garment.pid});
+const usedCustom=()=>({outfit:mine('outfit'),shoes:mine('shoes')});
+async function generate(){ if(!canGen()) return toast('Add a photo of the garment first — or your own shoes under Shoes'); if(!(await needSignIn())) return;
+  busy(true); const cu=usedCustom(); window.SPOOL_TRACK?.('model_generate',{model:S.model,pose:S.pose,bg:S.bg,project:!!S.garment.pid,myOutfit:!!cu.outfit,myShoes:!!cu.shoes,frame:cu.shoes?S.frame:'full'});
   try{ let sheet, provider='Gemini';
-    if(MOCK) sheet=await mockSheet();
-    else { const ref=await refFor(S.model), imgs=[await shrink(S.garment.front,1024)]; if(S.garment.back) imgs.push(await shrink(S.garment.back,1024)); if(ref) imgs.push(ref);
-      const job={prompt:modelPrompt(!!S.garment.back,!!ref),images:imgs,n:1,wide:true,quality:'high',task:'design'};
+    if(MOCK) sheet=await mockSheet((cu.outfit||cu.shoes)?'+ '+[cu.outfit&&'my outfit',cu.shoes&&'my shoes'].filter(Boolean).join(' + '):'');
+    else { const ref=await refFor(S.model), board=await styleBoard(cu), imgs=[], R={garment:!!S.garment.front,back:!!(S.garment.front&&S.garment.back),model:!!ref,board};
+      if(R.garment) imgs.push(await shrink(S.garment.front,1024)); if(R.back) imgs.push(await shrink(S.garment.back,1024)); if(ref) imgs.push(ref); if(board) imgs.push(board.img);
+      const job={prompt:modelPrompt(R),images:imgs,n:1,wide:true,quality:'high',task:'design'};
       let r; try{ r=await callAI({...job,provider:'gemini'}); }catch(e){ if(['free_limit','daily_limit','quota_unavailable'].includes(e.code)) throw e; r=await callAI({...job,provider:'openai'}); }
       sheet=await shrink(r.src,2048,.92); provider=r.provider||provider; }
     const crops=await cropThirds(sheet);
-    S.shoot={id:'m'+Date.now(),pid:S.garment.pid,name:S.garment.name||'Model photo',garment:await shrink(S.garment.front,300,.8),garmentFront:S.garment.front,garmentBack:S.garment.back||null,settings:settingsOf(),created:Date.now(),versions:[{sheet,...crops,provider,note:''}],cur:0};
+    const lead=S.garment.front?S.garment:cu.shoes;   // shoe-only shoots are filed under the shoes
+    S.shoot={id:'m'+Date.now(),pid:lead.pid||null,name:lead.name||'Model photo',garment:await shrink(lead.front,300,.8),garmentFront:S.garment.front||null,garmentBack:S.garment.back||null,custom:cu,settings:settingsOf(),created:Date.now(),versions:[{sheet,...crops,provider,note:''}],cur:0};
     S.view='front'; await saveShoot(); window.SPOOL_TRACK?.('model_ok');
   }catch(e){ failed(e); window.SPOOL_TRACK?.('model_fail',{err:String(e.message).slice(0,120)}); }
   busy(false); renderResult(); }
-const settingsOf=()=>({model:S.model,hair:S.hair,hairColor:S.hairColor,outfit:S.outfit,shoes:S.shoes,pose:S.pose,bg:S.bg,fit:S.fit});
+const settingsOf=()=>({model:S.model,hair:S.hair,hairColor:S.hairColor,outfit:S.outfit,shoes:S.shoes,pose:S.pose,bg:S.bg,fit:S.fit,frame:S.frame});
 
 /* ---------- result ---------- */
 const curV=()=>S.shoot?.versions[S.shoot.cur];
 function renderResult(){ const v=curV(); $('.grid').classList.toggle('has-res',!!v); $('#stEmpty').classList.toggle('hidden',!!v); $('#mainImg').classList.toggle('hidden',!v); $('#vtag').classList.toggle('hidden',!v);
   ['#fixBtn','#regen','#dl','#toSheet'].forEach(s=>$(s).disabled=!v);
   if(!v){ $('#angles').innerHTML=''; $('#ver').classList.add('hidden'); return; }
-  $('#mainImg').src=v[S.view]; $('#vtag').textContent=`${S.view[0].toUpperCase()+S.view.slice(1)} · ${optName('model',S.shoot.settings.model)}`;
+  $('#mainImg').src=v[S.view]; $('#vtag').textContent=`${S.view[0].toUpperCase()+S.view.slice(1)} · ${S.shoot.settings.frame==='shoes'&&S.shoot.custom?.shoes?'Shoes':optName('model',S.shoot.settings.model)}`;
   $('#angles').innerHTML=['front','side','back'].map(k=>`<button type="button" class="ang${S.view===k?' on':''}" data-a="${k}"><img src="${v[k]}" alt="${k}"><span>${k}</span></button>`).join('')+'<div class="ang soon">3D view<br>coming later</div>';
   const vs=S.shoot.versions; $('#ver').classList.toggle('hidden',vs.length<2);
   $('#ver').innerHTML='Versions: '+vs.map((x,i)=>`<button type="button" class="${i===S.shoot.cur?'on':''}" data-ver="${i}" title="${esc(x.note||'First version')}">${i===0?'Original':'Fix '+i}</button>`).join('');
@@ -347,13 +400,15 @@ $('#fixGo').onclick=async()=>{ const v=curV(), note=$('#fixNote').value.trim(); 
   const marked=strokes.length?await markedSheet(v):null; setFix(false); busy(true,'Fixing only what you marked');
   try{ let sheet;
     if(MOCK) sheet=await mockSheet('Fixed: '+note.slice(0,40));
-    else { const imgs=[await shrink(v.sheet,1536)]; if(marked) imgs.push(await shrink(marked,1536)); imgs.push(await shrink(S.garment.front||v.front,1024));
-      const g=imgs.length;
+    else { const imgs=[await shrink(v.sheet,1536)]; if(marked) imgs.push(await shrink(marked,1536));
+      const gf=S.shoot.garmentFront||(S.shoot.custom?null:S.garment.front); if(gf) imgs.push(await shrink(gf,1024)); const g=gf?imgs.length:0;
+      const board=await styleBoard(S.shoot.custom||{}); if(board) imgs.push(board.img);
       const prompt=[`Reference image 1 is a fashion lookbook sheet: the same model three times — front, side and back views — side by side.`,
         marked?`Reference image 2 is the same sheet with areas circled in red. Change ONLY what is inside the red circles, as described below. Do not draw any red marks in the result.`:`Change only what is described below.`,
         `Change: ${note}`,
         `Keep everything else in reference image 1 exactly the same: same person, face, hair, pose, garment, prints, background, framing, layout and image size — still three views side by side.`,
-        `Reference image ${g} is the original garment: its prints, text and details must stay exactly like it.`].join('\n');
+        g?`Reference image ${g} is the original garment: its prints, text and details must stay exactly like it.`:'',
+        board?boardRule(imgs.length,board).replace('The model wears','The model keeps wearing'):''].filter(Boolean).join('\n');
       const prov=/openai|chatgpt/i.test(v.provider||'')?'openai':'gemini';
       const r=await callAI({prompt,images:imgs,n:1,wide:true,quality:'high',task:'design',provider:prov}); sheet=await shrink(r.src,2048,.92); }
     const crops=await cropThirds(sheet); S.shoot.versions.push({sheet,...crops,provider:v.provider,note}); S.shoot.cur=S.shoot.versions.length-1; await saveShoot(); window.SPOOL_TRACK?.('model_fix');
@@ -362,7 +417,7 @@ $('#fixGo').onclick=async()=>{ const v=curV(), note=$('#fixNote').value.trim(); 
 
 /* ---------- save + list ---------- */
 async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',JSON.parse(JSON.stringify(S.shoot))); saveDraft(); renderMine(); }
-let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{garment:S.garment,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
+let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{garment:S.garment,custom:S.custom,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
 async function renderMine(){ const all=((await modelDB.all('shoots'))||[]).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created)), g=$('#mineGrid');
   g.innerHTML=all.length?'':'<div class="mine-empty">Your model photos will appear here.</div>';
   all.forEach(s=>{ const v=s.versions[s.cur||0], c=document.createElement('div'); c.className='mcard';
@@ -370,19 +425,44 @@ async function renderMine(){ const all=((await modelDB.all('shoots'))||[]).sort(
     c.onclick=e=>{ if(e.target.closest('.del')){ e.stopPropagation(); if(!confirm('Delete this model photo?')) return; modelDB.del('shoots',s.id).then(()=>{ if(S.shoot?.id===s.id){ S.shoot=null; renderResult(); } renderMine(); }); return; }
       openShoot(s); window.scrollTo({top:0,behavior:'smooth'}); };
     g.appendChild(c); }); }
-function openShoot(s){ S.shoot=s; S.view='front'; Object.assign(S,s.settings||{}); S.garment={front:s.garmentFront||s.garment,back:s.garmentBack||null,pid:s.pid||null,name:s.name}; renderGarment(); renderAll(); renderResult(); }
+function openShoot(s){ S.shoot=s; S.view='front'; Object.assign(S,{frame:'full'},s.settings||{});
+  if(s.custom){ ['outfit','shoes'].forEach(k=>{ if(s.custom[k]) S.custom[k]=s.custom[k]; }); }
+  S.garment=s.custom&&!s.garmentFront?{front:null,back:null,pid:null,name:''}:{front:s.garmentFront||s.garment,back:s.garmentBack||null,pid:s.pid||null,name:s.name}; renderGarment(); renderAll(); renderResult(); }
 $('#toSheet').onclick=async()=>{ if(!S.shoot) return; await saveShoot(); location.href='linesheet.html?add='+encodeURIComponent(S.shoot.id); };
+
+/* ---------- pick the customer's own outfit piece / shoes: My projects or an upload ---------- */
+let pickFor='outfit';
+const projImg=p=>p?.sides?.front?.base||p?.sides?.front?.original||p?.pending?.ai?.front||null;
+const projBack=p=>p?.sides?.back?.base||p?.sides?.back?.original||p?.pending?.ai?.back||null;
+function setMine(k,piece){ S.custom[k]=piece; S[k]='mine'; if(k==='shoes'&&!S.garment.front) S.frame='shoes'; renderAll(); saveDraft(); toast((k==='shoes'?'Shoes':'Outfit piece')+' added: '+(piece.name||'your design')); }
+async function openPicker(k){ pickFor=k; $('#pTitle').textContent=k==='shoes'?'Your shoes — pick a project':'Your outfit piece — pick a project'; $('#pModal').classList.remove('hidden');
+  const L=$('#pList'); L.innerHTML='<div class="mempty">Loading…</div>';
+  const local=(await edDB.all('projects'))||[]; let cloud=[]; if(window.SPOOL_AUTH?.user){ try{ cloud=await window.SPOOL_AUTH.cloud.list(); }catch(e){} }
+  const map=new Map(); local.forEach(p=>map.set(p.id,{id:p.id,name:p.name,thumb:p.thumb||projImg(p),updated:p.updated||0}));
+  cloud.forEach(c=>{ if(!map.has(c.id)) map.set(c.id,{id:c.id,name:c.name,thumb:c.thumb,updated:Date.parse(c.updated_at)||0}); });
+  const list=[...map.values()].filter(p=>p.id!==S.garment.pid).sort((a,b)=>b.updated-a.updated);
+  L.innerHTML=list.length?'':'<div class="mempty">No other projects yet. <button class="btn" type="button" id="pUp" style="display:inline-block;flex:none;margin-left:6px">Upload a photo instead</button></div>';
+  $('#pUp')?.addEventListener('click',()=>{ $('#pModal').classList.add('hidden'); $('#myFile').click(); });
+  list.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.className='pick'; b.innerHTML=`<img src="${p.thumb||''}" alt=""><div><b>${esc(p.name||'Untitled design')}</b><small>${p.updated?new Date(p.updated).toLocaleDateString([],{month:'short',day:'numeric'}):''}</small></div>`;
+    b.onclick=async()=>{ b.disabled=true; let q=await edDB.get('projects',p.id); if(!projImg(q)&&window.SPOOL_AUTH?.user){ try{ q=await window.SPOOL_AUTH.cloud.load(p.id)||q; }catch(e){} }
+      if(!projImg(q)){ b.disabled=false; return toast('Could not open this project'); }
+      const bk=projBack(q); setMine(pickFor,{front:await shrink(projImg(q),1024),back:bk?await shrink(bk,1024):null,name:q.name||p.name||'My design',pid:p.id}); $('#pModal').classList.add('hidden'); };
+    L.appendChild(b); }); }
+$('#pClose').onclick=()=>$('#pModal').classList.add('hidden');
+$('#pModal').addEventListener('click',e=>{ if(e.target.id==='pModal') $('#pModal').classList.add('hidden'); });
+$('#myFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1024); if(!d) throw new Error('Could not read that image'); setMine(pickFor,{front:d,back:null,name:pickFor==='shoes'?'My shoes':'My outfit piece',pid:null}); }catch(er){ toast(er.message); } };
 
 /* ---------- lightbox ---------- */
 const openLB=src=>{ $('#lbImg').src=src; $('#lb').classList.add('open'); };
-$('#lb').onclick=()=>$('#lb').classList.remove('open'); document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#lb').classList.remove('open'); });
+$('#lb').onclick=()=>$('#lb').classList.remove('open'); document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ $('#lb').classList.remove('open'); $('#pModal').classList.add('hidden'); } });
 
 /* ---------- start: from the editor (?from=editor), a saved shoot (?shoot=id) or the last draft ---------- */
 window.SPOOL_AUTH?.mount($('#acct'));
 if(MOCK) $('#mockbar').classList.remove('hidden');
 (async()=>{
   const q=new URLSearchParams(location.search), d=await modelDB.get('kv','draft');
-  if(d){ Object.assign(S,{model:d.model||S.model,hair:d.hair||S.hair,hairColor:d.hairColor||'',outfit:d.outfit||S.outfit,shoes:d.shoes||S.shoes,pose:d.pose||S.pose,bg:d.bg||S.bg,fit:d.fit||S.fit}); if(d.garment?.front) S.garment=d.garment;
+  if(d){ Object.assign(S,{model:d.model||S.model,hair:d.hair||S.hair,hairColor:d.hairColor||'',outfit:d.outfit||S.outfit,shoes:d.shoes||S.shoes,pose:d.pose||S.pose,bg:d.bg||S.bg,fit:d.fit||S.fit,frame:d.frame||'full'}); if(d.garment?.front) S.garment=d.garment; if(d.custom) S.custom={outfit:d.custom.outfit||null,shoes:d.custom.shoes||null};
+    ['outfit','shoes'].forEach(k=>{ if(S[k]==='mine'&&!S.custom[k]) S[k]='auto'; });
     if(d.shootId){ const s=await modelDB.get('shoots',d.shootId); if(s) S.shoot=s; } }
   if(q.get('from')==='editor'){ const h=await edDB.get('kv','toModel'); if(h?.front){ S.garment={front:h.front,back:h.back||null,pid:h.pid||null,name:h.name||''}; S.shoot=null; await edDB.put('kv',null,'toModel'); saveDraft(); } history.replaceState(null,'','model.html'); }
   if(q.get('pid')){ const id=q.get('pid'); await window.SPOOL_AUTH?.ready; let p=await edDB.get('projects',id); const im=x=>x?.sides?.front?.base||x?.sides?.front?.original||x?.pending?.ai?.front;
