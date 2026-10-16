@@ -4,7 +4,7 @@
  * Keeps your API keys secret. The studio page sends references + prompt here.
  *  task "design"  (default): body.n images (1–4, default 2), split evenly between OpenAI and
  *                  Gemini when both keys exist. body.quality = "low" | "medium" | "high" (OpenAI).
- *                  body.wide = true → landscape 3:2. body.provider = "openai" | "gemini" forces one model.
+ *                  body.wide = true → landscape 3:2; body.aspect = "3:4" | "4:3" | "3:2" | "1:1" sets it exactly. body.provider = "openai" | "gemini" forces one model.
  *                  body.calls = 1–3 usage rows this call counts as (default 1).
  *  task "extract": 1 image — the print graphic alone, transparent background when supported.
  *  task "sample":  { id } of a row in Supabase "sample_requests" (saved by the site) → emails it to
@@ -43,7 +43,7 @@
  *   SITE_URL         default "https://spoolnyc.com"
  */
 
-const MAX_IMAGES = 4;
+const MAX_IMAGES = 6;
 const MAX_BODY = 12 * 1024 * 1024; // 12 MB
 
 export default {
@@ -188,9 +188,10 @@ export default {
       if (body.provider === 'openai' && env.OPENAI_API_KEY) nOpenai = n;
       if (body.provider === 'gemini' && env.GEMINI_API_KEY) nOpenai = 0;
       const nGemini = !env.GEMINI_API_KEY ? 0 : n - nOpenai;
-      const wide = body.wide === true;
-      if (nOpenai) jobs.push(openai(env, prompt, images, { n: nOpenai, quality, size: wide ? '1536x1024' : '1024x1024' }));
-      for (let i = 0; i < nGemini; i++) jobs.push(gemini(env, prompt, images, wide ? '3:2' : '1:1'));
+      const SIZES = { '3:4': '1024x1536', '4:3': '1536x1024', '3:2': '1536x1024', '1:1': '1024x1024' };
+      const aspect = SIZES[body.aspect] ? body.aspect : body.wide === true ? '3:2' : '1:1';
+      if (nOpenai) jobs.push(openai(env, prompt, images, { n: nOpenai, quality, size: SIZES[aspect] }));
+      for (let i = 0; i < nGemini; i++) jobs.push(gemini(env, prompt, images, aspect));
     }
     if (!jobs.length) return json({ error: 'No API keys configured on the Worker' }, 500);
 
