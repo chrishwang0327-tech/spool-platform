@@ -46,6 +46,11 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100v
 .bar .sp{flex:1}
 .hint{font-size:12px;color:var(--muted)}
 .stagewrap{display:flex;justify-content:center}
+.stagewrap.zoomed{display:block;overflow:auto;border-radius:18px;margin:0 auto;overscroll-behavior:contain}
+.stagewrap.zoomed .stage{max-width:none;border-radius:0}
+.stagewrap.zoomed .stage:not(.draw){cursor:grab}.stagewrap.zoomed .stage.panning{cursor:grabbing}
+.zoom{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;background:#fff;overflow:hidden}
+.zoom button{padding:5px 11px;font-size:14px;font-weight:600;line-height:1}.zoom button:hover{background:var(--y2)}.zoom #zPct{font-size:12px;min-width:52px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .stage{position:relative;width:100%;max-width:min(720px,calc(100vh - 210px));aspect-ratio:1;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px -30px rgba(32,29,24,.35);user-select:none;touch-action:none}
 .stage.draw{cursor:crosshair}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -217,6 +222,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
     <div class="bar">
       <div class="seg" id="sideSeg"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
       <button class="btn sm" id="hideBtn" title="Show the design without boxes">Hide boxes</button>
+      <span class="zoom" title="Zoom (pinch, or Ctrl + scroll)"><button type="button" id="zOut" aria-label="Zoom out">−</button><button type="button" id="zPct" title="Fit to screen">100%</button><button type="button" id="zIn" aria-label="Zoom in">+</button></span>
       <button class="btn sm" id="undoBtn" title="Undo (Cmd/Ctrl + Z)" aria-label="Undo">↶</button>
       <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
       <span class="sp"></span>
@@ -700,8 +706,25 @@ function boxDown(e,p,resize){
   const up=()=>{ cleanup(); if(moved&&art&&p.layer){ const G=garmSync(S()); if(G&&!onGarment(G,p.b)){ p.b=pullIn(G,p.b); toast('Artwork has to stay on the garment'); } } if(moved) save(); render(); };
   addEventListener('pointermove',mv); addEventListener('pointerup',up);
 }
+/* ---------- zoom: the stage grows inside a scrolling frame; boxes are in %, so they follow ---------- */
+let zoom=1; const ZMAX=3, wrapEl=stage.parentElement;
+function setZoom(z,cx,cy){ z=Math.round(Math.max(1,Math.min(ZMAX,z))*100)/100; const old=zoom; if(z===old) return;
+  const base=wrapEl.classList.contains('zoomed')?stage.offsetWidth/old:stage.offsetWidth;
+  const r=wrapEl.getBoundingClientRect(); cx=cx??r.width/2; cy=cy??r.height/2;
+  const fx=(wrapEl.scrollLeft+cx)/(base*old), fy=(wrapEl.scrollTop+cy)/(base*old); zoom=z;
+  if(z===1){ wrapEl.classList.remove('zoomed'); wrapEl.style.width=wrapEl.style.height=''; stage.style.width=''; }
+  else { wrapEl.classList.add('zoomed'); wrapEl.style.width=wrapEl.style.height=base+'px'; stage.style.width=base*z+'px'; wrapEl.scrollLeft=fx*base*z-cx; wrapEl.scrollTop=fy*base*z-cy; }
+  $('#zPct').textContent=Math.round(z*100)+'%'; }
+$('#zIn').onclick=()=>setZoom(zoom+.5); $('#zOut').onclick=()=>setZoom(zoom-.5); $('#zPct').onclick=()=>setZoom(1);
+wrapEl.addEventListener('wheel',e=>{ if(!e.ctrlKey||!P) return; e.preventDefault(); const r=wrapEl.getBoundingClientRect(); setZoom(zoom*Math.max(.8,Math.min(1.25,Math.exp(-e.deltaY*.004))),e.clientX-r.left,e.clientY-r.top); },{passive:false});
+addEventListener('resize',()=>{ if(zoom>1){ const z=zoom; zoom=1; wrapEl.classList.remove('zoomed'); wrapEl.style.width=wrapEl.style.height=''; stage.style.width=''; setZoom(z); } });
 stage.addEventListener('pointerdown',e=>{
   if(!P||!S().base) return;
+  if(tool!=='draw'&&zoom>1&&e.target===cv){ // drag the empty image to move around; a tap still deselects
+    const x0=e.clientX, y0=e.clientY, sl=wrapEl.scrollLeft, st=wrapEl.scrollTop; let moved=false; stage.classList.add('panning');
+    const mv=ev=>{ const dx=ev.clientX-x0, dy=ev.clientY-y0; if(Math.abs(dx)+Math.abs(dy)>4) moved=true; wrapEl.scrollLeft=sl-dx; wrapEl.scrollTop=st-dy; };
+    const up=()=>{ removeEventListener('pointermove',mv); removeEventListener('pointerup',up); stage.classList.remove('panning'); if(!moved&&sel){ sel=null; render(); } };
+    addEventListener('pointermove',mv); addEventListener('pointerup',up); return; }
   if(tool!=='draw'){ if(e.target===cv&&sel){ sel=null; render(); } return; }
   e.preventDefault(); const [sx,sy]=toU(e); const d=document.createElement('div'); d.className='drawing'; stage.appendChild(d);
   const rect=(x,y)=>[Math.min(sx,x),Math.min(sy,y),Math.abs(x-sx),Math.abs(y-sy)];
