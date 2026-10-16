@@ -66,6 +66,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100v
 .empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:30px;background:#fff}
 .empty h2{font-size:22px}
 .empty p{color:var(--muted);max-width:360px}
+.card.inl{margin:2px 0 6px;border:1.5px solid var(--ink);box-shadow:0 6px 18px -10px rgba(32,29,24,.35)}
 .busy{position:absolute;inset:0;background:rgba(253,253,249,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:20;text-align:center;padding:20px}
 .busy b{font-size:17px}
 .spinner{width:30px;height:30px;border-radius:50%;border:3px solid var(--line2);border-top-color:var(--ink);animation:sp 1s linear infinite}
@@ -448,7 +449,7 @@ async function doMerge(){ // combine the ticked artworks into one print that cov
   s.parts=s.parts.filter(q=>!ch.includes(q)); s.parts.splice(Math.min(at,s.parts.length),0,np); renumber(s);
   mergeMode=false; mergeSel.clear(); sel=np; if(s.parts.some(q=>q.layer&&q.orig)||hadLift) await rebuildHole(s); save(); render(); toast(`${ch.length} artworks merged into one. Drag it or press Cmd+Z to undo.`); }
 function renderList(){
-  const L=$('#list'); L.innerHTML=''; if(!P) return;
+  const L=$('#list'), dc=$('#detail'); if(dc&&L.contains(dc)) L.parentElement.after(dc); L.innerHTML=''; if(!P) return;
   const parts=visParts(); $('#partCount').textContent=parts.length?`${parts.length} on ${side}`:'';
   const gsAll=parts.filter(q=>kindOf(q)==='graphic'); if(tab!=='graphic'||viewOrig||gsAll.length<2) mergeMode=false;
   $('#mergeRow').classList.toggle('hidden',!(tab==='graphic'&&!viewOrig&&gsAll.length>=2));
@@ -458,14 +459,17 @@ function renderList(){
   parts.forEach(p=>{const b=document.createElement('div'); b.className='li'+(sel===p?' on':''); b.setAttribute('role','button'); b.tabIndex=0;
     const arrows=sel===p&&kindOf(p)==='graphic'&&gs.length>1?`<span class="lyr"><button data-l="-1" title="Bring forward" ${gs[0]===p?'disabled':''}>↑</button><button data-l="1" title="Send backward" ${gs[gs.length-1]===p?'disabled':''}>↓</button></span>`:'';
     const mchk=mergeMode&&kindOf(p)==='graphic'?`<span style="font-size:18px;margin-right:4px">${mergeSel.has(p.id)?'☑':'☐'}</span>`:''; if(mergeMode&&mergeSel.has(p.id)) b.classList.add('on');
-    b.innerHTML=`${mchk}<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]}</small>${mergeMode?'':arrows}`;
+    b._p=p; b.innerHTML=`${mchk}<span class="n">${lab(p)}</span><span>${esc(p.name)}</span><small>${TECH[p.tech]}</small>${mergeMode?'':arrows}`;
     b.onclick=e=>{ if(mergeMode){ if(kindOf(p)!=='graphic') return; mergeSel.has(p.id)?mergeSel.delete(p.id):mergeSel.add(p.id); renderList(); return; } const l=e.target.closest('[data-l]'); if(l){ e.stopPropagation(); moveLayer(p,+l.dataset.l); return; } sel=p;render();}; L.appendChild(b);});
   if(mergeMode){ const g=document.createElement('div'); g.className='row'; g.style.cssText='gap:6px;margin-top:8px'; const nSel=[...mergeSel].filter(id=>parts.some(q=>q.id===id)).length; g.innerHTML=`<button class="btn y sm" id="mergeGo" ${nSel>=2?'':'disabled'}>Merge ${nSel||''} into one</button>`; L.appendChild(g); $('#mergeGo').onclick=()=>doMerge(); }
   if(gs.length>1&&tab==='graphic'){ const n=document.createElement('div'); n.className='muted'; n.style.cssText='font-size:12px;margin-top:2px'; n.textContent='#1 is the top layer. Select an artwork, then use ↑ ↓ to change the order.'; L.appendChild(n); }
 }
 const widthIn=p=>p.specW||p.b[2]*ipu();
 const heightIn=p=>p.specW?p.specW*p.b[3]/p.b[2]:p.b[3]*ipu();
-function renderDetail(){
+function placeDetail(){ // the selected artwork's details sit right under its row; with nothing picked, under the list
+  const d=$('#detail'), L=$('#list'); if(!d||!L) return; const row=sel&&!mergeMode?[...L.children].find(c=>c._p===sel):null;
+  if(row){ row.after(d); d.classList.add('inl'); } else { L.parentElement.after(d); d.classList.remove('inl'); } }
+function renderDetail(){ placeDetail();
   const d=$('#detail'); const p=sel; if(edgeEdit&&(!p||p.id!==edgeEdit)) edgeEdit=null;
   if(!P||!p||tab==='body'){ d.innerHTML=`<div class="lbl">${tab==='details'?'Trim':'Artwork'}</div><div class="muted" style="margin-top:8px">Select a box on the image, or add one with “＋ Select area”.</div>`; return; }
   const fromHps=(p.b[1]-S().cal.hps)*ipu(), fromC=(p.b[0]+p.b[2]/2-cx())*ipu();
@@ -1324,7 +1328,7 @@ function upgrade(p){ // older editor projects → v3
 }
 async function openProject(p){ let wasPending=false; if(p&&p.pending){ wasPending=true; busy(true,'Opening your design','Loading front and back'); try{ p=await completeProject(p.pending,{id:p.id,created:p.created,name:p.name}); } finally{ busy(false); } }
   viewOrig=false; compare=false; undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); if(!P.trims?.items){ if(kitP) await Promise.race([kitP,wait(1500)]); P.trims=initTrims(P); } for(const it of TRIM_ITEMS) if(!P.trims.items[it.k]) P.trims.items[it.k]=stdTrim(it.k,P.body); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; if(sc.base&&sc.calAuto&&sc.calV!==2&&(P.body==='hoodie'||P.body==='zip')) await autoCal(sc,P.body); } for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
-  $('#pname').value=P.name; dirty=false; setSave(window.SPOOL_AUTH?.user?'cloud':'local'); render(); updChg(); recut(); if(wasPending) save(); }
+  $('#pname').value=P.name; dirty=false; setSave(window.SPOOL_AUTH?.user?'cloud':'local'); render(); updChg(); recut(); if(wasPending) save(); checkBodyLater(); }
 async function recut(){ const pp=P; let n=0; for(const sd of ['front','back']){ const s=pp.sides[sd]; if(!cleanReady(s)) continue; await garmentOf(s); let M=null;
   for(const q of s.parts){ if(!q.layer||!q.orig||(q.cut===3&&q.omask)||(q.hist||[]).some(h=>h.layer)) continue; M=M||await matchFor(s); const lay=cutArt(regionOf(await img(s.base),q.orig),regionOf(await img(s.clean),q.orig),M); q.layer=lay.toDataURL('image/png'); q.omask=maskURL(lay); q.cut=3; n++; }
   if(s.parts.some(q=>q.layer&&q.orig)) await rebuildHole(s); }
@@ -1349,7 +1353,7 @@ async function openProjects(){
         else { const q=await cloneProject(src); await edDB.put('projects',q); if(A?.user) A.cloud.save(q,await thumbOf(q)); }
         toast('Duplicated'); setTimeout(openProjects,300); return; }
       if(e.target.classList.contains('del')){ e.stopPropagation(); if(confirm('Delete this project?')){ await edDB.del('projects',it.id); if(it.cloud) await A.cloud.remove(it.id); if(P?.id===it.id){P=null;render();} openProjects(); } return; }
-      let p=it.local; if(!p||it.newer){ busy(true,'Opening project','Loading from your account'); try{ p=await A.cloud.load(it.id)||p; }finally{ busy(false); } if(p) await edDB.put('projects',p); }
+      let p=it.local; if(!p||it.newer){ busy(true,'Opening project','Loading from your account'); try{ p=await within(A.cloud.load(it.id),8000)||p; }finally{ busy(false); } if(p&&p!==it.local) await edDB.put('projects',p); }
       if(!p) return toast('Could not open this project');
       $('#projModal').classList.add('hidden'); await openProject(p); if(!it.cloud) cloudSave(); };
     g.appendChild(c); });
@@ -1366,6 +1370,13 @@ async function garmentFromImage(src){ // ask the detect AI what kind of garment 
   }catch(e){ console.warn('garment',e); return null; } }
 function applyBody(p,body,named){ p.body=body; p.chestIn=BODY_CHEST[body]||21; p.style=Object.assign(blankStyle(),p.style||{},{category:GARMENT_NAME[body]||''});
   if(!named) p.name=(GARMENT_NAME[body]||'Design')+' · '+new Date().toLocaleDateString([], {month:'short',day:'numeric'}); }
+const within=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);   // a network step that takes too long gives up (null)
+let bodyJob=null;
+async function checkBodyLater(){ // the garment type AI runs after the design is open, never in front of it
+  const pp=P; if(!pp?._bodyCheck) return; delete pp._bodyCheck; const nm=pp.name; toast('Checking the garment type…',4000);
+  const g=await within(garmentFromImage(pp.sides.front.base||pp.sides.back.base),25000); if(!g||P!==pp||g===pp.body) return;
+  applyBody(pp,g,pp.name!==nm); for(const sd of ['front','back']) if(pp.sides[sd].base&&!pp.sides[sd].calSet) await autoCal(pp.sides[sd],pp.body);
+  if(P===pp){ save(); render(); toast(`Garment type: ${GARMENT_NAME[g]||g} — change it in the Body tab if that’s wrong`,5000); } }
 async function completeProject(h,meta={}){ // studio handoff → editor project
   const p=newProject(); if(meta.id) p.id=meta.id; if(meta.created) p.created=meta.created;
   const custom=!h.spec||h.spec.garment==='custom';
@@ -1376,7 +1387,7 @@ async function completeProject(h,meta={}){ // studio handoff → editor project
   for(const sd of ['front','back']){ const src=h.ai[sd]; if(src){ const d=await squareURL(src); p.sides[sd].original=d; p.sides[sd].base=d; } }
   // garment type: preset body > words in the notes/idea > AI looking at the design > tee
   let body=custom?guessBody([h.spec?.front?.body,h.spec?.back?.body,h.direction].join(' ')):(h.body||'tee');
-  if(!body){ busy(true,'Opening your design','Checking the garment type'); body=await garmentFromImage(p.sides.front.base||p.sides.back.base)||h.body||'tee'; }
+  if(!body){ body=h.body||'tee'; p._bodyCheck=true; }   // the AI check runs after opening (checkBodyLater)
   applyBody(p,body,false); if(!custom&&h.spec?.body) p.name=h.spec.body+' · '+new Date(p.created).toLocaleDateString([], {month:'short',day:'numeric'});
   if(meta.name) p.name=meta.name;
   for(const sd of ['front','back']) if(p.sides[sd].base) await autoCal(p.sides[sd],p.body);
@@ -1387,7 +1398,7 @@ async function fromStudio(){
   busy(true,'Opening your design','Loading front and back');
   try{
     if(h.pid){ let ex=await edDB.get('projects',h.pid); const A=window.SPOOL_AUTH;
-      if(!ex&&A?.user){ try{ ex=await A.cloud.load(h.pid); }catch(e){ console.warn(e); } }
+      if(!ex&&A?.user){ try{ ex=await within(A.cloud.load(h.pid),5000); }catch(e){ console.warn(e); } }
       if(ex){ await studioDB.put('kv',null,'handoff'); busy(false); await openProject(ex); window.SPOOL_TRACK?.('editor_open'); toast('Opened your project — edits are saved to it'); return true; } }
     const p=await completeProject(h,{id:h.pid});
     await studioDB.put('kv',null,'handoff'); busy(false); await openProject(p); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');

@@ -2,6 +2,7 @@
  * SPOOL Reference Studio — AI image Worker (Cloudflare Workers)
  *
  * Keeps your API keys secret. The studio page sends references + prompt here.
+ *  task "inventory" / "verify": list a reference photo's artwork, or check a generated image against that list (Gemini, text).
  *  task "design"  (default): body.n images (1–4, default 2), split evenly between OpenAI and
  *                  Gemini when both keys exist. body.quality = "low" | "medium" | "high" (OpenAI).
  *                  body.wide = true → landscape 3:2; body.aspect = "3:4" | "4:3" | "3:2" | "1:1" sets it exactly. body.provider = "openai" | "gemini" forces one model.
@@ -174,6 +175,16 @@ export default {
       catch (e) { return json({ error: String(e?.message || e).slice(0, 300) }, 502); }
     }
 
+    // task "inventory": list every artwork on a reference photo (where, technique, look, size) — text, cheap
+    // task "verify": given that list and a generated image, which items are missing — text, cheap
+    if (body.task === 'inventory' || body.task === 'verify') {
+      if (!env.GEMINI_API_KEY) return json({ error: 'Needs GEMINI_API_KEY' }, 500);
+      if (!images.length) return json({ error: 'Missing image' }, 400);
+      { const hd = { apikey: SB_KEY, Authorization: `Bearer ${token}` }; const capErr = await dayCap(env, token, hd, 'detect', envInt(env.DETECT_DAILY, 200), envInt(env.DETECT_DAILY, 200) * 3, "You've reached today's limit for artwork checks. It resets at midnight UTC.", 'detect_limit'); if (capErr) return json(capErr, 429); await logUse(env, token, 'detect'); }
+      try { return json(body.task === 'inventory' ? await artInventory(env, images[0]) : await artVerify(env, images[0], Array.isArray(body.items) ? body.items.slice(0, 16) : [])); }
+      catch (e) { return json({ error: String(e?.message || e).slice(0, 300) }, 502); }
+    }
+
     const task = body.task === 'extract' ? 'extract' : 'design';
     const jobs = [];
     if (task === 'extract') {
@@ -296,6 +307,41 @@ async function geminiDetect(env, image) {
     return { label: String(o.label || 'Graphic').slice(0, 40), box: [x0, y0, x1 - x0, y1 - y0] }; // [x, y, w, h] in 0-1000
   }).filter(Boolean);
   return { parts, garment };
+}
+
+/* ---------- Gemini: artwork inventory + verify (text answers) ---------- */
+async function geminiJSON(env, images, prompt) {
+  const model = env.GEMINI_TEXT_MODEL || 'gemini-flash-latest';
+  const parts = images.map(image => { const m = image.dataUrl.match(/^data:(image\/[a-z+.-]+);base64,(.+)$/i); if (!m) throw new Error('Bad image'); return { inline_data: { mime_type: m[1], data: m[2] } }; });
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: 'POST',
+    headers: { 'x-goog-api-key': env.GEMINI_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ role: 'user', parts: [...parts, { text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } })
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`Gemini ${r.status}: ${data?.error?.message || 'error'}`);
+  const text = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+  try { return JSON.parse(text.replace(/^```(json)?|```$/g, '').trim()); } catch { throw new Error('Could not read the answer'); }
+}
+async function artInventory(env, image) {
+  const prompt = 'Look at this image. First say whether it shows a real garment (a photo or product shot of clothing), true or false. ' +
+    'Then list EVERY artwork on the garment — prints, text, logos, numbers, embroidery, patches, appliqué (including self-fabric or tone-on-tone appliqué in the same color as the fabric), chenille, rhinestones, studs — on the front body, pocket, hood, collar, and on EACH sleeve (shoulder, upper arm, elbow, forearm, cuff), plus woven labels or badges at the hem. ' +
+    'Big pieces on the sleeves count just as much as the chest. Describe position from the viewer\'s side of the image ("sleeve on the image-left", "sleeve on the image-right"). ' +
+    'For each item give: where (precise placement), technique (print, puff print, embroidery, chenille, patch, appliqué, self-fabric appliqué, rhinestones, studs, woven label), look (exact text if any, colors, shape, style, edges and stitching), size (rough share of that panel or sleeve, e.g. "about 40% of the sleeve"). ' +
+    'Return JSON: {"garment": true, "items": [{"where": "...", "technique": "...", "look": "...", "size": "..."}]} with at most 16 items, most visible first. Use "items": [] if there is no artwork.';
+  const o = await geminiJSON(env, [image], prompt);
+  const items = (Array.isArray(o?.items) ? o.items : []).slice(0, 16).map(i => ({ where: String(i.where || '').slice(0, 120), technique: String(i.technique || '').slice(0, 60), look: String(i.look || '').slice(0, 240), size: String(i.size || '').slice(0, 80) })).filter(i => i.where && i.look);
+  return { garment: o?.garment === true || o?.garment === 'true', items };
+}
+async function artVerify(env, image, items) {
+  if (!items.length) return { missing: [] };
+  const list = items.map((i, n) => `${n + 1}. ${i.where}: ${i.technique} — ${i.look} (${i.size})`).join('\n');
+  const prompt = `This is a generated garment image. Check it against this list of artwork that must be on it:\n${list}\n` +
+    'For each item decide if it is clearly present in about the right place (front view: the sleeve on the image-left is still on the image-left). Small differences in color or exact shape are fine; an item that is missing, moved to another panel, or reduced to a tiny mark is missing. ' +
+    'Return JSON: {"missing": [numbers of the missing items]}. Use "missing": [] if everything is there.';
+  const o = await geminiJSON(env, [image], prompt);
+  const missing = (Array.isArray(o?.missing) ? o.missing : []).map(Number).filter(n => n >= 1 && n <= items.length);
+  return { missing: [...new Set(missing)] };
 }
 
 /* ---------- Supabase sign-in check ---------- */
