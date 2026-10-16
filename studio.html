@@ -260,6 +260,17 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#FDFDF9;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
 .toast.show{opacity:1;transform:translateX(-50%)}
 
+/* simpler start: back slots and the wash / trim cards appear when needed */
+.addback{align-self:center;font:600 12px Outfit,sans-serif;border:1.5px dashed #c9c3ad;border-radius:99px;padding:5px 11px;background:#FDFDF9;color:var(--ink);white-space:nowrap;margin-bottom:18px}
+.addback:hover{background:var(--y2);border-color:var(--accent)}
+.step:not(.show-back) .slot[data-side=back]{display:none}
+.step.show-back .addback{display:none}
+#left:not(.more-open) .xstep{display:none}
+.morebtn{width:100%;margin-top:14px;border:1.5px dashed #c9c3ad;border-radius:22px;padding:16px 18px;background:transparent;font-weight:600;font-size:14px;text-align:left;display:flex;align-items:center;gap:10px;transition:.15s}
+.morebtn:hover{background:var(--y2);border-color:var(--accent)}
+.morebtn small{font-weight:400;color:var(--muted);font-size:12.5px}
+.more-open .morebtn{display:none}
+
 @media (max-width:960px){
   header{padding:14px 16px}
   main{grid-template-columns:1fr;padding:20px 16px 48px}
@@ -287,7 +298,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
 </header>
 
 <main>
-  <section>
+  <section id="left">
     <div class="intro">
       <h1>Build from references.</h1>
       <p>Every step is optional.</p>
@@ -303,7 +314,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       </div>
       <div>
         <div class="step-head"><span class="num">01</span><span class="step-title">Artwork</span><span class="opt">Optional</span></div>
-        <div class="desc">A print, logo or artwork you like — front and back. <b>Empty = no print.</b></div>
+        <div class="desc">Photo of a print, logo or graphic you like — a screenshot works. We use only the artwork. <b>Empty = no print.</b></div>
         <button type="button" class="optbtn">Options <span class="car">▾</span></button>
         <div class="more">
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
@@ -330,7 +341,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       </div>
       <div>
         <div class="step-head"><span class="num">02</span><span class="step-title">Body</span><span class="opt">Optional</span></div>
-        <div class="desc">The garment shape and color. <b>Empty = classic tee.</b></div>
+        <div class="desc">Photo of the garment shape you want. Its prints are removed automatically. <b>Empty = classic tee.</b></div>
         <div class="bclean hidden" id="bodyClean"></div>
         <button type="button" class="optbtn">Options <span class="car">▾</span></button>
         <div class="more">
@@ -354,17 +365,19 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       </div>
     </div>
 
-    <div class="plus">+</div>
+    <button type="button" class="morebtn" id="moreBtn">+ Add wash, distress or trims <small>Optional</small></button>
+
+    <div class="plus xstep">+</div>
 
     <!-- 03 WASH & DISTRESS -->
-    <div class="step" data-step="wash">
+    <div class="step xstep" data-step="wash">
       <div class="slots">
         <div class="slot cur" data-side="front"><label class="drop" data-slot="wash-front"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
         <div class="slot" data-side="back"><label class="drop" data-slot="wash-back"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
         <div class="step-head"><span class="num">03</span><span class="step-title">Wash &amp; Distress</span><span class="opt">Optional</span></div>
-        <div class="desc">Fading, dye effects, rips and frayed edges. <b>Empty = clean and new.</b></div>
+        <div class="desc">Photo showing the fading, dye effect, rips or frayed edges you want. <b>Empty = clean and new.</b></div>
         <div class="refnote hidden" id="washAuto"><span>✓ Wash &amp; distress: from your photo</span><button type="button" id="washChange">Change</button></div>
         <button type="button" class="optbtn">Options <span class="car">▾</span></button>
         <div class="more">
@@ -399,17 +412,17 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       </div>
     </div>
 
-    <div class="plus">+</div>
+    <div class="plus xstep">+</div>
 
     <!-- 04 TRIMS -->
-    <div class="step" data-step="trim">
+    <div class="step xstep" data-step="trim">
       <div class="slots">
         <div class="slot cur" data-side="front"><label class="drop" data-slot="trim-front"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Front</div></div>
         <div class="slot" data-side="back"><label class="drop" data-slot="trim-back"><b>+</b><small>Add photo</small><input type="file" accept="image/*"><span class="x">Remove</span></label><div class="slot-label">Back</div></div>
       </div>
       <div>
         <div class="step-head"><span class="num">04</span><span class="step-title">Trims</span><span class="opt">Optional</span></div>
-        <div class="desc">Studs, rhinestones, patches, grommets (metal eyelets), chains. <b>Empty = none.</b></div>
+        <div class="desc">Photo of the studs, rhinestones, patches, grommets (metal eyelets) or chains you want. <b>Empty = none.</b></div>
         <button type="button" class="optbtn">Options <span class="car">▾</span></button>
         <div class="more">
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
@@ -586,8 +599,10 @@ function bodyName(){ return state.bodyMode==='preset'?BODIES[state.body].name:st
 
 /* ---------- per-step Front/Back tabs ---------- */
 function stepEl(step){return document.querySelector(`.step[data-step=${step}]`);}
+const backShown={}; // "+ Back" tapped for this step
 function syncStep(step){
   const el=stepEl(step), side=state.tab[step], S=state[side];
+  el.classList.toggle('show-back',!!(state.refs[step+'-back']||side==='back'||backShown[step]));
   el.querySelectorAll('.sidetabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===side));
   el.querySelectorAll('.slot').forEach(s=>s.classList.toggle('cur',s.dataset.side===side));
   const note=el.querySelector('[data-note]');
@@ -613,6 +628,8 @@ const NOTE_PH={
 };
 ['graphic','body','wash','trim'].forEach(step=>{
   const el=stepEl(step);
+  el.querySelector('.slots').insertAdjacentHTML('beforeend','<button type="button" class="addback" aria-label="Add a back photo">+ Back</button>');
+  el.querySelector('.addback').addEventListener('click',()=>{ backShown[step]=true; state.tab[step]='back'; syncStep(step); });
   el.querySelectorAll('.sidetabs').forEach(seg=>seg.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; state.tab[step]=b.dataset.v; syncStep(step);}));
   el.querySelector('[data-note]').addEventListener('input',e=>{state[state.tab[step]].note[step]=e.target.value; saveDraft();});
   const chips=el.querySelector('[data-pick]');
@@ -657,7 +674,10 @@ function hasContent(step){ return SIDES.some(x=>state.refs[`${step}-${x}`]||stat
 function openStep(step,on){ stepEl(step).classList.toggle('open',on); }
 $$('.step').forEach(el=>el.querySelector('.optbtn')?.addEventListener('click',()=>el.classList.toggle('open')));
 $('#washChange')?.addEventListener('click',()=>{ const el=stepEl('wash'); el.classList.add('open'); el.querySelector('[data-pick="washType"]')?.scrollIntoView({block:'nearest',behavior:'smooth'}); });
-function syncOpen(){ ['graphic','body','wash','trim'].forEach(st=>{ if(hasContent(st)) openStep(st,true); }); }
+function syncOpen(){ ['graphic','body','wash','trim'].forEach(st=>{ if(hasContent(st)) openStep(st,true); }); syncMore(); }
+let moreOpen=false; // wash & trim cards stay hidden until asked for, or until they have content
+function syncMore(){ if(hasContent('wash')||hasContent('trim')) moreOpen=true; $('#left').classList.toggle('more-open',moreOpen); }
+$('#moreBtn').addEventListener('click',()=>{ moreOpen=true; syncMore(); stepEl('wash').scrollIntoView({behavior:'smooth',block:'nearest'}); });
 
 /* ---------- color (in Body) ---------- */
 function syncColor(){ $$('#colorPick .sw').forEach(b=>b.classList.toggle('on', b.classList.contains('custom') ? (!!state.color && !$$('#colorPick .sw[data-c]').some(x=>x.dataset.c===state.color)) : (b.dataset.c||'')===(state.color||''))); }
@@ -1053,7 +1073,8 @@ function restore(s){
   state.useSplit=s.useSplit??(state.front.graphicUse!==state.back.graphicUse); state.clean={...(s.clean||{})}; state.useOrig={...(s.useOrig||{})};
   state.direction=s.direction||''; $('#p-global').value=state.direction;
   state.quality='low'; state.color=s.color&&/^#[0-9a-f]{6}$/i.test(s.color)?s.color:''; state.colorName=s.colorName||''; syncColor();
-  $$('.step').forEach(el=>el.classList.remove('open'));
+  $$('.step').forEach(el=>el.classList.remove('open')); moreOpen=false;
+  ['graphic','body','wash','trim'].forEach(st=>{ state.tab[st]='front'; delete backShown[st]; });
   ['graphic','body','wash','trim'].forEach(syncStep); syncOpen();
   syncBodyClean(); setTimeout(()=>['body-front','body-back'].forEach(k=>{ if(state.refs[k]) cleanBody(k); }),0);
   state.variations=s.variations||[]; state.active=Math.min(s.active||0,Math.max(0,state.variations.length-1)); state.view=s.view||'front';
@@ -1115,6 +1136,7 @@ $('#newDesign').onclick=()=>{ curId=null; restore({v:2,refs:{},variations:[]}); 
 /* ---------- start ---------- */
 window.SPOOL_AUTH?.mount(document.getElementById('acct'));
 if(MOCK) $('#mockbar').classList.remove('hidden');
+syncMore();
 (async()=>{
   const q=new URLSearchParams(location.search);
   const b=q.get('body');
