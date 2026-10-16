@@ -48,6 +48,18 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 .imgpick .pi.on{border-color:var(--ink)}.imgpick .pi img{width:100%;height:100%;object-fit:cover;object-position:center top}
 .imgpick .pi span{position:absolute;left:2px;bottom:2px;background:#fff;border-radius:99px;font-size:7.5px;font-weight:600;padding:0 4px;text-transform:uppercase}
 .rm{font-size:12px;text-decoration:underline;color:#a3341d;margin-top:10px}
+.slbl{font-size:11px;color:var(--muted);margin:10px 0 4px}
+.chipz{display:flex;gap:4px;flex-wrap:wrap}.chipz button{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:12px;background:#fff}.chipz button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.packs{display:flex;flex-direction:column;gap:6px}
+.pk{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#FDFDF9}
+.pk .ph{display:flex;align-items:center;gap:8px}.pk .ph input.nm{width:70px;border:1px solid transparent;background:var(--soft);border-radius:8px;padding:4px 8px;font-weight:600;font-size:13px;outline:none}
+.pk .ph select{border:1px solid var(--line);border-radius:8px;padding:3px 6px;font:inherit;font-size:12px;background:#fff}
+.pk .ph small{margin-left:auto;color:var(--muted);font-size:11.5px;white-space:nowrap}.pk .ph .del{width:24px;height:24px;border-radius:50%;font-size:12px;color:var(--muted)}.pk .ph .del:hover{background:var(--soft);color:var(--ink)}
+.qg{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px;margin-top:6px}
+.qg label{font-size:10.5px;color:var(--muted);text-align:center}.qg input{width:100%;border:1px solid var(--line);border-radius:8px;padding:4px 0;text-align:center;font-size:13px;font-weight:600;background:#fff;outline:none}.qg input:focus{border-color:var(--ink)}
+.pkpick{display:flex;flex-direction:column;gap:4px}.pkpick label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 9px;font-size:12px;cursor:pointer;background:#fff}.pkpick label.on{border-color:var(--ink);background:var(--y2)}
+.pkpick b{font-weight:600}.pkpick span{color:var(--muted)}
+.lnk{font-size:12px;text-decoration:underline;font-weight:500;margin-top:6px}
 .add{width:100%;border:1.5px dashed #c9c3ad;border-radius:14px;padding:12px;font-weight:600;margin-top:8px}.add:hover{background:var(--y2)}
 .empty-s{font-size:13px;color:var(--muted);padding:6px 0 4px}
 .go{width:100%;background:var(--y);border-radius:99px;padding:16px;font-weight:600;letter-spacing:.16em;font-size:14px;box-shadow:0 8px 24px rgba(254,227,43,.35);transition:.15s}.go:hover{background:var(--ink);color:var(--y)}.go:disabled{opacity:.5;cursor:not-allowed}
@@ -67,6 +79,8 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 .it{display:flex;flex-direction:column;min-width:0;min-height:0}
 .it .im{flex:1;min-height:0;background:#F6F4EE;border-radius:.4cqw;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
 .it .im img{width:100%;height:100%;object-fit:cover;object-position:center top}.it .im img.prod{object-fit:contain;object-position:center}
+.it .im .rmx{position:absolute;top:.6cqw;right:.6cqw;width:2.4cqw;height:2.4cqw;min-width:24px;min-height:24px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:max(1cqw,11px);display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.12)}.it .im .rmx:hover{background:var(--ink);color:#fff}
+.it .pkr{font-size:.85cqw;background:#FBEF9C;border-radius:.3cqw;padding:.2cqw .5cqw;margin-top:.3cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.it .pkr b{font-weight:700;margin-right:.4cqw}
 .it .im img.inset{position:absolute;right:.5cqw;bottom:.5cqw;width:28%;height:auto;aspect-ratio:1;background:#fff;border-radius:.3cqw;box-shadow:0 .1cqw .4cqw rgba(0,0,0,.15);object-fit:contain;padding:.2cqw}
 .it .info{height:var(--info,10.5cqw);overflow:hidden;flex:none}
 .it .no{font-size:.95cqw;color:var(--muted);margin-top:.8cqw;letter-spacing:.1cqw;min-height:1.2cqw}
@@ -89,12 +103,12 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 .mempty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:24px;text-align:center;border:1.5px dashed var(--line);border-radius:14px}
 .btn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:500}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#FDFDF9;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
-.toast.show{opacity:1;transform:translateX(-50%)}
+.toast.show{opacity:1;transform:translateX(-50%)}.toast.act{pointer-events:auto}.toast u{color:var(--y);margin-left:12px;cursor:pointer;font-weight:600}
 @media (max-width:980px){header{padding:14px 16px}main{grid-template-columns:1fr;padding:16px 16px 48px}.pv{position:static;order:-1}}
 @media print{
   @page{size:A4 landscape;margin:0}
   html,body{background:#fff}
-  header,main>section:first-child,.pvbar,.toast,.modal{display:none!important}
+  header,main>section:first-child,.pvbar,.toast,.modal,.rmx{display:none!important}
   main{display:block;padding:0;max-width:none}.pv{position:static}
   #pages{gap:0;display:block}
   .sheet{width:297mm;height:210mm;aspect-ratio:auto;border:0;border-radius:0;box-shadow:none;page-break-after:always;break-after:page}
@@ -123,12 +137,15 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
       <div><div class="seg" id="photoSeg"><button data-v="product">Product photos</button><button data-v="model">Model photos</button><button data-v="both">Both</button></div></div>
       <div><div class="seg" id="perSeg"><button data-v="4">4 per page</button><button data-v="6">6 per page</button><button data-v="8">8 per page</button></div></div>
     </div>
+    <div class="card"><h3>Prepacks <button type="button" id="addPack">+ New prepack</button></h3>
+      <div class="packs" id="packs"></div>
+    </div>
     <div class="card"><h3 id="stylesH">Styles <button type="button" id="addTop">+ Add</button></h3>
       <div id="styles"></div>
       <button class="add" id="addBtn">+ Add from My projects or model photos</button>
     </div>
     <button class="go" id="pdf">DOWNLOAD PDF</button>
-    <div class="hint">Opens the print window — choose <b>Save as PDF</b>. Set layout to landscape if asked.</div>
+    <div class="hint">In the print window choose <b>Save as PDF</b> (on Mac: PDF ▾ → Save as PDF). Set layout to landscape if asked.</div>
     <div class="sec"><a href="model.html">Add model photos (optional)</a><a href="studio.html">Design Studio</a></div>
   </section>
   <section class="pv">
@@ -151,7 +168,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
    ============================================================ */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const toast=(m,ms)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms||2600)};
+const toast=(m,ms)=>{const t=$('#toast');t.textContent=m;t.classList.remove('act');t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms||2600)};
 const IDB=(name,up)=>{let p;const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest'; return await new Promise((res,rej)=>{if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open(name+'-'+sc,1);r.onupgradeneeded=()=>up(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); })());
   const tx=async(st,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(st,mode);const o=fn(t.objectStore(st));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn(e);return null;}};
   return{get:(st,key)=>tx(st,'readonly',s=>s.get(key)),put:(st,v,key)=>tx(st,'readwrite',s=>key===undefined?s.put(v):s.put(v,key)),all:st=>tx(st,'readonly',s=>s.getAll())};};
@@ -162,10 +179,20 @@ const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='an
 async function shrink(src,max=1000,q=.88){ if(!src) return null; try{ const i=await loadImg(src); const s=Math.min(1,max/Math.max(i.width,i.height)); const c=document.createElement('canvas'); c.width=Math.round(i.width*s); c.height=Math.round(i.height*s); const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); return c.toDataURL('image/jpeg',q); }catch(e){ return null; } }
 const readFile=f=>new Promise((res,rej)=>{ if(!f||!f.type.startsWith('image/')) return rej(new Error('Please use an image file')); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); });
 
-const SIZES=['XS','S','M','L','XL','2XL','3XL'];
-const blankSheet=()=>({brand:'',season:'',contact:'',delivery:'',terms:'Prices in USD · FOB · Net 30',logo:null,photo:'product',per:4,styles:[]});
+// size types: each style picks one; prepacks belong to a type
+const SCALE={tops:['XS','S','M','L','XL','2XL','3XL'],bottoms:['26','28','29','30','31','32','33','34','36','38','40','42'],shoes:['6','6.5','7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12','13'],one:['OS']};
+const TYPES=[['tops','Tops'],['bottoms','Bottoms'],['shoes','Shoes'],['one','One size'],['custom','Custom']];
+const INSEAMS=['28','30','32','34','36'];
+const DEF_SIZES={tops:['S','M','L','XL'],bottoms:['30','32','34','36','38'],shoes:['8','9','10','11','12'],one:['OS'],custom:[]};
+const blankSheet=()=>({brand:'',season:'',contact:'',delivery:'',terms:'Prices in USD · FOB · Net 30',logo:null,photo:'product',per:4,styles:[],packs:[]});
 let SH=blankSheet(), openId=null;
-const newStyle=o=>({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),pid:null,shootId:null,name:'Style',no:'',whl:'',msrp:'',moq:'',fabric:'',colors:'',sizes:['S','M','L','XL'],modelImg:null,productImg:null,...o});
+const newStyle=o=>({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),pid:null,shootId:null,name:'Style',no:'',whl:'',msrp:'',moq:'',fabric:'',colors:'',type:'tops',sizes:['S','M','L','XL'],inseams:[],custom:'',packs:[],modelImg:null,productImg:null,...o});
+const styleSizes=st=>st.type==='custom'?String(st.custom||'').split(/[,/]+/).map(x=>x.trim()).filter(Boolean):(SCALE[st.type]||SCALE.tops).filter(z=>st.sizes.includes(z));
+const packSizes=pk=>pk.type==='custom'?Object.keys(pk.qty||{}):SCALE[pk.type]||SCALE.tops;
+const packPcs=pk=>Object.values(pk.qty||{}).reduce((a,b)=>a+(+b||0),0);
+const packTxt=pk=>packSizes(pk).filter(z=>+pk.qty[z]>0).map(z=>(pk.type==='bottoms'||pk.type==='shoes'?z+'·':z)+pk.qty[z]).join(' ');
+const num=v=>{ const n=parseFloat(String(v||'').replace(/[^\d.]/g,'')); return isFinite(n)?n:null; };
+const nextPackName=()=>{ for(const c of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') if(!SH.packs.some(p=>p.name===c)) return c; return 'P'+(SH.packs.length+1); };
 let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>sheetDB.put('kv',SH,'sheet'),120); }
 
 /* ---------- sheet fields ---------- */
@@ -177,11 +204,30 @@ function renderLogo(){ $('#logoBox').innerHTML=SH.logo?`<img src="${SH.logo}" al
 $('#logoBox').onclick=()=>$('#logoFile').click();
 $('#logoFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ SH.logo=await readFile(f); renderLogo(); save(); renderPages(); }catch(er){ toast(er.message); } };
 $('#logoRm').onclick=()=>{ SH.logo=null; renderLogo(); save(); renderPages(); };
-$('#newSheet').onclick=()=>{ if(SH.styles.length&&!confirm('Start a new, empty line sheet?')) return; const keep={brand:SH.brand,contact:SH.contact,logo:SH.logo,terms:SH.terms}; SH={...blankSheet(),...keep}; openId=null; fill(); };
-function fill(){ $$('[data-k]').forEach(i=>i.value=SH[i.dataset.k]||''); segs(); renderLogo(); renderStyles(); renderPages(); save(); }
+$('#newSheet').onclick=()=>{ if(SH.styles.length&&!confirm('Start a new, empty line sheet?')) return; const keep={brand:SH.brand,contact:SH.contact,logo:SH.logo,terms:SH.terms,packs:SH.packs}; SH={...blankSheet(),...keep}; openId=null; fill(); };
+function fill(){ $$('[data-k]').forEach(i=>i.value=SH[i.dataset.k]||''); segs(); renderLogo(); renderPacks(); renderStyles(); renderPages(); save(); }
+
+/* ---------- prepacks: made once, picked per style ---------- */
+function renderPacks(){ const box=$('#packs');
+  box.innerHTML=SH.packs.length?'':'<div class="empty-s">No prepacks yet. e.g. A = S2 / M2 / L1 / XL1. Make one, then pick it on a style.</div>';
+  SH.packs.forEach((pk,i)=>{ const d=document.createElement('div'); d.className='pk';
+    d.innerHTML=`<div class="ph"><input class="nm" value="${esc(pk.name)}" aria-label="Prepack name"><select aria-label="Size type">${TYPES.filter(t=>t[0]!=='one'&&t[0]!=='custom').map(([v,l])=>`<option value="${v}"${pk.type===v?' selected':''}>${l}</option>`).join('')}</select><small>${packPcs(pk)} pcs</small><button type="button" class="del" title="Delete prepack" aria-label="Delete prepack">✕</button></div>
+      <div class="qg">${packSizes(pk).map(z=>`<label>${z}<input inputmode="numeric" data-q="${z}" value="${pk.qty[z]||''}" placeholder="0"></label>`).join('')}</div>`;
+    d.querySelector('.nm').oninput=e=>{ pk.name=e.target.value.trim()||pk.name; save(); renderPages(); if(openId) renderStyles(); };
+    d.querySelector('select').onchange=e=>{ pk.type=e.target.value; pk.qty={}; SH.styles.forEach(st=>{ if(st.type!==pk.type) st.packs=st.packs.filter(x=>x!==pk.id); }); save(); renderPacks(); renderStyles(); renderPages(); };
+    d.querySelectorAll('[data-q]').forEach(inp=>inp.oninput=()=>{ const v=parseInt(inp.value,10); if(v>0) pk.qty[inp.dataset.q]=v; else delete pk.qty[inp.dataset.q]; d.querySelector('.ph small').textContent=packPcs(pk)+' pcs'; save(); renderPages(); if(openId) renderStyles(); });
+    d.querySelector('.del').onclick=()=>{ const used=SH.styles.filter(st=>st.packs.includes(pk.id)).length; SH.packs.splice(i,1); SH.styles.forEach(st=>st.packs=st.packs.filter(x=>x!==pk.id)); save(); renderPacks(); renderStyles(); renderPages();
+      undoToast(`Deleted prepack ${pk.name}${used?` (on ${used} style${used>1?'s':''})`:''}`,()=>{ SH.packs.splice(i,0,pk); save(); renderPacks(); renderStyles(); renderPages(); }); };
+    box.appendChild(d); }); }
+function newPack(type,from){ const pk={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:nextPackName(),type:type||'tops',qty:{}}; (from||DEF_SIZES[pk.type]).forEach(z=>pk.qty[z]=1); SH.packs.push(pk); save(); renderPacks(); return pk; }
+$('#addPack').onclick=()=>{ newPack('tops'); toast('Prepack added — set the quantity per size'); };
+function undoToast(msg,undo){ const t=$('#toast'); t.innerHTML=`${esc(msg)}<u role="button" tabindex="0">Undo</u>`; t.classList.add('show','act'); clearTimeout(t._t);
+  t.querySelector('u').onclick=()=>{ undo(); t.classList.remove('show','act'); }; t._t=setTimeout(()=>t.classList.remove('show','act'),6000); }
+function removeStyle(id){ const i=SH.styles.findIndex(x=>x.id===id); if(i<0) return; const [st]=SH.styles.splice(i,1); if(openId===id) openId=null; save(); renderStyles(); renderPages();
+  undoToast(`Removed "${st.name||'Style'}"`,()=>{ SH.styles.splice(i,0,st); save(); renderStyles(); renderPages(); }); }
 
 /* ---------- styles list ---------- */
-const sizeRange=a=>{ const s=SIZES.filter(x=>a.includes(x)); if(!s.length) return ''; const i0=SIZES.indexOf(s[0]), i1=SIZES.indexOf(s[s.length-1]); return s.length===i1-i0+1&&s.length>1?`${s[0]}–${s[s.length-1]}`:s.join(', '); };
+const sizeRange=st=>{ const s=styleSizes(st); if(!s.length) return ''; if(st.type==='custom'||st.type==='one') return s.join(', '); const L=SCALE[st.type].filter(z=>s.includes(z)||(st.type==='bottoms'?+z%2===0:st.type==='shoes'?!z.includes('.5'):true)), i0=L.indexOf(s[0]), i1=L.indexOf(s[s.length-1]);   // half sizes / odd waists only count when picked return s.length===i1-i0+1&&s.length>1?`${s[0]}–${s[s.length-1]}`:s.join(', '); };
 const money=v=>{ v=String(v||'').trim(); if(!v) return ''; return /^[\d.,]+$/.test(v)?'$'+v:v; };
 const imgOf=st=>SH.photo==='product'?(st.productImg||st.modelImg):(st.modelImg||st.productImg);
 function renderStyles(){ const box=$('#styles'); $('#stylesH').firstChild.textContent=`Styles · ${SH.styles.length} `;
@@ -193,13 +239,21 @@ function renderStyles(){ const box=$('#styles'); $('#stylesH').firstChild.textCo
       e.innerHTML=`<label class="f"><span>Name</span><input data-s="name"></label>
         <div class="row row3" style="margin-top:8px"><label class="f"><span>Style #</span><input data-s="no" placeholder="e.g. NB-2701"></label><label class="f"><span>Wholesale</span><input data-s="whl" placeholder="18.00"></label><label class="f"><span>MSRP</span><input data-s="msrp" placeholder="45.00"></label></div>
         <div class="row row3" style="margin-top:8px"><label class="f"><span>MOQ</span><input data-s="moq" placeholder="24"></label><label class="f"><span>Fabric</span><input data-s="fabric" placeholder="240gsm cotton"></label><label class="f"><span>Colors</span><input data-s="colors" placeholder="Washed black, Navy"></label></div>
-        <div class="sizes">${SIZES.map(z=>`<button type="button" data-z="${z}" class="${st.sizes.includes(z)?'on':''}">${z}</button>`).join('')}</div>
+        <div class="slbl">Size type</div><div class="chipz">${TYPES.map(([v,l])=>`<button type="button" data-ty="${v}" class="${st.type===v?'on':''}">${l}</button>`).join('')}</div>
+        ${st.type==='custom'?`<label class="f" style="margin-top:8px"><span>Sizes (comma separated)</span><input data-s="custom" placeholder="e.g. 0, 2, 4, 6, 8"></label>`:st.type==='one'?'':`<div class="slbl">${st.type==='bottoms'?'Waist':'Sizes'}</div><div class="sizes">${SCALE[st.type].map(z=>`<button type="button" data-z="${z}" class="${st.sizes.includes(z)?'on':''}">${z}</button>`).join('')}</div>`}
+        ${st.type==='bottoms'?`<div class="slbl">Inseam</div><div class="sizes">${INSEAMS.map(z=>`<button type="button" data-in="${z}" class="${st.inseams.includes(z)?'on':''}">${z}</button>`).join('')}</div>`:''}
+        ${st.type==='one'||st.type==='custom'?'':`<div class="slbl">Prepacks</div><div class="pkpick">${SH.packs.filter(p=>p.type===st.type).map(p=>`<label class="${st.packs.includes(p.id)?'on':''}"><input type="checkbox" data-pk="${p.id}"${st.packs.includes(p.id)?' checked':''}><b>${esc(p.name)}</b><span>${esc(packTxt(p))||'no sizes yet'} · ${packPcs(p)} pcs${num(st.whl)&&packPcs(p)?` · $${(num(st.whl)*packPcs(p)).toFixed(2)}/pack`:''}</span></label>`).join('')||`<div class="empty-s" style="padding:0">No ${st.type} prepacks yet.</div>`}</div>
+          <button type="button" class="lnk" data-newpk>+ New ${st.type} prepack from these sizes</button>`}
         <div class="imgpick">${st.modelImg?`<div class="pi${imgOf(st)===st.modelImg?' on':''}" title="Model photo"><img src="${st.modelImg}" alt=""><span>model</span></div>`:''}${st.productImg?`<div class="pi${imgOf(st)===st.productImg?' on':''}" title="Product photo"><img src="${st.productImg}" alt=""><span>product</span></div>`:''}
           <button type="button" class="btn" data-swap>Change photo</button>${st.modelImg?'':`<a class="btn" style="text-decoration:none" href="${st.pid?'model.html?pid='+encodeURIComponent(st.pid):'model.html'}">Make model photo</a>`}</div>
         <button type="button" class="rm" data-rm>Remove from sheet</button>`;
       e.querySelectorAll('[data-s]').forEach(inp=>{ inp.value=st[inp.dataset.s]||''; inp.addEventListener('input',()=>{ st[inp.dataset.s]=inp.value; save(); renderPages(); const h=d.querySelector('.sh2'); h.querySelector('b').textContent=st.name||'Style'; h.querySelector('small').textContent=[st.no,[money(st.whl),money(st.msrp)].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')||'Tap to add details'; }); });
       e.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{ const z=b.dataset.z; st.sizes=st.sizes.includes(z)?st.sizes.filter(x=>x!==z):[...st.sizes,z]; b.classList.toggle('on'); save(); renderPages(); });
-      e.querySelector('[data-rm]').onclick=()=>{ SH.styles.splice(i,1); openId=null; save(); renderStyles(); renderPages(); };
+      e.querySelectorAll('[data-in]').forEach(b=>b.onclick=()=>{ const z=b.dataset.in; st.inseams=st.inseams.includes(z)?st.inseams.filter(x=>x!==z):[...st.inseams,z]; b.classList.toggle('on'); save(); renderPages(); });
+      e.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{ if(st.type===b.dataset.ty) return; st.type=b.dataset.ty; st.sizes=[...DEF_SIZES[st.type]]; st.packs=[]; if(st.type!=='bottoms') st.inseams=[]; else if(!st.inseams.length) st.inseams=['32']; save(); renderStyles(); renderPages(); });
+      e.querySelectorAll('[data-pk]').forEach(c=>c.onchange=()=>{ const id=c.dataset.pk; st.packs=c.checked?[...st.packs,id]:st.packs.filter(x=>x!==id); save(); renderStyles(); renderPages(); });
+      e.querySelector('[data-newpk]')?.addEventListener('click',()=>{ const pk=newPack(st.type,styleSizes(st)); st.packs.push(pk.id); save(); renderStyles(); renderPages(); toast(`Prepack ${pk.name} made with 1 of each size — change the numbers under Prepacks`); });
+      e.querySelector('[data-rm]').onclick=()=>removeStyle(st.id);
       e.querySelector('[data-swap]').onclick=()=>{ swapFor=st; $('#swapFile').click(); };
       d.appendChild(e); }
     d.querySelector('.sh2').onclick=ev=>{ if(ev.target.closest('[data-up]')) return move(i,-1); if(ev.target.closest('[data-dn]')) return move(i,1); openId=openId===st.id?null:st.id; renderStyles(); };
@@ -212,16 +266,20 @@ $('#swapFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value='';
 function renderPages(){ const per=SH.per, n=Math.max(1,Math.ceil(SH.styles.length/per)), cols=per===4?4:per===6?3:4, rows=per===4?1:2, out=[];
   for(let p=0;p<n;p++){ const items=SH.styles.slice(p*per,p*per+per);
     const head=`<div class="shd"><div class="bn">${SH.logo?`<img src="${SH.logo}" alt="">`:esc(SH.brand||'YOUR BRAND').toUpperCase()}</div><div class="ss"><b>${esc(SH.season||'Season')}</b><br>${esc([SH.delivery&&'Delivery '+SH.delivery,SH.contact].filter(Boolean).join(' · '))}</div></div>`;
-    const body=items.length?`<div class="items" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));--info:${rows>1?'11.5cqw':'12.5cqw'}">${items.map(st=>{ const main=imgOf(st), prodMain=main&&main===st.productImg&&main!==st.modelImg;
-      const rowsT=[['Sizes',sizeRange(st.sizes)],['Wholesale',money(st.whl)],['MSRP',money(st.msrp)],['MOQ',st.moq],['Fabric',st.fabric]].filter(r=>r[1]);
-      return `<div class="it"><div class="im">${main?`<img class="${prodMain?'prod':''}" src="${main}" alt="">`:''}${SH.photo==='both'&&st.modelImg&&st.productImg?`<img class="inset" src="${st.productImg}" alt="">`:''}</div>
+    const extra=Math.max(0,...items.map(st=>st.packs.filter(id=>SH.packs.some(p=>p.id===id)).length+(st.type==='bottoms'&&st.inseams.length?1:0)))*1.55;
+    const body=items.length?`<div class="items" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));--info:${(rows>1?11.5:12.5)+extra}cqw">${items.map(st=>{ const main=imgOf(st), prodMain=main&&main===st.productImg&&main!==st.modelImg;
+      const rowsT=[[st.type==='bottoms'?'Waist':'Sizes',sizeRange(st)],[st.inseams.length>1?'Inseams':'Inseam',st.type==='bottoms'?st.inseams.slice().sort((a,b)=>a-b).join(' / '):''],['Wholesale',money(st.whl)],['MSRP',money(st.msrp)],['MOQ',st.moq],['Fabric',st.fabric]].filter(r=>r[1]);
+      const pks=st.packs.map(id=>SH.packs.find(p=>p.id===id)).filter(Boolean), w=num(st.whl);
+      return `<div class="it"><div class="im"><button type="button" class="rmx" data-rmx="${st.id}" title="Remove from sheet" aria-label="Remove from sheet">✕</button>${main?`<img class="${prodMain?'prod':''}" src="${main}" alt="">`:''}${SH.photo==='both'&&st.modelImg&&st.productImg?`<img class="inset" src="${st.productImg}" alt="">`:''}</div>
         <div class="info"><div class="no">${esc(st.no||'')}</div><div class="nm">${esc(st.name||'Style')}</div>${st.colors?`<div class="cl">${esc(st.colors)}</div>`:''}
-        <table>${rowsT.map(r=>`<tr><td>${r[0]}</td><td>${esc(r[1])}</td></tr>`).join('')}</table></div></div>`; }).join('')}</div>`
+        <table>${rowsT.map(r=>`<tr><td>${r[0]}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>${pks.map(p=>`<div class="pkr"><b>${esc(p.name)}</b>${esc(packTxt(p))} = ${packPcs(p)} pcs${w&&packPcs(p)?' · $'+(w*packPcs(p)).toFixed(2):''}</div>`).join('')}</div></div>`; }).join('')}</div>`
       :'<div class="blank">Add styles on the left — they appear here.</div>';
     out.push(`<div class="sheet"><div class="pg">${head}${body}<div class="sf"><span>${esc(SH.terms||'')}</span><span>Made with SPOOL · page ${p+1} / ${n}</span></div></div></div>`); }
-  $('#pages').innerHTML=out.join(''); $('#pvInfo').textContent=`A4 landscape · ${per} styles per page · ${n} page${n>1?'s':''}`; }
+  $('#pages').innerHTML=out.join(''); $$('[data-rmx]').forEach(b=>b.onclick=()=>removeStyle(b.dataset.rmx)); $('#pvInfo').textContent=`A4 landscape · ${per} styles per page · ${n} page${n>1?'s':''}`; }
 $('#pdf').onclick=()=>{ if(!SH.styles.length) return toast('Add at least one style first'); const t=document.title; document.title=[SH.brand,SH.season,'Line Sheet'].filter(Boolean).join(' — ');
-  window.SPOOL_TRACK?.('linesheet_pdf',{styles:SH.styles.length,per:SH.per,photo:SH.photo}); setTimeout(()=>{ window.print(); document.title=t; },50); };
+  window.SPOOL_TRACK?.('linesheet_pdf',{styles:SH.styles.length,per:SH.per,photo:SH.photo});
+  window.print();   // called right in the click: a delayed print() makes Safari ask "This webpage is trying to print"
+  setTimeout(()=>{ document.title=t; },1000); };
 
 /* ---------- add from My projects / model photos / upload ---------- */
 const projImg=p=>p?.sides?.front?.base||p?.sides?.front?.original||p?.pending?.ai?.front||null;
@@ -231,7 +289,8 @@ async function fullProject(id){ let p=await edDB.get('projects',id); if((!p||(!p
 async function addProject(id){ if(SH.styles.some(s=>s.pid===id)) return toast('Already on the sheet');
   const p=await fullProject(id); if(!p) return toast('Could not open this project');
   const s=await latestShoot(id), B=p.bodySpec||{}, Y=p.style||{};
-  SH.styles.push(newStyle({pid:id,shootId:s?.id||null,name:p.name||'Style',no:Y.no||'',fabric:[B.fabric,B.gsm&&B.gsm+(/gsm/i.test(B.gsm)?'':'gsm')].filter(Boolean).join(', '),colors:B.color||'',productImg:await shrink(projImg(p)),modelImg:await shrink(shootFront(s))}));
+  const ty=['sweatpant','denim','shorts'].includes(p.body)?'bottoms':'tops';
+  SH.styles.push(newStyle({pid:id,shootId:s?.id||null,type:ty,sizes:[...DEF_SIZES[ty]],inseams:ty==='bottoms'?['32']:[],name:p.name||'Style',no:Y.no||'',fabric:[B.fabric,B.gsm&&B.gsm+(/gsm/i.test(B.gsm)?'':'gsm')].filter(Boolean).join(', '),colors:B.color||'',productImg:await shrink(projImg(p)),modelImg:await shrink(shootFront(s))}));
   save(); renderStyles(); renderPages(); toast('Added: '+(p.name||'style')); }
 async function addShoot(id){ const s=await modelDB.get('shoots',id); if(!s) return toast('Model photo not found');
   const same=SH.styles.find(x=>x.shootId===id||(s.pid&&x.pid===s.pid));
@@ -261,7 +320,7 @@ $('#upFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; t
 
 /* ---------- start ---------- */
 window.SPOOL_AUTH?.mount($('#acct'));
-(async()=>{ const s=await sheetDB.get('kv','sheet'); if(s) SH={...blankSheet(),...s};
+(async()=>{ const s=await sheetDB.get('kv','sheet'); if(s){ SH={...blankSheet(),...s}; SH.packs=SH.packs||[]; SH.styles=SH.styles.map(st=>({type:'tops',inseams:[],custom:'',packs:[],...st})); }
   fill(); const q=new URLSearchParams(location.search);
   if(q.get('add')){ history.replaceState(null,'','linesheet.html'); await addShoot(q.get('add')); }
   if(q.get('project')){ history.replaceState(null,'','linesheet.html'); await addProject(q.get('project')); }
