@@ -281,9 +281,10 @@ async function geminiDetect(env, image) {
   if (!m) throw new Error('Bad image');
   const prompt = 'This is a garment product photo. First name the garment type as exactly one of: tee, hoodie, zip, crew, trucker, sweatpant, denim, shorts ' +
     '(hoodie = pullover with a hood; zip = full-zip hoodie or zip jacket; crew = crewneck sweatshirt with long sleeves and no hood; tee = short-sleeve t-shirt; trucker = jacket with collar and buttons; denim = jeans). ' +
-    'Then find each separate design element ON the garment: printed graphics, text blocks, logos, patches, embroidery, rhinestone or stud areas — on the body AND on the sleeves (shoulder, upper arm, forearm and cuff area). ' +
-    'Group letters of one word or one slogan together. Ignore the garment itself, seams, collar, plain rib cuffs, hems, pockets, wrinkles, distressing and the background. ' +
-    'Return JSON: {"garment": "hoodie", "items": [{"label": "short name, 1-4 words", "box_2d": [ymin, xmin, ymax, xmax]}]} with at most 8 items and coordinates normalized 0-1000. Use "items": [] if there are none.';
+    'Then find each separate design element ON the garment: printed graphics, text blocks, numbers, logos, patches, embroidery, chenille, appliqué — including self-fabric or tone-on-tone appliqué in the same color as the fabric — rhinestone or stud areas, and woven labels or badges. ' +
+    'Check every area one by one: chest, center front, pocket, hood, collar, hem, and EACH sleeve separately (shoulder, upper arm, elbow, forearm, cuff) — big pieces on the sleeves count as much as the chest. ' +
+    'Group letters of one word or one slogan together. Ignore the garment itself, seams, plain rib cuffs, plain hems, plain pockets, wrinkles, distressing and the background. ' +
+    'Return JSON: {"garment": "hoodie", "items": [{"label": "short name, 1-4 words", "box_2d": [ymin, xmin, ymax, xmax]}]} with at most 14 items and coordinates normalized 0-1000. Use "items": [] if there are none.';
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'x-goog-api-key': env.GEMINI_API_KEY, 'Content-Type': 'application/json' },
@@ -299,7 +300,7 @@ async function geminiDetect(env, image) {
   const arr = Array.isArray(obj) ? obj : (obj?.items || []);
   const g = String((!Array.isArray(obj) && obj?.garment) || '').toLowerCase();
   const garment = ['tee', 'hoodie', 'zip', 'crew', 'trucker', 'sweatpant', 'denim', 'shorts'].includes(g) ? g : null;
-  const parts = arr.slice(0, 8).map(o => {
+  const parts = arr.slice(0, 14).map(o => {
     const b = (o.box_2d || o.box || []).map(Number);
     if (b.length !== 4 || b.some(v => !isFinite(v))) return null;
     const [y0, x0, y1, x1] = b.map(v => Math.max(0, Math.min(1000, v)));

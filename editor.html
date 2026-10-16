@@ -161,6 +161,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .tfile .lnk{text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}.tfile [data-fdel]{width:20px;height:20px;border-radius:50%;color:var(--muted)}
 .pc .act{position:absolute;top:6px;background:rgba(253,253,249,.92);border-radius:99px;font-size:11px;padding:2px 8px}
 .pc .dup{right:62px}
+.pc .gos{display:flex;gap:6px;flex-wrap:wrap;padding:0 10px 10px}.pc .act.go{position:static;background:var(--y2);font-weight:500;cursor:pointer}.pc .act.go:hover{background:var(--y)}
 .pc .del{position:absolute;top:6px;right:6px;background:rgba(253,253,249,.92);border-radius:99px;font-size:11px;padding:2px 8px}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
 .cmp figure{display:flex;flex-direction:column;gap:6px}
@@ -210,8 +211,6 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
     <span id="chgBadge" title="You changed this design after sending a sample request. Send a new request or email info@spoolnyc.com so the factory has the latest." style="display:none;font-size:11px;background:#fff3cd;color:#8a5a00;border:1px solid #f0d58a;border-radius:99px;padding:3px 9px;white-space:nowrap">Changed since sample request</span><button class="savechip hidden" id="saveChip" type="button" title="Click to save now"></button>
     <div class="seg hidden" id="verSeg" title="Switch between your design and the original AI design"><button class="on" data-v="cur">Current</button><button data-v="orig">Original</button></div>
     <a class="btn sm" id="studioBtn" href="studio.html" title="Go to the Design Studio">Design Studio</a>
-    <a class="btn sm" id="sheetBtn" href="linesheet.html" title="Add this design to your line sheet">Line sheet</a>
-    <a class="btn sm" id="modelBtn" href="model.html" title="Put this design on a model: front, side and back photos">Model photo</a>
     <button class="btn sm" id="projBtn">My projects</button>
     <span id="acct"></span>
   </div>
@@ -365,7 +364,7 @@ const P_POLISH='POLISH: Clean up this garment product photo so every printed, st
 
 /* ================= storage ================= */
 const IDB=(name,up)=>{let p;const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest'; return await new Promise((res,rej)=>{if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open(name+'-'+sc,1);r.onupgradeneeded=()=>up(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); })());
-  const tx=async(st,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(st,mode);const o=fn(t.objectStore(st));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn(e);return null;}};
+  const tx=async(st,mode,fn)=>{const t0=Date.now();try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(st,mode);const o=fn(t.objectStore(st));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn(e);return null;}finally{const ms=Date.now()-t0; if(ms>3000) window.SPOOL_TRACK?.('slow_storage',{page:'editor',db:name,op:st+':'+mode,ms});}};
   return{get:(st,key)=>tx(st,'readonly',s=>s.get(key)),put:(st,v,key)=>tx(st,'readwrite',s=>key===undefined?s.put(v):s.put(v,key)),all:st=>tx(st,'readonly',s=>s.getAll()),del:(st,key)=>tx(st,'readwrite',s=>s.delete(key))};};
 const studioDB=IDB('spool-ref-studio',db=>{db.createObjectStore('kv');db.createObjectStore('designs',{keyPath:'id'});});
 const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'});db.createObjectStore('kv');});
@@ -938,25 +937,12 @@ async function shrinkRef(src,max=900){ try{ const i=await loadImg(src), k2=Math.
 async function refsFromHandoff(r){ const out=[]; for(const [k2] of REF_KINDS) for(const sd of ['front','back']){ const u=r?.[`${k2}-${sd}`]; if(u&&String(u).startsWith('data:image/')){ const d=await shrinkRef(u); if(d) out.push({kind:k2,side:sd,src:d}); } } return out; }
 const refLabel=r=>(REF_KINDS.find(x=>x[0]===r.kind)||['', 'REFERENCE'])[1]+(r.side?` · ${r.side.toUpperCase()}`:'');
 /* ---------- back to the studio with this design's references and settings ---------- */
-$('#studioBtn')?.addEventListener('click',async e=>{ if(!P||!P.studio) return; e.preventDefault();
-  try{ await flushSave?.(); }catch(_){}
+$('#studioBtn')?.addEventListener('click',async e=>{ if(!P||!P.studio) return; e.preventDefault(); const btn=e.currentTarget; btn.textContent='Saving…';
+  try{ await saveAll(); }catch(_){}
   const refs={}; for(const sd of ['front','back']) if(P.studio.art?.[sd]) refs['graphic-'+sd]=P.studio.art[sd];
   for(const r of (P.refs||[])) if(r&&r.src&&r.side&&['body','wash','trim'].includes(r.kind)&&!refs[r.kind+'-'+r.side]) refs[r.kind+'-'+r.side]=r.src;
   const {art,...set}=P.studio; const f=P.sides.front.original, b=P.sides.back.original;
   await studioDB.put('kv',{...set,refs,variations:(f||b)?[{front:f||null,back:b||null,provider:P.provider||'',pid:P.id}]:[],active:0,view:'front'},'reopen'); location.href='studio.html?from=editor'; });
-
-/* ---------- to the Line sheet with this design ---------- */
-$('#sheetBtn')?.addEventListener('click',async e=>{ if(!P) return; e.preventDefault();
-  try{ await flushSave?.(); }catch(_){}
-  location.href='linesheet.html?project='+encodeURIComponent(P.id); });
-
-/* ---------- to Model Photos with this design (front / back as currently edited) ---------- */
-$('#modelBtn')?.addEventListener('click',async e=>{ if(!P) return; e.preventDefault();
-  try{ await flushSave?.(); }catch(_){}
-  busy(true,'Opening Model Photos','Preparing front and back');
-  try{ const f=P.sides.front.base?await finalURL(P.sides.front):null, b=P.sides.back.base?await finalURL(P.sides.back):null;
-    await edDB.put('kv',{pid:P.id,name:P.name,body:P.body||'',front:f,back:b},'toModel'); location.href='model.html?from=editor'; }
-  catch(er){ busy(false); toast('Could not open Model Photos: '+er.message); } });
 
 /* ---------- AI flat sketches (construction reference) ---------- */
 async function aiFlat(src){
@@ -1376,14 +1362,26 @@ function designSig(){ if(!P) return ''; const o={n:P.name,c:P.chestIn,b:P.bodySp
   const t=JSON.stringify(o); let h=2166136261; for(let i=0;i<t.length;i++){ h^=t.charCodeAt(i); h=Math.imul(h,16777619); } return String(h>>>0); }
 function updChg(){ const el=$('#chgBadge'); if(!el||!P) return; const ch=P.sampleSnap&&P.sampleSnap!==designSig(); el.style.display=ch?'':'none'; }
 function setSave(s){ saveState=s; const el=$('#saveChip'); if(!el) return; const narrow=innerWidth<600; const m={saving:['Saving…',''],cloud:['✓ Saved','ok'],local:[narrow?'Saved here · Sign in':'Saved on this device · Sign in','warn'],fail:['Not saved · Retry','bad']}[s]||['','']; el.textContent=m[0]; el.title={local:'Saved in this browser only. Sign in to keep it in your account.',fail:'Click to try again.',cloud:'Saved to your account. Click to save now.'}[s]||'Click to save now'; el.className='savechip '+m[1]+(!P||!m[0]?' hidden':''); }
-function save(){ if(!P) return; P.updated=Date.now(); setTimeout(updChg,0); dirty=true; clearTimeout(saveT); setSave('saving'); saveT=setTimeout(()=>persist(false),400); }
-async function persist(flush){ if(!P) return; const snap=JSON.parse(JSON.stringify(P));
-  try{ await edDB.put('projects',snap); await edDB.put('kv',snap.id,'last'); }catch(e){ console.warn(e); dirty=true; setSave('fail'); return; }
+let localDirty=false;   // not yet on this device — the only case worth a "Leave site?" warning
+function save(){ if(!P) return; P.updated=Date.now(); setTimeout(updChg,0); dirty=localDirty=true; clearTimeout(saveT); setSave('saving'); saveT=setTimeout(()=>persist(false),400); }
+// projects saved here but not yet in the account; finished on the next editor open if a page change cut the upload
+const unsynced={ async all(){ return (await edDB.get('kv','unsynced'))||[]; }, async add(id){ const a=await this.all(); if(!a.includes(id)) await edDB.put('kv',[...a,id],'unsynced'); }, async done(id){ const a=await this.all(); if(a.includes(id)) await edDB.put('kv',a.filter(x=>x!==id),'unsynced'); } };
+async function persistLocal(){ if(!P) return false; const snap=JSON.parse(JSON.stringify(P));
+  try{ await edDB.put('projects',snap); await edDB.put('kv',snap.id,'last'); localDirty=false; if(window.SPOOL_AUTH?.user) unsynced.add(snap.id); return true; }catch(e){ console.warn(e); dirty=true; setSave('fail'); return false; } }
+async function persist(flush){ if(!(await persistLocal())) return;
   if(window.SPOOL_AUTH?.user) cloudSave(flush?0:4000); else { dirty=false; setSave('local'); } }
+async function cloudNow(id){ const A=window.SPOOL_AUTH; if(!A?.user||!P||P.id!==id) return false; let ok=false; try{ ok=await A.cloud.save(P,await thumbOf(P)); }catch(e){ console.warn(e); }
+  if(ok) unsynced.done(id); if(P&&P.id===id){ dirty=!ok||localDirty; setSave(ok?'cloud':'fail'); } return ok; }
 function cloudSave(delay){ const A=window.SPOOL_AUTH; if(!A?.user||!P) return; clearTimeout(cloudT); const id=P.id; setSave('saving');
-  cloudT=setTimeout(async()=>{ if(!P||P.id!==id) return; let ok=false; try{ ok=await A.cloud.save(P,await thumbOf(P)); }catch(e){ console.warn(e); } if(!P||P.id!==id) return; dirty=!ok; setSave(ok?'cloud':'fail'); },delay===undefined?4000:delay); }
+  cloudT=setTimeout(()=>{ cloudNow(id); },delay===undefined?4000:delay); }
 async function flushSave(){ if(!P) return; clearTimeout(saveT); clearTimeout(cloudT); setSave('saving'); await persist(true); }
-addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+async function saveAll(maxMs=8000){ // before leaving the editor: this device, then the account (gives up after maxMs; finished next time)
+  if(!P) return true; clearTimeout(saveT); clearTimeout(cloudT); setSave('saving'); if(!(await persistLocal())) return false;
+  if(!window.SPOOL_AUTH?.user){ dirty=false; setSave('local'); return true; }
+  return !!(await within(cloudNow(P.id),maxMs)); }
+async function leaveTo(url,btn){ if(btn){ btn.dataset.label=btn.textContent; btn.textContent='Saving…'; } await saveAll(); dirty=false; location.href=url; }
+async function finishUnsynced(){ const A=window.SPOOL_AUTH; if(!A?.user) return; for(const id of await unsynced.all()){ if(P&&P.id===id) continue; const p=await edDB.get('projects',id); if(!p){ unsynced.done(id); continue; } try{ if(await A.cloud.save(p,await thumbOf(p))) unsynced.done(id); }catch(e){ console.warn(e); } } }
+addEventListener('beforeunload',e=>{ if(localDirty){ e.preventDefault(); e.returnValue=''; } });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&dirty&&P) flushSave(); });
 async function cloneProject(src,opt={}){ // Duplicate (as is) or Edit a copy (from the original)
   const q=JSON.parse(JSON.stringify(src)); delete q.pending;
@@ -1419,8 +1417,9 @@ async function openProjects(){
   if(A&&!A.user) g.insertAdjacentHTML('beforeend','<div class="muted" style="grid-column:1/-1">Sign in to keep your projects in your account and open them on any device.</div>');
   if(!list.length) g.insertAdjacentHTML('beforeend','<div class="muted">No projects yet. Designs you open from the Design Studio are saved here.</div>');
   list.forEach(it=>{ const c=document.createElement('button'); c.className='pc';
-    c.innerHTML=`<img src="${it.thumb}" alt=""><div><b>${esc(it.name)}</b><small>${new Date(it.updated).toLocaleDateString()}${it.cloud?' · in your account':' · this browser only'} · original kept</small></div><span class="act dup">Duplicate</span><span class="act del">Delete</span>`;
-    c.onclick=async e=>{ if(e.target.classList.contains('dup')){ e.stopPropagation(); let src=it.local; if(!src||it.newer){ busy(true,'Duplicating','Loading from your account'); try{ src=await A.cloud.load(it.id)||src; }finally{ busy(false); } } if(!src) return toast('Could not copy this project');
+    c.innerHTML=`<img src="${it.thumb}" alt=""><div><b>${esc(it.name)}</b><small>${new Date(it.updated).toLocaleDateString()}${it.cloud?' · in your account':' · this browser only'} · original kept</small></div><div class="gos"><span class="act go" data-go="sheet">+ Line sheet</span><span class="act go" data-go="model">Model photo</span></div><span class="act dup">Duplicate</span><span class="act del">Delete</span>`;
+    c.onclick=async e=>{ const go=e.target.closest('[data-go]'); if(go){ e.stopPropagation(); return leaveTo(go.dataset.go==='sheet'?'linesheet.html?project='+encodeURIComponent(it.id):'model.html?pid='+encodeURIComponent(it.id),go); }
+      if(e.target.classList.contains('dup')){ e.stopPropagation(); let src=it.local; if(!src||it.newer){ busy(true,'Duplicating','Loading from your account'); try{ src=await A.cloud.load(it.id)||src; }finally{ busy(false); } } if(!src) return toast('Could not copy this project');
         if(src.pending){ const q=JSON.parse(JSON.stringify(src)); q.id='p'+Date.now()+Math.random().toString(36).slice(2,5); q.created=q.updated=Date.now(); q.name=(src.name||'Design')+' · copy'; q.pending.pid=q.id; src=null; await edDB.put('projects',q); if(A?.user) A.cloud.save(q,q.thumb); }
         else { const q=await cloneProject(src); await edDB.put('projects',q); if(A?.user) A.cloud.save(q,await thumbOf(q)); }
         toast('Duplicated'); setTimeout(openProjects,300); return; }
@@ -1469,12 +1468,17 @@ async function fromStudio(){
   const h=await studioDB.get('kv','handoff'); if(!h||!h.ai) return false;
   const L=loader();
   try{
-    L.go(1);
-    if(h.pid){ let ex=await edDB.get('projects',h.pid); const A=window.SPOOL_AUTH;
-      if(!ex&&A?.user){ try{ ex=await within(A.cloud.load(h.pid),5000); }catch(e){ console.warn(e); } }
-      if(ex){ await studioDB.put('kv',null,'handoff'); L.go(2); await openProject(ex,L); L.end(); window.SPOOL_TRACK?.('editor_open'); toast('Opened your project — edits are saved to it'); return true; } }
+    L.go(1); const t1=Date.now();
+    if(h.pid){ const A=window.SPOOL_AUTH, localP=edDB.get('projects',h.pid);
+      // this device and the account are asked at the same time; the first answer opens the design
+      const cloudP=A?.user?within(A.cloud.load(h.pid).catch(()=>null),8000):Promise.resolve(null);
+      let ex=await Promise.race([localP.then(v=>v||cloudP),cloudP.then(v=>v||localP)]);   // never a blind timeout here: opening a fresh copy could overwrite saved edits
+      if(Date.now()-t1>3000) window.SPOOL_TRACK?.('editor_open_slow',{step:'project',ms:Date.now()-t1,got:ex?'yes':'no'});
+      if(ex){ studioDB.put('kv',null,'handoff'); L.go(2); await openProject(ex,L); L.end(); window.SPOOL_TRACK?.('editor_open'); toast('Opened your project — edits are saved to it');
+        const opened=P, at=P?.updated; localP.then(lp=>{ if(lp&&P===opened&&P.updated===at&&(lp.updated||0)>(at||0)+1000) openProject(lp); });   // this device had a newer copy after all
+        return true; } }
     L.go(2); const p=await completeProject(h,{id:h.pid});
-    await studioDB.put('kv',null,'handoff'); await openProject(p,L); L.end(); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
+    studioDB.put('kv',null,'handoff'); await openProject(p,L); L.end(); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
   } finally { busy(false); }
   return true;
 }
@@ -1496,6 +1500,7 @@ window.SPOOL_AUTH?.onChange(u=>{ loadKit(); if(u&&P) cloudSave(); });
   if(!opened){ const last=await edDB.get('kv','last'); if(last){ const p=await edDB.get('projects',last); if(p){ await openProject(p); opened=true; } } }
   if(!opened) render();
   if(location.hash==='#projects') openProjects();
+  window.SPOOL_AUTH?.ready.then(()=>setTimeout(finishUnsynced,1500));
 })();
 })();
 </script>
