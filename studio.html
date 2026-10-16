@@ -314,7 +314,7 @@ main{max-width:1360px;margin:0 auto;padding:32px 32px 72px;display:grid;grid-tem
       </div>
       <div>
         <div class="step-head"><span class="num">01</span><span class="step-title">Artwork</span><span class="opt">Optional</span></div>
-        <div class="desc">Photo of a print, logo or graphic you like — a screenshot works. We use only the artwork. <b>Empty = no print.</b></div>
+        <div class="desc">Photo of artwork you like — a print, logo, patch, or a whole garment (we keep its artwork where it is, sleeves too). A screenshot works. <b>Empty = no artwork.</b></div>
         <button type="button" class="optbtn">Options <span class="car">▾</span></button>
         <div class="more">
         <div class="seg sidetabs"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
@@ -803,29 +803,35 @@ lb.addEventListener('click',e=>{ if(e.target!==$('#lbImg')) lb.classList.remove(
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') lb.classList.remove('open'); });
 
 /* ---------- prompts ---------- */
-function frontJob(){
+const artLine=(i,n)=>`${n+1}. ${i.where}: ${i.technique} — ${i.look}${i.size?` (${i.size})`:''}`;
+function frontJob(inv){
   const images=[], L=[], add=(url,line)=>{ images.push(url); L.push(`Reference image ${images.length} ${line}`); };
   const noBody=!state.refs['body-front']&&!(state.bodyMode==='describe'&&state.front.note.body);
-  const garment=state.bodyMode==='preset'?GARMENT_WORDS[state.body]:noBody?(state.direction?'garment (type as described in the design idea; if the idea names none, a classic short-sleeve crewneck t-shirt)':'classic short-sleeve crewneck t-shirt'):'garment';
+  const wholeRef=!!(inv?.garment&&inv.items?.length&&state.front.graphicUse==='full');
+  const garment=state.bodyMode==='preset'?GARMENT_WORDS[state.body]:noBody&&wholeRef&&!state.direction?'garment of the same type and cut as the garment in the FRONT ARTWORK reference':noBody?(state.direction?'garment (type as described in the design idea; if the idea names none, a classic short-sleeve crewneck t-shirt)':'classic short-sleeve crewneck t-shirt'):'garment';
   L.push(`Create a professional e-commerce product photo of ONE ${garment}, FRONT view, laid flat / ghost-mannequin style, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text.`);
   const F=state.front;
   return (async()=>{
-    if(state.refs['graphic-front']) add(await shrink(state.refs['graphic-front']),`is the FRONT GRAPHIC: ${useWords(F.graphicUse)}. If it shows a person or a garment, extract ONLY the printed artwork and ignore the person and that garment. Place it on the front (chest / center front) unless the notes say otherwise.`);
-    if(state.refs['body-front']) add(await shrink(bodyRef('body-front')),'is the BODY reference (front): use it ONLY for garment type, silhouette, fit, panels, seams and cut & sew construction. Any print, logo or text on it is NOT part of the design. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
+    const whole=!!(inv?.garment&&inv.items?.length&&F.graphicUse==='full');   // the reference is a garment photo: copy all of its artwork, in place
+    if(state.refs['graphic-front']) add(await shrink(state.refs['graphic-front']),whole
+      ?`is the FRONT ARTWORK reference — a photo of a garment. Transfer ALL of its artwork to the SAME places on the new garment: front body, pocket, hood and BOTH sleeves, each with the same size, technique (print, embroidery, patch, appliqué, self-fabric appliqué…) and look. Sleeve artwork matters as much as the chest. Ignore the photo's background, lighting and wrinkles.`
+      :`is the FRONT ARTWORK: ${useWords(F.graphicUse)}. If it shows a person or a garment, extract ONLY the artwork and ignore the person and that garment. Place it on the front (chest / center front) unless the notes say otherwise.`);
+    if(whole) L.push(`ARTWORK LIST — every item must appear, in the same place (image-left / image-right as seen in the reference):\n${inv.items.map(artLine).join('\n')}`);
+    if(state.refs['body-front']) add(await shrink(bodyRef('body-front')),'is the BODY reference (front): use it ONLY for garment type, silhouette, fit, panels, seams and cut & sew construction. Any print, logo or text on it is NOT part of the design. It is NOT an artwork reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
     else if(state.bodyMode==='preset') add(await presetPNG(state.body,'#f2efe6'),'is a simple flat sketch of the garment type only — render it as a real garment. It has no print.');
-    if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH & DISTRESS reference: copy only its wash, dye, fading and distressing — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
-    if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
+    if(state.refs['wash-front']) add(await shrink(state.refs['wash-front']),'is the WASH & DISTRESS reference: copy only its wash, dye, fading and distressing — ignore its color and garment type. It is NOT an artwork reference — do NOT copy any print, logo, text or artwork from it.');
+    if(state.refs['trim-front']&&F.trimType!=='none') add(await shrink(state.refs['trim-front']),`is the TRIM reference: add ${TRIM_WORDS[F.trimType]} in the same style — ignore its color and garment type. It is NOT an artwork reference — do NOT copy any print, logo, text or artwork from it.`);
     if(state.bodyMode==='describe'&&F.note.body) L.push(`Garment: ${F.note.body}.`); else if(F.note.body) L.push(`Front construction: ${F.note.body}.`);
-    if(F.note.graphic) L.push(`Front graphic notes: ${F.note.graphic}.`);
+    if(F.note.graphic) L.push(`Front artwork notes: ${F.note.graphic}.`);
     const ideaOnly=!state.refs['graphic-front']&&!F.note.graphic&&!!state.direction;
     if(!state.refs['graphic-front']&&!F.note.graphic) L.push(ideaOnly?'Front print: only artwork the design idea places on the front or chest (or does not place on a specific side); if the idea only describes a back print, or no print, keep the front plain.':'No print on the front.');
-    L.push(state.color?`Garment base color: ${state.colorName&&state.colorName!=='custom color'?state.colorName+' ':''}(${state.color}). Apply this color to the garment fabric only — keep graphics, trims, wash and silhouette as specified.`:state.refs['body-front']?'Garment color: keep the color of the body reference unless the notes or design idea say otherwise.':'Garment color: as given in the notes or design idea; otherwise natural off-white.');
+    L.push(!state.color&&whole&&noBody?'Garment color: keep the fabric colors of the garment in the FRONT ARTWORK reference, including any color-blocked panels, sleeves and hood, unless the notes or design idea say otherwise.':state.color?`Garment base color: ${state.colorName&&state.colorName!=='custom color'?state.colorName+' ':''}(${state.color}). Apply this color to the garment fabric only — keep graphics, trims, wash and silhouette as specified.`:state.refs['body-front']?'Garment color: keep the color of the body reference unless the notes or design idea say otherwise.':'Garment color: as given in the notes or design idea; otherwise natural off-white.');
     const fRef=!!state.refs['wash-front'];
     L.push(F.washType==='auto'&&fRef?`Wash: match the WASH & DISTRESS reference exactly — same dye, fading and wash effect${F.note.wash?', '+F.note.wash:''}.`:`Wash: ${WASH_WORDS[F.washType]||'clean'}${F.note.wash?', '+F.note.wash:''}.`);
     L.push(disAuto('front')?(fRef?`Distressing on the front: match the distressing in the WASH & DISTRESS reference (rips, holes, fraying, cracked print). If it has none, keep the garment intact.${F.dis.note?' '+F.dis.note+'.':''}`:'No distressing — the garment is clean and intact.'):disOn('front')?`Distressing on the front: ${disText('front')}.`:'No distressing — the garment is clean and intact.');
     if(F.trimType!=='none') L.push(`Trims on the front: ${TRIM_WORDS[F.trimType]}${F.note.trim?' — '+F.note.trim:''}.`);
     if(state.direction) L.push(`Design idea: ${state.direction}.`);
-    L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT GRAPHIC reference and the front graphic notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
+    L.push(ideaOnly?'STRICT: The only artwork allowed on the front is what the design idea describes. Copy no print, logo, text or artwork from any reference image.':state.refs['graphic-front']||F.note.graphic?'STRICT: The only artwork allowed on the front is from the FRONT ARTWORK reference and the front artwork notes. Do not add any other print, logo, text or artwork from any other reference image.':'STRICT: No print, logo, text or artwork on the front — copy none from any reference image.');
     if(state.refs['body-front']) L.push('BODY PHOTO RULE: the BODY reference may show prints, logos, text, slogans, labels or patches. Treat them as if they were never there — none of them may appear in the result: not the words, not the logo, not its placement, not its colors. A result that shows any text or graphic from the BODY reference is wrong.');
     L.push(BRAND_SAFE);
     L.push('Realistic fabric, accurate proportions, sharp print detail, square image.');
@@ -836,13 +842,13 @@ async function backJob(frontUrl){
   const images=[await shrink(frontUrl,1024)], L=[], add=(url,line)=>{ if(!url||images.length>=4) return; images.push(url); L.push(`Reference image ${images.length} ${line}`); };
   const B=state.back, F=state.front;
   L.push('Reference image 1 shows the FRONT of a garment. Create a professional e-commerce product photo of the BACK view of this exact same garment — same garment type, base color, fabric, fit and proportions — laid flat / ghost-mannequin style, back facing the camera, centered on a plain off-white background, soft studio lighting, no model, no props, no extra text. The garment type, cut and silhouette MUST stay exactly as in reference image 1 — never turn it into a different garment (for example a shirt or jacket) because another reference image shows one.');
-  if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK GRAPHIC: ${useWords(B.graphicUse)}. Extract only the printed artwork, ignore any person or garment in it — the garment in this image is NOT the product; the product stays the same garment as reference image 1. Print it large across the back panel of that garment unless the notes say otherwise.`);
-  if(state.refs['body-back']) add(await shrink(bodyRef('body-back')),'is the BACK BODY reference: use it ONLY for back panels, seams and cut & sew construction. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
-  if(state.refs['trim-back']&&B.trimType!=='none') add(await shrink(state.refs['trim-back']),`is the TRIM reference for the back: add ${TRIM_WORDS[B.trimType]} in the same style — ignore its color and garment type. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.`);
+  if(state.refs['graphic-back']) add(await shrink(state.refs['graphic-back']),`is the BACK ARTWORK: ${useWords(B.graphicUse)}. Extract only the artwork, ignore any person or garment in it — the garment in this image is NOT the product; the product stays the same garment as reference image 1. Print it large across the back panel of that garment unless the notes say otherwise.`);
+  if(state.refs['body-back']) add(await shrink(bodyRef('body-back')),'is the BACK BODY reference: use it ONLY for back panels, seams and cut & sew construction. It is NOT an artwork reference — do NOT copy any print, logo, text or artwork from it. Treat it as a blank garment.');
+  if(state.refs['trim-back']&&B.trimType!=='none') add(await shrink(state.refs['trim-back']),`is the TRIM reference for the back: add ${TRIM_WORDS[B.trimType]} in the same style — ignore its color and garment type. It is NOT an artwork reference — do NOT copy any print, logo, text or artwork from it.`);
   const washType=B.washType==='same'?F.washType:B.washType, washRef=B.washType==='same'?null:state.refs['wash-back'], followFront=!washRef&&!!state.refs['wash-front']&&(B.washType==='same'||(B.washType==='auto'&&F.washType==='auto'));
-  if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing. It is NOT a graphic reference — do NOT copy any print, logo, text or artwork from it.');
+  if(washRef) add(await shrink(washRef),'is the WASH & DISTRESS reference for the back: copy only its wash, dye, fading and distressing. It is NOT an artwork reference — do NOT copy any print, logo, text or artwork from it.');
   if(B.note.body) L.push(`Back construction: ${B.note.body}.`); else if(!state.refs['body-back']) L.push('Back construction: same as the front, no extra panels.');
-  if(B.note.graphic) L.push(`Back graphic notes: ${B.note.graphic}.`);
+  if(B.note.graphic) L.push(`Back artwork notes: ${B.note.graphic}.`);
   if(!state.refs['graphic-back']&&!B.note.graphic) L.push(state.direction?'Back print: only if the design idea explicitly describes a back print; otherwise a plain back with no print.':'Plain back — no print.');
   const bNote=B.note.wash?', '+B.note.wash:(B.washType==='same'&&F.note.wash?', '+F.note.wash:'');
   L.push(washRef&&B.washType==='auto'?`Back wash: match the WASH & DISTRESS reference for the back exactly — same dye, fading and wash effect${bNote}.`
@@ -851,7 +857,7 @@ async function backJob(frontUrl){
   L.push(disAuto('back')?(washRef?'Distressing on the back: match the distressing in the WASH & DISTRESS reference for the back. If it has none, keep the back intact.':followFront?'Distressing on the back: same style as the front in reference image 1 (if the front has rips or fraying, add similar ones on the back; if not, keep it intact).':'No distressing on the back.'):disOn('back')?`Distressing on the back: ${disText('back')}.`:'No distressing on the back.');
   L.push(B.trimType!=='none'?`Trims on the back: ${TRIM_WORDS[B.trimType]}${B.note.trim?' — '+B.note.trim:''}.`:'No trims on the back.');
   if(state.direction) L.push(`Design idea (back view): ${state.direction}.`);
-  L.push(state.refs['graphic-back']||B.note.graphic?'STRICT: The only artwork allowed on the back is from the BACK GRAPHIC reference and the back graphic notes. Do not copy the front print or any artwork from any other reference image onto the back.':'STRICT: Do not copy the front print or any artwork from any reference image onto the back.');
+  L.push(state.refs['graphic-back']||B.note.graphic?'STRICT: The only artwork allowed on the back is from the BACK ARTWORK reference and the back artwork notes. Do not copy the front print or any artwork from any other reference image onto the back.':'STRICT: Do not copy the front print or any artwork from any reference image onto the back.');
   if(state.refs['body-back']||state.refs['body-front']) L.push('BODY PHOTO RULE: the BODY reference may show prints, logos, text, slogans, labels or patches. Treat them as if they were never there — none of them may appear in the result: not the words, not the logo, not its placement, not its colors. A result that shows any text or graphic from the BODY reference is wrong.');
   L.push(BRAND_SAFE);
   L.push('Realistic fabric, sharp print detail, square image.');
@@ -862,10 +868,34 @@ async function callAI(body){
   const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({quality:state.quality,...body,images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
   const d=await r.json(); if(!r.ok||!d.images?.length){ const er=new Error(d.error||'No images'); er.code=d.code||''; throw er; } if(d.errors?.length) console.warn('AI partial errors',d.errors); return d.images;
 }
+/* ---------- artwork check: list every artwork on the reference, then make sure each design has all of it ---------- */
+const invCache={};
+async function aiText(task,images,extra={}){ const tk=await window.SPOOL_AUTH?.token?.();
+  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({task,prompt:task,...extra,images:images.map(u=>({dataUrl:u}))})});
+  const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||task+' failed'); return d; }
+async function artInventory(){ const u=state.refs['graphic-front']; if(!u||state.front.graphicUse!=='full') return null;
+  const k=refSig(u); if(invCache[k]) return invCache[k];
+  setSpinPhase('Listing every artwork on your reference');
+  try{ const d=await Promise.race([aiText('inventory',[await shrink(u,1024)]),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),25000))]);
+    const inv={garment:!!d.garment,items:Array.isArray(d.items)?d.items:[]}; invCache[k]=inv; return inv; }
+  catch(e){ console.warn('inventory',e); return null; } }   // never block a design on the check
+async function ensureArtwork(f,inv){
+  try{ const v=await aiText('verify',[await shrink(f.src,1024)],{items:inv.items}); const miss=(v.missing||[]).map(n=>inv.items[n-1]).filter(Boolean);
+    if(!miss.length) return f;
+    window.SPOOL_TRACK?.('artwork_fix',{missing:miss.length});
+    const prompt=['Reference image 1 is a garment product photo. Reference image 2 is the original garment the artwork comes from.',
+      `Add this missing artwork to reference image 1, in exactly this place, copying its size, technique and look from reference image 2:\n${miss.map(artLine).join('\n')}`,
+      'Keep everything else in reference image 1 exactly the same: same garment, color, fabric, all other artwork, lighting, background, framing and image size. Image-left / image-right are as seen in reference image 2.'].join('\n');
+    const out=await callAI({prompt,images:[await shrink(f.src,1024),await shrink(state.refs['graphic-front'],1024)],n:1,provider:f.provider==='Gemini'?'gemini':'openai'});
+    return out[0]?.src?{...f,src:out[0].src}:f; }
+  catch(e){ console.warn('artwork check',e); return f; } }
 async function generate(){
   const pend=Object.values(cleanJobs).map(j=>j.p); if(pend.length){ setSpinPhase('Removing prints from your body photo'); await Promise.race([Promise.all(pend),new Promise(r=>setTimeout(r,45000))]); }
   if(!AI_ENDPOINT){ await new Promise(r=>setTimeout(r,1200)); return await mockVariations(); }
-  const fronts=await callAI({...(await frontJob()),n:2});
+  const inv=await artInventory();
+  let fronts=await callAI({...(await frontJob(inv)),n:2});
+  if(inv?.garment&&inv.items.length&&state.front.graphicUse==='full'){ setSpinPhase('Checking every artwork made it — sleeves too');
+    fronts=await Promise.all(fronts.slice(0,2).map(f=>ensureArtwork(f,inv))); }
   setSpinPhase('Front done — now the back');
   const backs=await Promise.all(fronts.slice(0,2).map(async f=>{
     try{ const job=await backJob(f.src); return (await callAI({...job,n:1,provider:f.provider==='Gemini'?'gemini':'openai'}))[0]?.src||null; }
@@ -917,7 +947,7 @@ $('#viewSeg').addEventListener('click',e=>{const b=e.target.closest('button'); i
 $('#hero').addEventListener('click',e=>{ const v=state.variations[state.active]; if(e.target.closest('.gen')&&v?.[state.view]) openLB(v[state.view],$('#vlabel').textContent); });
 function renderRecipe(){
   const parts=[];
-  SIDES.forEach(s=>{ if(state.refs[`graphic-${s}`]||state[s].note.graphic) parts.push(`${cap(s)} graphic`); });
+  SIDES.forEach(s=>{ if(state.refs[`graphic-${s}`]||state[s].note.graphic) parts.push(`${cap(s)} artwork`); });
   parts.push('Body: '+bodyName()); if(state.color) parts.push('Color: '+(state.colorName&&state.colorName!=='custom color'?state.colorName:state.color.toUpperCase()));
   SIDES.forEach(s=>{ if(disOn(s)) parts.push(`${cap(s)} distress: ${state[s].dis.level}`); });
   SIDES.forEach(s=>{ if(state[s].trimType!=='none') parts.push(`${cap(s)} trims: ${state[s].trimType}`); });
