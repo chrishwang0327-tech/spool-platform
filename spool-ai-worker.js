@@ -72,7 +72,7 @@ export default {
           supabase = !r.ok ? `error ${r.status}` : rows.length ? 'ok' : 'not a secret key'; }
         catch { supabase = 'error'; }
       }
-      return json({ ok: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
+      return json({ ok: true, artwork: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
     }
     if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
     if (!okOrigin) return json({ error: 'Origin not allowed' }, 403);
