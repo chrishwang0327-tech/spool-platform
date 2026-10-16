@@ -122,6 +122,24 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
   .garment{min-width:0;width:100%}
 }
 @media (max-width:520px){.mylinks{flex-direction:row;gap:14px;flex:1 1 100%}.opts{grid-template-columns:repeat(2,1fr)}.tiles{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
+.grp{font-size:10.5px;letter-spacing:.14em;color:var(--muted);font-weight:600;text-transform:uppercase;margin:8px 4px 0}.grp:first-child{margin-top:0}
+.cat .ct{width:34px;height:34px;border-radius:9px;background:var(--soft);overflow:hidden;flex:none}.cat .ct img{width:100%;height:100%;object-fit:cover}
+.cat .cl{display:flex;flex-direction:column;min-width:0;flex:1}.cat .cl small{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat .star{font-style:normal;background:var(--y);color:var(--ink);border-radius:99px;font-size:9.5px;padding:2px 7px;letter-spacing:.04em;white-space:nowrap;flex:none}
+.mypiece{display:flex;gap:14px;align-items:center;border:1.5px solid var(--line);background:#FDFDF9;border-radius:16px;padding:12px;margin-top:14px;cursor:pointer}
+.mypiece.on{border:2px solid var(--ink);background:var(--y2);cursor:default}
+.sides{display:flex;gap:8px;flex:none}.sd{width:84px;height:84px;border-radius:12px;background:#fff;position:relative;overflow:hidden;cursor:zoom-in}.sd img{width:100%;height:100%;object-fit:cover}
+.sd span{position:absolute;left:4px;bottom:4px;background:#fff;border-radius:99px;font-size:9px;font-weight:600;padding:0 6px;text-transform:uppercase}
+.sd .x{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:11px;display:flex;align-items:center;justify-content:center}
+.sd.add{border:1.5px dashed #b9b29a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;background:transparent;cursor:pointer;line-height:1.25}.sd.add small{font-size:10px}.sd.add:hover{border-color:var(--ink);color:var(--ink)}
+.mypiece .info{min-width:0;flex:1}.mypiece .info b{font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mypiece .info small{color:var(--muted);font-size:12px;display:block}
+.mainbtn{margin-top:8px;display:inline-flex;gap:6px;align-items:center;background:var(--ink);color:var(--y);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600}
+.mainbtn.ghost{background:#fff;color:var(--ink);border:1px solid var(--ink)}.mainbtn.ghost:hover{background:var(--y)}
+.links{display:flex;flex-direction:column;gap:6px;font-size:12.5px;flex:none}.links button{text-decoration:underline;font-weight:500;text-align:left}
+.shot{margin-top:18px;padding-top:4px;border-top:1px solid var(--line)}.shot .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:12px 0 8px}
+.chip.fixed{cursor:default}.chip.off{border-style:dashed;color:var(--muted)}.chip:disabled{opacity:.4;cursor:not-allowed}
+@media (max-width:960px){.grp{display:none}.cat .ct{width:26px;height:26px}.cat .star{display:none}}
+@media (max-width:520px){.mypiece{flex-wrap:wrap}.links{flex-direction:row;gap:14px;flex:1 1 100%}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="auth.js?v=20261016f"></script>
@@ -136,32 +154,27 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
 
 <main>
   <div class="top">
-    <div><h1>Put it on a model.</h1><p>Pick a model, hair, outfit and pose. Get front, side and back photos for your line sheet.</p></div>
-    <div class="garment" id="garment">
-      <div class="ths" id="gThs"></div>
-      <div><small id="gFrom">Your garment</small><b id="gName">Add a photo of the garment</b></div>
-      <button type="button" class="gx" id="gChange">Upload</button>
-    </div>
-    <input type="file" accept="image/*" id="gFile" hidden><input type="file" accept="image/*" id="gBackFile" hidden>
+    <div><h1>Put it on a model.</h1><p>Dress the model piece by piece — your own designs or ours. Get photos for your line sheet.</p></div>
   </div>
 
   <div class="grid">
     <nav class="cats" id="cats" aria-label="Model settings"></nav>
     <section class="panel" id="optPanel">
-      <h2 id="optH">Model <span></span></h2>
+      <h2 id="optH">Top <span></span></h2>
       <div id="optBody"></div>
+      <div class="shot" id="shot"></div>
       <div class="picked" id="picked"></div>
-      <button class="gen" id="gen">GENERATE <small>front + side + back</small></button>
-      <div class="hint" id="genHint">About 1 minute. Uses one AI generation.</div>
+      <button class="gen" id="gen">GENERATE <small id="genViews">Front</small></button>
+      <div class="hint" id="genHint">About 30 seconds. Uses one AI generation.</div>
     </section>
     <section class="panel res">
-      <h2>Result <span id="resHint">Tap an angle</span></h2>
+      <h2>Result <span id="resHint">Tap a view</span></h2>
       <div class="stage" id="stage">
-        <div class="empty" id="stEmpty"><svg width="56" height="56" viewBox="0 0 100 110" fill="none" stroke="#877928" stroke-width="4"><circle cx="50" cy="30" r="16"/><path d="M20 106 Q22 62 50 58 Q78 62 80 106"/></svg><b>FRONT · SIDE · BACK</b>Add your garment, pick a model, then hit Generate.</div>
+        <div class="empty" id="stEmpty"><svg width="56" height="56" viewBox="0 0 100 110" fill="none" stroke="#877928" stroke-width="4"><circle cx="50" cy="30" r="16"/><path d="M20 106 Q22 62 50 58 Q78 62 80 106"/></svg><b>YOUR MODEL PHOTO</b>Add your design to Top, Bottom, Outerwear, Accessories or Shoes, then hit Generate.</div>
         <img class="main hidden" id="mainImg" alt="Model photo">
         <canvas class="hidden" id="draw"></canvas>
         <span class="vtag hidden" id="vtag"></span>
-        <div class="spin hidden" id="spin"><b>Dressing the model</b><span id="spinT">Front, side and back in one shot</span><div class="bar"><i id="spinBar"></i></div><small id="spinTime">0:00</small></div>
+        <div class="spin hidden" id="spin"><b>Dressing the model</b><span id="spinT">One shot</span><div class="bar"><i id="spinBar"></i></div><small id="spinTime">0:00</small></div>
       </div>
       <div class="angles" id="angles"></div>
       <div class="ver hidden" id="ver"></div>
@@ -184,24 +197,29 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
   <div class="mhead"><h2 id="pTitle">Pick from My projects</h2><button class="btn" id="pClose">Close</button></div>
   <div class="mlist" id="pList"></div>
 </div></div>
-<input type="file" accept="image/*" id="myFile" hidden>
+<input type="file" accept="image/*" id="myFile" hidden><input type="file" accept="image/*" id="myBackFile" hidden>
 <div class="lb" id="lb"><img id="lbImg" alt=""></div>
 <div class="toast" id="toast"></div>
 
 <script>
 /* ============================================================
-   SPOOL Model Photos — the garment on a fixed SPOOL model, front / side / back in one image
-   (one AI call on a wide canvas keeps the same person and garment across the three views)
+   SPOOL Model Photos
+   The outfit is built slot by slot (top, bottom, outerwear, accessories, shoes). Each slot is
+   the customer's own design or one of our presets. One own design is the MAIN item: it is drawn
+   most exactly and is what the line sheet files the photo under.
+   One Gemini call draws only the views asked for (front always, back only when the main item has
+   a back photo, side only when asked), side by side; the browser crops them apart.
    ============================================================ */
 const AI_URL='https://spool-studio-ai.chrishwang0327.workers.dev';
 const AI_ENDPOINT=(/(^|\.)spoolnyc\.com$/.test(location.hostname)||new URLSearchParams(location.search).has('ai'))?AI_URL:'';
 const MOCK=!AI_ENDPOINT;
+const MAX_REFS=6;   // the Worker takes up to 6 reference images
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const toast=(m,ms)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms||2800)};
 
 /* ---------- options ---------- */
-// fixed SPOOL models: the same text (and, once added, the same reference photo in assets/models/<id>.jpg) every time
+// fixed SPOOL models: the same text and the same reference photo (assets/models/<id>.jpg) every time
 const MODELS=[
   {id:'marcus',name:'Marcus',tag:'Street · tall',g:'m',skin:'#6b4a32',desc:'Marcus: a Black man in his mid-20s, tall (6\'1"), slim athletic build, dark brown skin, short black twists, calm confident expression, clean-shaven'},
   {id:'jae',name:'Jae',tag:'Clean · slim',g:'m',skin:'#d9b48f',desc:'Jae: an East Asian man in his mid-20s, 5\'10", slim build, light skin, short black textured crop haircut, neutral relaxed expression, clean-shaven'},
@@ -212,25 +230,46 @@ const MODELS=[
   {id:'sofia',name:'Sofia',tag:'Vintage · curvy',g:'f',skin:'#c4906a',desc:'Sofia: a Latina woman in her late 20s, 5\'6", curvy build, warm medium skin, long dark brown wavy hair, warm expression'},
   {id:'chloe',name:'Chloe',tag:'Clean · tall',g:'f',skin:'#f3d6c2',desc:'Chloe: a white woman in her mid-20s, tall (5\'9"), slim build, fair skin, long straight light blonde hair, calm expression'}
 ];
+const SLOTS=['top','bottom','outer','acc','shoes'];
 const CATS=[
-  {k:'model',label:'Model'},
-  {k:'hair',label:'Hair',opts:[['own',"Model's own",'As in the model card'],['fade','Short fade'],['twists','Twists'],['locs','Locs'],['braids','Braids'],['buzz','Buzz cut'],['curly','Curly'],['long','Long straight'],['wavy','Wavy, shoulder length'],['bun','Bun']],
+  {k:'model',label:'Model',grp:'Model'},
+  {k:'hair',label:'Hair',grp:'Model',opts:[['own',"Model's own",'As in the model card'],['fade','Short fade'],['twists','Twists'],['locs','Locs'],['braids','Braids'],['buzz','Buzz cut'],['curly','Curly'],['long','Long straight'],['wavy','Wavy, shoulder length'],['bun','Bun']],
     words:{fade:'short fade haircut',twists:'short twists',locs:'shoulder-length locs',braids:'long box braids',buzz:'buzz cut',curly:'natural curly hair',long:'long straight hair',wavy:'wavy shoulder-length hair',bun:'hair in a neat bun'},
     sub:{lbl:'Hair color',key:'hairColor',opts:[['','Natural'],['black','Black'],['brown','Dark brown'],['blonde','Blonde'],['red','Red'],['grey','Grey']]}},
-  {k:'outfit',label:'Outfit',mine:'Your own pants, skirt or other piece',opts:[['auto','Auto','Goes with the garment'],['black jeans','Black jeans'],['blue jeans','Blue jeans'],['cargo','Cargo pants'],['sweatpants','Grey sweatpants'],['shorts','Shorts'],['white tee','Plain white tee','For bottoms'],['black tee','Plain black tee','For bottoms']],
-    words:{'black jeans':'straight black jeans','blue jeans':'straight mid-blue jeans',cargo:'loose olive cargo pants',sweatpants:'plain grey sweatpants',shorts:'plain black knee-length shorts','white tee':'a plain white t-shirt','black tee':'a plain black t-shirt'}},
-  {k:'shoes',label:'Shoes',mine:'Your own shoe design',opts:[['auto','Auto','Goes with the outfit'],['white','White sneakers'],['black','Black sneakers'],['skate','Skate shoes'],['boots','Leather boots'],['runners','Running shoes']],
+  {k:'top',label:'Top',grp:'Outfit',slot:true,hint:'Tee, hoodie, crewneck, shirt…',def:'auto',opts:[['auto','Auto','Goes with the look'],['white tee','Plain white tee'],['black tee','Plain black tee'],['grey hoodie','Grey hoodie'],['white tank','White tank']],
+    words:{'white tee':'a plain white t-shirt','black tee':'a plain black t-shirt','grey hoodie':'a plain heather grey hoodie','white tank':'a plain white tank top'}},
+  {k:'bottom',label:'Bottom',grp:'Outfit',slot:true,hint:'Pants, shorts, skirt…',def:'auto',opts:[['auto','Auto','Goes with the look'],['black jeans','Black jeans'],['blue jeans','Blue jeans'],['cargo','Cargo pants'],['sweatpants','Grey sweatpants'],['shorts','Shorts']],
+    words:{'black jeans':'straight black jeans','blue jeans':'straight mid-blue jeans',cargo:'loose olive cargo pants',sweatpants:'plain grey sweatpants',shorts:'plain black knee-length shorts'}},
+  {k:'outer',label:'Outerwear',grp:'Outfit',slot:true,hint:'Jacket, coat, vest…',def:'none',opts:[['none','None'],['denim jacket','Denim jacket'],['bomber','Black bomber'],['leather','Leather jacket'],['coach','Coach jacket']],
+    words:{'denim jacket':'a classic mid-blue denim jacket, worn open',bomber:'a plain black nylon bomber jacket, worn open',leather:'a black leather jacket, worn open',coach:'a plain black coach jacket, worn open'}},
+  {k:'acc',label:'Accessories',grp:'Outfit',slot:true,hint:'Cap, beanie, bag, jewelry…',def:'none',opts:[['none','None'],['cap','Baseball cap'],['beanie','Black beanie'],['chain','Silver chain'],['crossbody','Crossbody bag'],['tote','Tote bag']],
+    words:{cap:'a plain black baseball cap',beanie:'a plain black beanie',chain:'a thin silver chain necklace',crossbody:'a small black crossbody bag',tote:'a plain canvas tote bag on the shoulder'}},
+  {k:'shoes',label:'Shoes',grp:'Outfit',slot:true,hint:'Your shoe design',def:'auto',opts:[['auto','Auto','Goes with the outfit'],['white','White sneakers'],['black','Black sneakers'],['skate','Skate shoes'],['boots','Leather boots'],['runners','Running shoes']],
     words:{white:'clean white leather sneakers',black:'black low-top sneakers',skate:'black and white canvas skate shoes',boots:'brown leather work boots',runners:'grey running shoes'}},
-  {k:'pose',label:'Pose',opts:[['standing','Standing','Relaxed, arms down'],['pockets','Hands in pockets'],['walking','Walking']],
-    words:{standing:'relaxed standing pose, arms down at the sides',pockets:'relaxed standing pose, hands in pockets (garment fully visible)',walking:'mid-stride walking pose'}},
-  {k:'bg',label:'Background',opts:[['grey','Studio grey'],['white','Studio white'],['cream','Warm cream'],['black','Studio black'],['yellow','Color · yellow'],['concrete','Concrete wall'],['street','City street'],['loft','Loft interior']],
+  {k:'pose',label:'Pose',grp:'Shot',opts:[['standing','Standing','Relaxed, arms down'],['pockets','Hands in pockets'],['walking','Walking']],
+    words:{standing:'relaxed standing pose, arms down at the sides',pockets:'relaxed standing pose, hands in pockets (clothes fully visible)',walking:'mid-stride walking pose'}},
+  {k:'bg',label:'Background',grp:'Shot',opts:[['grey','Studio grey'],['white','Studio white'],['cream','Warm cream'],['black','Studio black'],['yellow','Color · yellow'],['concrete','Concrete wall'],['street','City street'],['loft','Loft interior']],
     words:{grey:'seamless light grey studio backdrop',white:'seamless white studio backdrop',cream:'seamless warm cream studio backdrop',black:'seamless matte black studio backdrop with soft rim light',yellow:'seamless bright lemon-yellow studio backdrop',concrete:'plain raw concrete wall and floor',street:'quiet city sidewalk, softly blurred',loft:'bright loft interior with white brick wall and pale wood floor, softly blurred'}}
 ];
+const CAT=k=>CATS.find(c=>c.k===k);
+const SLOT_NAME={top:'top',bottom:'bottoms (pants, shorts or skirt)',outer:'outerwear (jacket)',acc:'accessory',shoes:'shoes'};
+const CLOSE={top:'framed from the waist up, the top large and sharp',bottom:'framed from the waist down to the feet, the bottoms large and sharp',outer:'framed from mid-thigh up, the jacket large and sharp',acc:'framed close around the accessory (head and shoulders for headwear or jewelry, the torso for a bag), the accessory large and sharp',shoes:'framed from the knees down, the shoes large and sharp, filling most of the view'};
+const CLOSE_LBL={top:'top',bottom:'bottoms',outer:'jacket',acc:'accessory',shoes:'shoes'};
 const FITS=[['slim','Slim'],['regular','Regular'],['oversized','Oversized']];
-const FRAMES=[['full','Full body'],['shoes','Shoe close-up']];
-const S={garment:{front:null,back:null,pid:null,name:''},model:'marcus',hair:'own',hairColor:'',outfit:'auto',shoes:'auto',pose:'standing',bg:'grey',fit:'regular',frame:'full',cat:'model',
-  custom:{outfit:null,shoes:null},   // the customer's own pieces: {front, back, name, pid} — used when outfit/shoes === 'mine'
-  shoot:null, view:'front', fixing:false};   // shoot = {id, pid, name, versions:[{sheet,front,side,back,provider,note}], cur}
+const VIEW_TXT={front:'FRONT view facing the camera',side:'SIDE view (left profile)',back:'BACK view (facing away)'};
+const BODY_SLOT={trucker:'outer',sweatpant:'bottom',denim:'bottom',shorts:'bottom'};   // editor project body → slot
+const blankSlots=()=>Object.fromEntries(SLOTS.map(k=>[k,{v:CAT(k).def,mine:null}]));
+const S={slots:blankSlots(),main:null,model:'marcus',hair:'own',hairColor:'',pose:'standing',bg:'grey',fit:'regular',frame:'full',side:false,cat:'top',
+  shoot:null, view:'front', fixing:false};   // shoot = {id, pid, name, slots, main, versions:[{sheet,views,front,side?,back?,provider,note}], cur}
+
+/* ---------- outfit helpers ---------- */
+const used=(k,sl=S.slots)=>sl[k]?.v==='mine'&&sl[k].mine?sl[k].mine:null;   // the customer's own piece when it's selected
+const usedKeys=(sl=S.slots)=>SLOTS.filter(k=>used(k,sl));
+function fixMain(){ if(!used(S.main)) S.main=usedKeys()[0]||null; }
+const mainPiece=()=>S.main?used(S.main):null;
+const viewsOf=()=>['front',...(S.side?['side']:[]),...(mainPiece()?.back?['back']:[])];
+const canGen=()=>!!mainPiece();
+const ASPECT={1:'3:4',2:'4:3',3:'3:2'};
 
 /* ---------- storage (this device; scoped to the signed-in account like the other pages) ---------- */
 const IDB=(name,up)=>{let p;const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest'; return await new Promise((res,rej)=>{if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open(name+'-'+sc,1);r.onupgradeneeded=()=>up(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); })());
@@ -243,131 +282,139 @@ const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'
 const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=src;});
 async function shrink(src,max=1024,q=.9){ try{ const i=await loadImg(src); const s=Math.min(1,max/Math.max(i.width,i.height)); const c=document.createElement('canvas'); c.width=Math.round(i.width*s); c.height=Math.round(i.height*s); const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); return c.toDataURL('image/jpeg',q); }catch(e){ return null; } }
 const readFile=f=>new Promise((res,rej)=>{ if(!f||!f.type.startsWith('image/')) return rej(new Error('Please use an image file')); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); });
-async function cropThirds(sheet){ // the sheet is three views side by side → front, side, back
-  const i=await loadImg(sheet), w=i.width/3, out={};
-  ['front','side','back'].forEach((k,n)=>{ const c=document.createElement('canvas'); c.width=Math.round(w); c.height=i.height; c.getContext('2d').drawImage(i,n*w,0,w,i.height,0,0,c.width,c.height); out[k]=c.toDataURL('image/jpeg',.92); });
+async function cropViews(sheet,views){ // the sheet is the views side by side, left to right
+  const i=await loadImg(sheet), w=i.width/views.length, out={};
+  views.forEach((k,n)=>{ const c=document.createElement('canvas'); c.width=Math.round(w); c.height=i.height; c.getContext('2d').drawImage(i,n*w,0,w,i.height,0,0,c.width,c.height); out[k]=c.toDataURL('image/jpeg',.92); });
   return out; }
-const modelRef={}; // assets/models/<id>.jpg if it exists
+async function panels(srcs){ // several photos side by side on white → one reference image
+  if(srcs.length===1) return shrink(srcs[0],1024);
+  const W=600,H=760,G=24, c=document.createElement('canvas'); c.width=srcs.length*W+(srcs.length+1)*G; c.height=H+2*G; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+  for(let n=0;n<srcs.length;n++){ try{ const i=await loadImg(srcs[n]), s=Math.min(W/i.width,H/i.height); x.drawImage(i,G+n*(W+G)+(W-i.width*s)/2,G+(H-i.height*s)/2,i.width*s,i.height*s); }catch(e){} }
+  return shrink(c.toDataURL('image/jpeg',.92),1600); }
+const modelRef={}; // assets/models/<id>.jpg
 async function refFor(id){ if(id in modelRef) return modelRef[id]; try{ const r=await fetch(`assets/models/${id}.jpg`,{cache:'force-cache'}); modelRef[id]=r.ok?await shrink(URL.createObjectURL(await r.blob()),768):null; }catch(e){ modelRef[id]=null; } return modelRef[id]; }
 
-/* ---------- garment ---------- */
-function renderGarment(){ const g=S.garment, has=!!g.front;
-  $('#gThs').innerHTML=has?`<div class="th" data-g="front"><img src="${g.front}" alt="Front"><span class="tg">front</span></div>`+(g.back?`<div class="th" data-g="back"><img src="${g.back}" alt="Back"><span class="tg">back</span></div>`:`<div class="th" data-addback title="Add a back photo">+</div>`):'<div class="th" data-g="front">+</div>';
-  $('#gFrom').textContent=g.pid?'Garment · from project':has?'Your garment':mine('shoes')?'Optional — you are shooting your shoes':'Step 1';
-  $('#gName').textContent=has?(g.name||'Your photo'):'Add a photo of the garment';
-  $('#gChange').textContent=has?'Change':'Upload'; syncGen(); }
-$('#gThs').addEventListener('click',e=>{ if(e.target.closest('[data-addback]')) return $('#gBackFile').click(); const t=e.target.closest('[data-g]'); if(!t) return; if(S.garment[t.dataset.g]) openLB(S.garment[t.dataset.g]); else $('#gFile').click(); });
-$('#gChange').onclick=()=>$('#gFile').click();
-$('#gFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1280); S.garment={front:d,back:null,pid:null,name:''}; S.frame='full'; renderAll(); saveDraft(); }catch(er){ toast(er.message); } };
-$('#gBackFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ S.garment.back=await shrink(await readFile(f),1280); renderGarment(); saveDraft(); }catch(er){ toast(er.message); } };
-document.addEventListener('paste',e=>{ const it=[...(e.clipboardData?.items||[])].find(x=>x.kind==='file'&&x.type.startsWith('image/')); if(!it||e.target.closest('textarea,input')) return; e.preventDefault();
-  readFile(it.getAsFile()).then(d=>shrink(d,1280)).then(d=>{ S.garment={front:d,back:null,pid:null,name:''}; S.frame='full'; renderAll(); saveDraft(); toast('Garment photo pasted'); }).catch(er=>toast(er.message)); });
-
 /* ---------- settings UI ---------- */
-const optName=(k,v,cu=S.custom)=>{ if(k==='model') return MODELS.find(m=>m.id===v)?.name||''; if(v==='mine') return cu?.[k]?.name||'My design'; const c=CATS.find(c=>c.k===k); return (c.opts.find(o=>o[0]===v)||[])[1]||''; };
+const optName=(k,v,sl=S.slots)=>{ if(k==='model') return MODELS.find(m=>m.id===v)?.name||''; if(v==='mine') return sl[k]?.mine?.name||'My design'; const c=CAT(k); return (c.opts.find(o=>o[0]===v)||[])[1]||''; };
+const valOf=k=>CAT(k).slot?S.slots[k].v:S[k];
 const avatar=m=>`<svg viewBox="0 0 100 110"><path d="M18 110 Q20 78 50 74 Q80 78 82 110 Z" fill="#201D18" opacity=".85"/><circle cx="50" cy="44" r="${m.g==='f'?19:20}" fill="${m.skin}"/>${m.g==='f'?'<path d="M30 46 Q28 20 50 22 Q72 20 70 46 Q72 70 64 72 L64 44 Q50 34 36 44 L36 72 Q28 70 30 46Z" fill="#2a211b"/>':'<path d="M31 40 Q34 22 50 23 Q66 22 69 40 Q60 30 50 31 Q40 30 31 40Z" fill="#2a211b"/>'}<rect x="44" y="60" width="12" height="14" fill="${m.skin}"/></svg>`;
-function renderCats(){ $('#cats').innerHTML=CATS.map(c=>{ const v=c.k==='model'?optName('model',S.model):optName(c.k,S[c.k])+(c.k==='hair'&&S.hairColor?' · '+S.hairColor:'');
-  return `<button type="button" class="cat${S.cat===c.k?' on':''}" data-k="${c.k}">${c.label}<small>${esc(v)}</small></button>`; }).join(''); }
+function renderCats(){ let g='', h='';
+  CATS.forEach(c=>{ if(c.grp!==g){ g=c.grp; h+=`<div class="grp">${g}</div>`; }
+    const v=c.k==='model'?optName('model',S.model)+' · '+FITS.find(f=>f[0]===S.fit)[1]:optName(c.k,valOf(c.k))+(c.k==='hair'&&S.hairColor?' · '+S.hairColor:''), my=c.slot?used(c.k):null;
+    h+=`<button type="button" class="cat${S.cat===c.k?' on':''}" data-k="${c.k}">${my?`<span class="ct"><img src="${my.front}" alt=""></span>`:''}<span class="cl">${c.label}<small>${esc(v)}</small></span>${S.main===c.k?'<i class="star">★ MAIN</i>':''}</button>`; });
+  $('#cats').innerHTML=h; }
 $('#cats').addEventListener('click',e=>{ const b=e.target.closest('.cat'); if(!b) return; S.cat=b.dataset.k; renderAll(); });
-function renderOpts(){ const c=CATS.find(x=>x.k===S.cat); let h='';
-  if(c.k==='model'){ $('#optH').innerHTML='Model <span>Same model on every angle and every design</span>';
+function renderOpts(){ const c=CAT(S.cat); let h='';
+  if(c.k==='model'){ $('#optH').innerHTML='Model <span>Same model on every photo and every design</span>';
     h=`<div class="opts">${MODELS.map(m=>`<button type="button" class="mc${S.model===m.id?' on':''}" data-m="${m.id}"><div class="ph" data-ph="${m.id}">${avatar(m)}</div><div class="meta"><b>${m.name}</b><small>${m.tag}</small></div><span class="ck">✓</span></button>`).join('')}</div>
       <div class="sub"><div class="lbl">Fit on the model</div><div class="chips">${FITS.map(([v,l])=>`<button type="button" class="chip${S.fit===v?' on':''}" data-fit="${v}">${l}</button>`).join('')}</div></div>`; }
-  else { $('#optH').innerHTML=`${c.label} <span>${c.mine?'Use your own design or pick one':''}</span>`;
-    if(c.mine){ const my=S.custom[c.k];
-      h=`<div class="mine-row">${my?`<button type="button" class="tile mytile${S[c.k]==='mine'?' on':''}" data-v="mine"><img src="${my.front}" alt=""><span><b>${esc(my.name||'My design')}</b><small>Your design${my.back?' · front + back':''}</small></span></button>
-          <div class="mylinks"><button type="button" data-pick="proj">From My projects</button><button type="button" data-pick="up">Upload another</button><button type="button" data-pick="rm">Remove</button></div>`
-        :`<button type="button" class="addmine" data-pick="proj"><b>+ From My projects</b><small>${c.mine}</small></button><button type="button" class="addmine" data-pick="up"><b>+ Upload a photo</b><small>A clear photo of just that piece</small></button>`}</div>`;
-      if(c.k==='shoes'&&S.shoes==='mine') h+=`<div class="sub"><div class="lbl">Framing</div><div class="chips">${FRAMES.map(([v,l])=>`<button type="button" class="chip${S.frame===v?' on':''}" data-frame="${v}">${l}</button>`).join('')}</div></div>`;
+  else { $('#optH').innerHTML=`${c.label} <span>${c.slot?'Your design or one of ours':''}</span>`;
+    if(c.slot){ const sl=S.slots[c.k], my=sl.mine, on=sl.v==='mine';
+      h=my?`<div class="mypiece${on?' on':''}" data-usemine>
+          <div class="sides"><div class="sd" data-zoom="front"><img src="${my.front}" alt="Front"><span>front</span><button type="button" class="x" data-rm="front" title="Remove this design" aria-label="Remove">✕</button></div>
+            ${my.back?`<div class="sd" data-zoom="back"><img src="${my.back}" alt="Back"><span>back</span><button type="button" class="x" data-rm="back" title="Remove the back photo" aria-label="Remove back">✕</button></div>`:`<button type="button" class="sd add" data-addback>+<br>Back photo<small>optional</small></button>`}</div>
+          <div class="info"><b>${esc(my.name||'My design')}</b><small>${my.pid?'From My projects':'Your photo'}</small>
+            ${!on?'<button type="button" class="mainbtn ghost" data-usemine>Use this</button>':S.main===c.k?'<span class="mainbtn">★ Main item</span>':'<button type="button" class="mainbtn ghost" data-main>Make main item</button>'}</div>
+          <div class="links"><button type="button" data-pick="proj">From My projects</button><button type="button" data-pick="up">Upload another</button></div></div>`
+        :`<div class="mine-row"><button type="button" class="addmine" data-pick="proj"><b>+ From My projects</b><small>${c.hint}</small></button><button type="button" class="addmine" data-pick="up"><b>+ Upload a photo</b><small>A clear photo of just this piece</small></button></div>`;
       h+='<div class="orlbl">Or pick one</div>'; }
-    h+=`<div class="tiles">${c.opts.map(([v,l,d])=>`<button type="button" class="tile${S[c.k]===v?' on':''}" data-v="${v}"><b>${l}</b>${d?`<small>${d}</small>`:''}</button>`).join('')}</div>`;
+    h+=`<div class="tiles">${c.opts.map(([v,l,d])=>`<button type="button" class="tile${valOf(c.k)===v?' on':''}" data-v="${v}"><b>${l}</b>${d?`<small>${d}</small>`:''}</button>`).join('')}</div>`;
     if(c.sub) h+=`<div class="sub"><div class="lbl">${c.sub.lbl}</div><div class="chips">${c.sub.opts.map(([v,l])=>`<button type="button" class="chip${S[c.sub.key]===v?' on':''}" data-sub="${v}">${l}</button>`).join('')}</div></div>`; }
   $('#optBody').innerHTML=h;
   if(c.k==='model') MODELS.forEach(async m=>{ const r=await refFor(m.id); const ph=document.querySelector(`[data-ph="${m.id}"]`); if(r&&ph) ph.innerHTML=`<img src="${r}" alt="${m.name}">`; }); }
-$('#optBody').addEventListener('click',e=>{ const c=CATS.find(x=>x.k===S.cat);
-  const pk=e.target.closest('[data-pick]'); if(pk){ const a=pk.dataset.pick;
-    if(a==='rm'){ S.custom[c.k]=null; if(S[c.k]==='mine') S[c.k]='auto'; renderAll(); saveDraft(); } else if(a==='up'){ pickFor=c.k; $('#myFile').click(); } else openPicker(c.k); return; }
-  const m=e.target.closest('[data-m]'), f=e.target.closest('[data-fit]'), fr=e.target.closest('[data-frame]'), t=e.target.closest('.tile'), sb=e.target.closest('[data-sub]');
-  if(m) S.model=m.dataset.m; else if(f) S.fit=f.dataset.fit; else if(fr) S.frame=fr.dataset.frame; else if(t) S[c.k]=t.dataset.v; else if(sb) S[c.sub.key]=sb.dataset.sub; else return;
-  renderAll(); saveDraft(); });
-function renderPicked(){ const p=[optName('model',S.model),S.garment.front?FITS.find(f=>f[0]===S.fit)[1]+' fit':'',S.shoes==='mine'&&S.frame==='shoes'?'Shoe close-up':'',S.hair==='own'?'':optName('hair',S.hair),S.hairColor?S.hairColor+' hair':'',S.outfit==='auto'?'':optName('outfit',S.outfit),S.shoes==='auto'?'':optName('shoes',S.shoes),optName('pose',S.pose),optName('bg',S.bg)].filter(Boolean);
-  $('#picked').innerHTML=p.map(x=>`<span>${esc(x)}</span>`).join(''); }
-const mine=k=>S[k]==='mine'&&S.custom[k]?S.custom[k]:null;   // the customer's own piece when it's selected
-const canGen=()=>!!(S.garment.front||mine('shoes'));            // a shoe-only brand can shoot without a garment
-function syncGen(){ const b=$('#gen'); if(b.dataset.busy) return; b.disabled=!canGen(); $('#genHint').textContent=canGen()?'About 1 minute. Uses one AI generation.':'Add a photo of the garment first — or your own shoes under Shoes.'; }
-function renderAll(){ renderGarment(); renderCats(); renderOpts(); renderPicked(); syncGen(); }
+$('#optBody').addEventListener('click',e=>{ const c=CAT(S.cat), k=c.k, q=s=>e.target.closest(s);
+  if(q('[data-pick]')){ const a=q('[data-pick]').dataset.pick; if(a==='up'){ pickFor=k; $('#myFile').click(); } else openPicker(k); return; }
+  if(q('[data-rm]')){ const sl=S.slots[k]; if(q('[data-rm]').dataset.rm==='back') sl.mine.back=null; else { sl.mine=null; if(sl.v==='mine') sl.v=c.def; } fixMain(); return changed(); }
+  if(q('[data-addback]')){ backFor=k; $('#myBackFile').click(); return; }
+  if(q('[data-main]')){ S.main=k; return changed(); }
+  if(q('[data-zoom]')&&S.slots[k].v==='mine') return openLB(q('[data-zoom]').querySelector('img').src);
+  if(q('[data-usemine]')){ S.slots[k].v='mine'; fixMain(); return changed(); }
+  const m=q('[data-m]'), f=q('[data-fit]'), t=q('.tile'), sb=q('[data-sub]');
+  if(m) S.model=m.dataset.m; else if(f) S.fit=f.dataset.fit; else if(t){ if(c.slot) S.slots[k].v=t.dataset.v; else S[k]=t.dataset.v; fixMain(); } else if(sb) S[c.sub.key]=sb.dataset.sub; else return;
+  changed(); });
+function renderShot(){ const mp=mainPiece(), vs=viewsOf();
+  $('#shot').innerHTML=`<div class="lbl">Views</div><div class="chips"><span class="chip on fixed">✓ Front</span>
+      <button type="button" class="chip${S.side?' on':''}" data-side>${S.side?'✓ ':'+ '}Side</button>
+      ${mp?.back?'<span class="chip on fixed" title="On because your main item has a back photo">✓ Back</span>':`<button type="button" class="chip off" data-needback title="Add a back photo to your main item to get a back view">Back — add a back photo</button>`}</div>
+    <div class="lbl">Framing</div><div class="chips"><button type="button" class="chip${S.frame==='full'?' on':''}" data-frame="full">Full body</button><button type="button" class="chip${S.frame==='close'?' on':''}" data-frame="close"${mp?'':' disabled'}>Close-up on ${mp?CLOSE_LBL[S.main]:'main item'}</button></div>`;
+  $('#genViews').textContent=vs.map(v=>v[0].toUpperCase()+v.slice(1)).join(' + '); }
+$('#shot').addEventListener('click',e=>{ const q=s=>e.target.closest(s);
+  if(q('[data-side]')) S.side=!S.side; else if(q('[data-frame]')) S.frame=q('[data-frame]').dataset.frame;
+  else if(q('[data-needback]')){ if(!S.main) return toast('Add your design first'); backFor=S.main; return $('#myBackFile').click(); } else return;
+  changed(); });
+function renderPicked(){ const mp=mainPiece(), p=[optName('model',S.model)];
+  if(mp) p.push('★ '+(mp.name||'My design'));
+  SLOTS.forEach(k=>{ const v=S.slots[k].v; if(k===S.main||v==='auto'||v==='none') return; p.push(optName(k,v)); });
+  if(S.hair!=='own') p.push(optName('hair',S.hair)); if(S.hairColor) p.push(S.hairColor+' hair');
+  if(S.frame==='close'&&mp) p.push('Close-up'); p.push(optName('pose',S.pose),optName('bg',S.bg));
+  $('#picked').innerHTML=p.filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join(''); }
+function syncGen(){ const b=$('#gen'); if(b.dataset.busy) return; b.disabled=!canGen();
+  const n=usedKeys().length; $('#genHint').textContent=!canGen()?'Add your design to Top, Bottom, Outerwear, Accessories or Shoes first.':n>3?'More than 3 of your own designs — each one may come out a little less exact.':'About 30 seconds. Uses one AI generation.'; }
+function renderAll(){ fixMain(); renderCats(); renderOpts(); renderShot(); renderPicked(); syncGen(); }
+function changed(){ renderAll(); saveDraft(); }
 
-/* ---------- the customer's own pieces → ONE styling board image
-   (the Worker takes at most 4 reference images: garment front, garment back, model, board) ---------- */
-async function styleBoard(cu){ const P=[];
-  if(cu.outfit){ P.push({src:cu.outfit.front,d:'the OUTFIT PIECE (front)'}); if(cu.outfit.back) P.push({src:cu.outfit.back,d:'the same outfit piece from the back'}); }
-  if(cu.shoes){ P.push({src:cu.shoes.front,d:'the SHOES'}); if(cu.shoes.back) P.push({src:cu.shoes.back,d:'the same shoes from another angle'}); }
-  if(!P.length) return null;
-  const W=600,H=760,G=24, c=document.createElement('canvas'); c.width=P.length*W+(P.length+1)*G; c.height=H+2*G; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
-  for(let n=0;n<P.length;n++){ try{ const i=await loadImg(P[n].src), s=Math.min(W/i.width,H/i.height); x.drawImage(i,G+n*(W+G)+(W-i.width*s)/2,G+(H-i.height*s)/2,i.width*s,i.height*s); }catch(e){} }
-  return {img:c.toDataURL('image/jpeg',.9),desc:P.map((p,n)=>`panel ${n+1} from the left is ${p.d}`).join('; ')}; }
-const boardRule=(i,b)=>`Reference image ${i} is a STYLING BOARD of the customer's own pieces, side by side on white: ${b.desc}. The model wears THESE EXACT pieces — same type, color, material, cut, every print, logo, text and detail in the same place. Do not redesign or simplify them.`;
-
-/* ---------- prompt ---------- */
-// R = which reference images were sent, in order: {garment, back, model, board}
-function modelPrompt(R){ const M=MODELS.find(m=>m.id===S.model), C=k=>CATS.find(c=>c.k===k), L=[], close=!!mine('shoes')&&S.frame==='shoes'; let i=1;
-  L.push(close?'Create ONE realistic footwear lookbook photo on a wide canvas: the SAME model\'s feet and legs shown three times side by side, left to right — 1) FRONT view, 2) SIDE view (left profile), 3) BACK view. Framed from the knees down, the shoes large and sharp, filling most of each view; same size and scale; evenly spaced in three equal columns; nothing cut off. It must be the exact same shoes, legs, outfit and lighting in all three views.'
-    :'Create ONE realistic fashion lookbook photo on a wide canvas: the SAME model shown three times side by side, left to right — 1) FRONT view facing the camera, 2) SIDE view (left profile), 3) BACK view (facing away). Full body, head to toe, in every view; same size and scale; evenly spaced in three equal columns; nothing overlapping or cut off. It must be the exact same person, hair, outfit and lighting in all three views.');
-  if(R.garment){ L.push(`Reference image ${i} is the MAIN GARMENT${R.back?` (front); reference image ${i+1} is the same garment from the back`:''}. The model wears THIS EXACT garment — same type, color, wash, fabric, cut, every print, text, patch, embroidery and trim in the same place and the same size. Do not redesign, simplify or invent anything on it; keep all text exactly as printed. Show its back design in the BACK view${R.back?'':' (if the photo shows no back, keep the back plain)'}.`); i+=R.back?2:1; }
-  if(close&&R.garment) L.push('In this close-up framing only the part of the main garment that falls below the knees shows, if any.');
-  if(R.model){ L.push(`Reference image ${i} is the MODEL: use this exact person — same face, skin tone and body.`); i++; }
-  if(R.board){ L.push(boardRule(i,R.board)+(R.garment?' The main garment always stays fully visible on the outside; wear the other pieces with it the way they are normally worn.':'')); i++; }
+/* ---------- prompt + reference images ---------- */
+async function buildJob(){ const M=MODELS.find(m=>m.id===S.model), mp=mainPiece(), views=viewsOf(), close=S.frame==='close', L=[], imgs=[];
+  const frame=close?CLOSE[S.main]:'full body, head to toe';
+  L.push(views.length===1?`Create ONE realistic fashion lookbook photo: the model in a ${VIEW_TXT.front}, ${frame}, centered, nothing cut off.`
+    :`Create ONE realistic fashion lookbook photo on a wide canvas: the SAME model shown ${views.length} times side by side, left to right — ${views.map((v,i)=>`${i+1}) ${VIEW_TXT[v]}`).join(', ')}. ${frame[0].toUpperCase()+frame.slice(1)} in every view; same size and scale; evenly spaced in ${views.length} equal columns; nothing overlapping or cut off. It must be the exact same person, hair, outfit and lighting in every view.`);
+  imgs.push(await shrink(mp.front,1024)); if(mp.back) imgs.push(await shrink(mp.back,1024));
+  L.push(`Reference image 1 is the MAIN ITEM — the customer's ${SLOT_NAME[S.main]}${mp.back?'; reference image 2 is the same item from the back':''}. The model wears THIS EXACT item — same type, color, wash, material, cut, every print, text, patch, embroidery and trim in the same place and the same size. Do not redesign, simplify or invent anything on it; keep all text exactly as printed.${views.includes('back')?' Show its back design in the BACK view.':''}`);
+  const ref=await refFor(S.model); if(ref){ imgs.push(ref); L.push(`Reference image ${imgs.length} is the MODEL: use this exact person — same face, skin tone and body.`); }
+  const others=usedKeys().filter(k=>k!==S.main), groups=others.map(k=>[k]);
+  while(groups.length>MAX_REFS-imgs.length){ const last=groups.pop(); groups[groups.length-1].push(...last); }   // too many → share an image
+  for(const g of groups){ const ps=g.map(k=>used(k)); imgs.push(await panels(ps.flatMap(p=>[p.front,p.back].filter(Boolean))));
+    L.push(`Reference image ${imgs.length} shows ${g.map((k,n)=>`the customer's ${SLOT_NAME[k]}${used(k).back?' (front and back)':''}`).join(', then ')}${g.length>1||ps[0].back?', side by side left to right':''}. The model also wears ${g.length>1?'these pieces':['bottom','shoes'].includes(g[0])?'them':'it'} exactly as shown — same type, color, material, every print, logo and detail. Do not redesign or simplify.`); }
+  if(others.length) L.push('The main item always stays fully visible; wear the other pieces with it the way they are normally worn.');
   L.push(`Model: ${M.desc}.`);
-  if(S.hair!=='own'||S.hairColor) L.push(`Hair: ${S.hair==='own'?'the model\'s own style':C('hair').words[S.hair]}${S.hairColor?', '+S.hairColor+' color':''}.`);
-  if(R.garment) L.push(`Fit: the garment fits ${S.fit==='oversized'?'oversized and roomy':S.fit==='slim'?'slim, close to the body':'regular, true to size'}.`);
-  else L.push('Top: a simple plain top with no prints or logos.');
-  L.push(mine('outfit')?'Outfit piece: the one from the styling board, exactly as shown; anything else plain.':S.outfit==='auto'?`Rest of the outfit: simple plain pieces that go with the ${R.garment?'garment':'shoes'} (no prints, no logos).`:`Rest of the outfit: ${C('outfit').words[S.outfit]} (no prints, no logos).`);
-  L.push(mine('shoes')?'Shoes: the ones from the styling board, exactly as shown, clearly visible on both feet.':S.shoes==='auto'?'Shoes: simple plain sneakers that go with the outfit.':`Shoes: ${C('shoes').words[S.shoes]}.`);
-  L.push(close?'Pose: standing naturally, weight even, feet fully visible.':`Pose: ${C('pose').words[S.pose]} (adapted for the side and back views).`);
-  L.push(`Background: ${C('bg').words[S.bg]}, the same in all three views. Soft even e-commerce lighting, sharp detail, realistic photo. No text, labels, logos or watermarks added to the image.`);
-  return L.join('\n'); }
+  if(S.hair!=='own'||S.hairColor) L.push(`Hair: ${S.hair==='own'?'the model\'s own style':CAT('hair').words[S.hair]}${S.hairColor?', '+S.hairColor+' color':''}.`);
+  if(['top','bottom','outer'].includes(S.main)) L.push(`Fit: the main item fits ${S.fit==='oversized'?'oversized and roomy':S.fit==='slim'?'slim, close to the body':'regular, true to size'}.`);
+  const plain={top:'Top: a simple plain top that goes with the look (no prints, no logos).',bottom:'Bottoms: simple plain pants that go with the look (no prints, no logos).',outer:'No jacket.',acc:'No accessories.',shoes:'Shoes: simple plain sneakers that go with the outfit.'};
+  const label={top:'Top',bottom:'Bottoms',outer:'Outerwear',acc:'Accessory',shoes:'Shoes'};
+  SLOTS.forEach(k=>{ if(used(k)) return; const v=S.slots[k].v; L.push(v==='auto'||v==='none'?plain[k]:`${label[k]}: ${CAT(k).words[v]}${k==='shoes'?'':' (no prints, no logos)'}.`); });
+  L.push(close&&S.main==='shoes'?'Pose: standing naturally, weight even, feet fully visible.':`Pose: ${CAT('pose').words[S.pose]}${views.length>1?' (adapted for the other views)':''}.`);
+  L.push(`Background: ${CAT('bg').words[S.bg]}${views.length>1?', the same in every view':''}. Soft even e-commerce lighting, sharp detail, realistic photo. No text, labels, logos or watermarks added to the image.`);
+  return {prompt:L.join('\n'),images:imgs,views}; }
 
-/* ---------- AI ---------- */
+/* ---------- AI (Gemini only — one call per photo) ---------- */
 async function callAI(body){ const tk=await window.SPOOL_AUTH?.token?.();
-  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
-  const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length){ const er=new Error(d.error||'The AI could not finish this one'); er.code=d.code||''; throw er; } return d.images[0]; }
-async function mockSheet(label){ const g=await loadImg(S.garment.front||mine('shoes')?.front||S.shoot?.garment), c=document.createElement('canvas'); c.width=1536; c.height=1024; const x=c.getContext('2d');
-  x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',cream:'#efe6d2',black:'#2b2a28',yellow:'#f7e24a',concrete:'#b9b6ae',street:'#c9ccd1',loft:'#e4ddd2'}[S.bg]||'#d9d9d6'; x.fillRect(0,0,1536,1024);
-  ['FRONT','SIDE','BACK'].forEach((v,n)=>{ const s=Math.min(440/g.width,620/g.height); x.globalAlpha=n===2?.55:1; x.drawImage(g,n*512+256-g.width*s/2,180,g.width*s,g.height*s); x.globalAlpha=1;
-    x.fillStyle='rgba(32,29,24,.6)'; x.font='600 26px Outfit, sans-serif'; x.textAlign='center'; x.fillText(`MOCK · ${v} · ${optName('model',S.model).toUpperCase()}`,n*512+256,90); if(label){ x.font='20px Outfit, sans-serif'; x.fillText(label,n*512+256,130); } });
-  await new Promise(r=>setTimeout(r,1000)); return c.toDataURL('image/jpeg',.9); }
+  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,provider:'gemini',task:'design',n:1,quality:'high',images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
+  const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length){ const er=new Error(d.error||d.errors?.[0]||'The AI could not finish this one — try again'); er.code=d.code||''; throw er; } return d.images[0]; }
+async function mockSheet(views,label){ const g=await loadImg(mainPiece()?.front||S.shoot?.garment), n=views.length, CW=512, c=document.createElement('canvas'); c.width=CW*n; c.height=n===1?683:1024; const x=c.getContext('2d');
+  x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',cream:'#efe6d2',black:'#2b2a28',yellow:'#f7e24a',concrete:'#b9b6ae',street:'#c9ccd1',loft:'#e4ddd2'}[S.bg]||'#d9d9d6'; x.fillRect(0,0,c.width,c.height);
+  views.forEach((v,i)=>{ const s=Math.min(440/g.width,(c.height-260)/g.height); x.globalAlpha=v==='back'?.55:1; x.drawImage(g,i*CW+CW/2-g.width*s/2,170,g.width*s,g.height*s); x.globalAlpha=1;
+    x.fillStyle='rgba(32,29,24,.6)'; x.font='600 26px Outfit, sans-serif'; x.textAlign='center'; x.fillText(`MOCK · ${v.toUpperCase()} · ${optName('model',S.model).toUpperCase()}`,i*CW+CW/2,80); if(label){ x.font='18px Outfit, sans-serif'; x.fillText(label.slice(0,44),i*CW+CW/2,120); } });
+  await new Promise(r=>setTimeout(r,800)); return c.toDataURL('image/jpeg',.9); }
 let spinT=null;
 function busy(on,txt){ $('#spin').classList.toggle('hidden',!on); clearInterval(spinT); const g=$('#gen'); if(on){ g.dataset.busy='1'; g.disabled=true; } else { delete g.dataset.busy; syncGen(); }
   ['#fixBtn','#regen','#dl','#toSheet'].forEach(s=>$(s).disabled=on||!S.shoot);
-  if(!on) return; $('#stEmpty').classList.add('hidden'); $('#spinT').textContent=txt||'Front, side and back in one shot'; const t0=Date.now(); $('#spinBar').style.width='3%';
-  spinT=setInterval(()=>{ const s=(Date.now()-t0)/1000; $('#spinTime').textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); $('#spinBar').style.width=Math.min(95,3+s*1.4)+'%'; },1000); }
+  if(!on) return; $('#stEmpty').classList.add('hidden'); $('#spinT').textContent=txt||'One shot'; const t0=Date.now(); $('#spinBar').style.width='3%';
+  spinT=setInterval(()=>{ const s=(Date.now()-t0)/1000; $('#spinTime').textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); $('#spinBar').style.width=Math.min(95,3+s*2)+'%'; },1000); }
 async function needSignIn(){ if(!window.SPOOL_AUTH) return true; const u=await window.SPOOL_AUTH.requireLogin('Sign in to make model photos. They are saved to your account.'); return !!u; }
 function failed(e){ console.error(e); if(e.code==='free_limit'||e.code==='daily_limit'){ toast(e.message,6000); if(e.code==='free_limit') window.SPOOL_AUTH?.upgrade(e.message,{why:'model'}); } else toast('Couldn’t finish: '+e.message,5000); }
-const usedCustom=()=>({outfit:mine('outfit'),shoes:mine('shoes')});
-async function generate(){ if(!canGen()) return toast('Add a photo of the garment first — or your own shoes under Shoes'); if(!(await needSignIn())) return;
-  busy(true); const cu=usedCustom(); window.SPOOL_TRACK?.('model_generate',{model:S.model,pose:S.pose,bg:S.bg,project:!!S.garment.pid,myOutfit:!!cu.outfit,myShoes:!!cu.shoes,frame:cu.shoes?S.frame:'full'});
-  try{ let sheet, provider='Gemini';
-    if(MOCK) sheet=await mockSheet((cu.outfit||cu.shoes)?'+ '+[cu.outfit&&'my outfit',cu.shoes&&'my shoes'].filter(Boolean).join(' + '):'');
-    else { const ref=await refFor(S.model), board=await styleBoard(cu), imgs=[], R={garment:!!S.garment.front,back:!!(S.garment.front&&S.garment.back),model:!!ref,board};
-      if(R.garment) imgs.push(await shrink(S.garment.front,1024)); if(R.back) imgs.push(await shrink(S.garment.back,1024)); if(ref) imgs.push(ref); if(board) imgs.push(board.img);
-      const job={prompt:modelPrompt(R),images:imgs,n:1,wide:true,quality:'high',task:'design'};
-      let r; try{ r=await callAI({...job,provider:'gemini'}); }catch(e){ if(['free_limit','daily_limit','quota_unavailable'].includes(e.code)) throw e; r=await callAI({...job,provider:'openai'}); }
-      sheet=await shrink(r.src,2048,.92); provider=r.provider||provider; }
-    const crops=await cropThirds(sheet);
-    const lead=S.garment.front?S.garment:cu.shoes;   // shoe-only shoots are filed under the shoes
-    S.shoot={id:'m'+Date.now(),pid:lead.pid||null,name:lead.name||'Model photo',garment:await shrink(lead.front,300,.8),garmentFront:S.garment.front||null,garmentBack:S.garment.back||null,custom:cu,settings:settingsOf(),created:Date.now(),versions:[{sheet,...crops,provider,note:''}],cur:0};
+const clone=o=>JSON.parse(JSON.stringify(o));
+async function generate(){ if(!canGen()) return toast('Add your design first'); if(!(await needSignIn())) return;
+  const views=viewsOf(); busy(true,views.map(v=>v[0].toUpperCase()+v.slice(1)).join(' + '));
+  window.SPOOL_TRACK?.('model_generate',{model:S.model,main:S.main,mine:usedKeys().length,views:views.join('+'),frame:S.frame,pose:S.pose,bg:S.bg});
+  try{ let sheet;
+    if(MOCK) sheet=await mockSheet(views,usedKeys().length>1?'+ '+usedKeys().filter(k=>k!==S.main).map(k=>CLOSE_LBL[k]).join(' + '):'');
+    else { const job=await buildJob(); const r=await callAI({prompt:job.prompt,images:job.images,wide:views.length>1,aspect:ASPECT[views.length]}); sheet=await shrink(r.src,2048,.92); }
+    const mp=mainPiece(), crops=await cropViews(sheet,views);
+    S.shoot={id:'m'+Date.now(),pid:mp.pid||null,name:mp.name||'Model photo',garment:await shrink(mp.front,300,.8),garmentFront:mp.front,garmentBack:mp.back||null,slots:clone(S.slots),main:S.main,settings:settingsOf(),created:Date.now(),versions:[{sheet,views,...crops,provider:'Gemini',note:''}],cur:0};
     S.view='front'; await saveShoot(); window.SPOOL_TRACK?.('model_ok');
   }catch(e){ failed(e); window.SPOOL_TRACK?.('model_fail',{err:String(e.message).slice(0,120)}); }
   busy(false); renderResult(); }
-const settingsOf=()=>({model:S.model,hair:S.hair,hairColor:S.hairColor,outfit:S.outfit,shoes:S.shoes,pose:S.pose,bg:S.bg,fit:S.fit,frame:S.frame});
+const settingsOf=()=>({model:S.model,hair:S.hair,hairColor:S.hairColor,pose:S.pose,bg:S.bg,fit:S.fit,frame:S.frame,side:S.side});
 
 /* ---------- result ---------- */
 const curV=()=>S.shoot?.versions[S.shoot.cur];
+const vViews=v=>v.views||['front','side','back'];
 function renderResult(){ const v=curV(); $('.grid').classList.toggle('has-res',!!v); $('#stEmpty').classList.toggle('hidden',!!v); $('#mainImg').classList.toggle('hidden',!v); $('#vtag').classList.toggle('hidden',!v);
   ['#fixBtn','#regen','#dl','#toSheet'].forEach(s=>$(s).disabled=!v);
   if(!v){ $('#angles').innerHTML=''; $('#ver').classList.add('hidden'); return; }
-  $('#mainImg').src=v[S.view]; $('#vtag').textContent=`${S.view[0].toUpperCase()+S.view.slice(1)} · ${S.shoot.settings.frame==='shoes'&&S.shoot.custom?.shoes?'Shoes':optName('model',S.shoot.settings.model)}`;
-  $('#angles').innerHTML=['front','side','back'].map(k=>`<button type="button" class="ang${S.view===k?' on':''}" data-a="${k}"><img src="${v[k]}" alt="${k}"><span>${k}</span></button>`).join('')+'<div class="ang soon">3D view<br>coming later</div>';
+  if(!vViews(v).includes(S.view)) S.view='front';
+  $('#mainImg').src=v[S.view]; $('#vtag').textContent=`${S.view[0].toUpperCase()+S.view.slice(1)} · ${optName('model',S.shoot.settings.model)}`;
+  $('#angles').innerHTML=vViews(v).length>1?vViews(v).map(k=>`<button type="button" class="ang${S.view===k?' on':''}" data-a="${k}"><img src="${v[k]}" alt="${k}"><span>${k}</span></button>`).join(''):'';
   const vs=S.shoot.versions; $('#ver').classList.toggle('hidden',vs.length<2);
   $('#ver').innerHTML='Versions: '+vs.map((x,i)=>`<button type="button" class="${i===S.shoot.cur?'on':''}" data-ver="${i}" title="${esc(x.note||'First version')}">${i===0?'Original':'Fix '+i}</button>`).join('');
   if(S.fixing) sizeCanvas(); }
@@ -388,36 +435,35 @@ const pt=e=>{ const r=cv.getBoundingClientRect(), b=imgBox(); return [(e.clientX
 cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId); drawing=[pt(e)]; strokes.push(drawing); paintStrokes(); });
 cv.addEventListener('pointermove',e=>{ if(!drawing) return; drawing.push(pt(e)); paintStrokes(); });
 ['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>{ drawing=null; }));
-function setFix(on){ S.fixing=on; strokes=[]; $('#fixbox').classList.toggle('hidden',!on); cv.classList.toggle('hidden',!on); $('#resActs').classList.toggle('hidden',on); $('#resHint').textContent=on?'Draw on the photo':'Tap an angle'; if(on){ $('#stage').scrollIntoView({block:'nearest',behavior:'smooth'}); sizeCanvas(); setTimeout(()=>$('#fixNote').focus({preventScroll:true}),50); } }
+function setFix(on){ S.fixing=on; strokes=[]; $('#fixbox').classList.toggle('hidden',!on); cv.classList.toggle('hidden',!on); $('#resActs').classList.toggle('hidden',on); $('#resHint').textContent=on?'Draw on the photo':'Tap a view'; if(on){ $('#stage').scrollIntoView({block:'nearest',behavior:'smooth'}); sizeCanvas(); setTimeout(()=>$('#fixNote').focus({preventScroll:true}),50); } }
 $('#fixBtn').onclick=()=>setFix(true); $('#fixCancel').onclick=()=>setFix(false); $('#fixClear').onclick=()=>{ strokes=[]; paintStrokes(); };
 addEventListener('resize',()=>{ if(S.fixing) sizeCanvas(); });
 async function markedSheet(v){ // the full sheet with the circles drawn on the view they were made on
   const i=await loadImg(v.sheet), c=document.createElement('canvas'); c.width=i.width; c.height=i.height; const x=c.getContext('2d'); x.drawImage(i,0,0);
-  const off={front:0,side:1,back:2}[S.view]*i.width/3, w=i.width/3; x.strokeStyle='#ff1f1f'; x.lineWidth=Math.max(6,i.width/180); x.lineCap=x.lineJoin='round';
+  const vs=vViews(v), w=i.width/vs.length, off=Math.max(0,vs.indexOf(S.view))*w; x.strokeStyle='#ff1f1f'; x.lineWidth=Math.max(6,i.width/180); x.lineCap=x.lineJoin='round';
   strokes.forEach(s=>{ x.beginPath(); s.forEach(([u,vv],n)=>{ const px=off+u*w, py=vv*i.height; n?x.lineTo(px,py):x.moveTo(px,py); }); x.stroke(); });
   return c.toDataURL('image/jpeg',.9); }
 $('#fixGo').onclick=async()=>{ const v=curV(), note=$('#fixNote').value.trim(); if(!v) return; if(!note) return toast('Write what to change'); if(!(await needSignIn())) return;
   const marked=strokes.length?await markedSheet(v):null; setFix(false); busy(true,'Fixing only what you marked');
-  try{ let sheet;
-    if(MOCK) sheet=await mockSheet('Fixed: '+note.slice(0,40));
-    else { const imgs=[await shrink(v.sheet,1536)]; if(marked) imgs.push(await shrink(marked,1536));
-      const gf=S.shoot.garmentFront||(S.shoot.custom?null:S.garment.front); if(gf) imgs.push(await shrink(gf,1024)); const g=gf?imgs.length:0;
-      const board=await styleBoard(S.shoot.custom||{}); if(board) imgs.push(board.img);
-      const prompt=[`Reference image 1 is a fashion lookbook sheet: the same model three times — front, side and back views — side by side.`,
-        marked?`Reference image 2 is the same sheet with areas circled in red. Change ONLY what is inside the red circles, as described below. Do not draw any red marks in the result.`:`Change only what is described below.`,
+  try{ let sheet; const vs=vViews(v);
+    if(MOCK) sheet=await mockSheet(vs,'Fixed: '+note);
+    else { const sh=S.shoot, sl=sh.slots||{}, imgs=[await shrink(v.sheet,1536)]; if(marked) imgs.push(await shrink(marked,1536));
+      const gf=sh.garmentFront; if(gf) imgs.push(await shrink(gf,1024)); const g=gf?imgs.length:0;
+      const others=usedKeys(sl).filter(k=>k!==sh.main); if(others.length) imgs.push(await panels(others.map(k=>sl[k].mine.front)));
+      const prompt=[`Reference image 1 is a fashion lookbook photo: ${vs.length>1?`the same model ${vs.length} times — ${vs.join(', ')} views — side by side`:'the model in a front view'}.`,
+        marked?`Reference image 2 is the same photo with areas circled in red. Change ONLY what is inside the red circles, as described below. Do not draw any red marks in the result.`:`Change only what is described below.`,
         `Change: ${note}`,
-        `Keep everything else in reference image 1 exactly the same: same person, face, hair, pose, garment, prints, background, framing, layout and image size — still three views side by side.`,
-        g?`Reference image ${g} is the original garment: its prints, text and details must stay exactly like it.`:'',
-        board?boardRule(imgs.length,board).replace('The model wears','The model keeps wearing'):''].filter(Boolean).join('\n');
-      const prov=/openai|chatgpt/i.test(v.provider||'')?'openai':'gemini';
-      const r=await callAI({prompt,images:imgs,n:1,wide:true,quality:'high',task:'design',provider:prov}); sheet=await shrink(r.src,2048,.92); }
-    const crops=await cropThirds(sheet); S.shoot.versions.push({sheet,...crops,provider:v.provider,note}); S.shoot.cur=S.shoot.versions.length-1; await saveShoot(); window.SPOOL_TRACK?.('model_fix');
+        `Keep everything else in reference image 1 exactly the same: same person, face, hair, pose, clothes, prints, background, framing, layout and image size${vs.length>1?` — still ${vs.length} views side by side`:''}.`,
+        g?`Reference image ${g} is the main item: its prints, text and details must stay exactly like it.`:'',
+        others.length?`Reference image ${imgs.length} shows the customer's other pieces (${others.map(k=>CLOSE_LBL[k]).join(', ')}): keep them exactly like that too.`:''].filter(Boolean).join('\n');
+      const r=await callAI({prompt,images:imgs,wide:vs.length>1,aspect:ASPECT[vs.length]}); sheet=await shrink(r.src,2048,.92); }
+    const crops=await cropViews(sheet,vs); S.shoot.versions.push({sheet,views:vs,...crops,provider:'Gemini',note}); S.shoot.cur=S.shoot.versions.length-1; await saveShoot(); window.SPOOL_TRACK?.('model_fix');
   }catch(e){ failed(e); }
   $('#fixNote').value=''; busy(false); renderResult(); };
 
 /* ---------- save + list ---------- */
-async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',JSON.parse(JSON.stringify(S.shoot))); saveDraft(); renderMine(); }
-let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{garment:S.garment,custom:S.custom,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
+async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',clone(S.shoot)); saveDraft(); renderMine(); }
+let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{v:2,slots:S.slots,main:S.main,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
 async function renderMine(){ const all=((await modelDB.all('shoots'))||[]).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created)), g=$('#mineGrid');
   g.innerHTML=all.length?'':'<div class="mine-empty">Your model photos will appear here.</div>';
   all.forEach(s=>{ const v=s.versions[s.cur||0], c=document.createElement('div'); c.className='mcard';
@@ -425,52 +471,62 @@ async function renderMine(){ const all=((await modelDB.all('shoots'))||[]).sort(
     c.onclick=e=>{ if(e.target.closest('.del')){ e.stopPropagation(); if(!confirm('Delete this model photo?')) return; modelDB.del('shoots',s.id).then(()=>{ if(S.shoot?.id===s.id){ S.shoot=null; renderResult(); } renderMine(); }); return; }
       openShoot(s); window.scrollTo({top:0,behavior:'smooth'}); };
     g.appendChild(c); }); }
-function openShoot(s){ S.shoot=s; S.view='front'; Object.assign(S,{frame:'full'},s.settings||{});
-  if(s.custom){ ['outfit','shoes'].forEach(k=>{ if(s.custom[k]) S.custom[k]=s.custom[k]; }); }
-  S.garment=s.custom&&!s.garmentFront?{front:null,back:null,pid:null,name:''}:{front:s.garmentFront||s.garment,back:s.garmentBack||null,pid:s.pid||null,name:s.name}; renderGarment(); renderAll(); renderResult(); }
+// shoots and drafts saved before the outfit slots: one garment (+ an optional outfit piece and shoes)
+function legacySlots(g,custom,st){ const sl=blankSlots(); let main=null;
+  if(g?.front){ sl.top={v:'mine',mine:{front:g.front,back:g.back||null,name:g.name||'My design',pid:g.pid||null}}; main='top'; }
+  if(custom?.outfit&&st?.outfit==='mine') sl.bottom={v:'mine',mine:custom.outfit}; else if(CAT('bottom').opts.some(o=>o[0]===st?.outfit)) sl.bottom.v=st.outfit;
+  if(custom?.shoes&&st?.shoes==='mine') sl.shoes={v:'mine',mine:custom.shoes}; else if(CAT('shoes').opts.some(o=>o[0]===st?.shoes)) sl.shoes.v=st.shoes;
+  return {slots:sl,main:main||(sl.bottom.mine?'bottom':sl.shoes.mine?'shoes':null)}; }
+function applySettings(o){ Object.assign(S,{model:o.model||S.model,hair:o.hair||'own',hairColor:o.hairColor||'',pose:o.pose||'standing',bg:o.bg||'grey',fit:o.fit||'regular',frame:o.frame==='close'?'close':'full',side:!!o.side}); }
+function openShoot(s){ S.shoot=s; S.view='front'; applySettings(s.settings||{});
+  const r=s.slots?{slots:clone(s.slots),main:s.main}:legacySlots({front:s.garmentFront||s.garment,back:s.garmentBack,name:s.name,pid:s.pid},s.custom?{outfit:s.custom.outfit,shoes:s.custom.shoes}:null,{outfit:s.custom?.outfit?'mine':s.settings?.outfit,shoes:s.custom?.shoes?'mine':s.settings?.shoes});
+  if(!s.slots&&s.custom&&!s.garmentFront){ r.slots.top={v:'auto',mine:null}; r.main=r.slots.shoes.mine?'shoes':r.slots.bottom.mine?'bottom':null; }
+  S.slots=r.slots; S.main=r.main; if(S.main) S.cat=S.main; renderAll(); renderResult(); }
 $('#toSheet').onclick=async()=>{ if(!S.shoot) return; await saveShoot(); location.href='linesheet.html?add='+encodeURIComponent(S.shoot.id); };
 
-/* ---------- pick the customer's own outfit piece / shoes: My projects or an upload ---------- */
-let pickFor='outfit';
+/* ---------- your own design for a slot: My projects or an upload ---------- */
+let pickFor='top', backFor='top';
 const projImg=p=>p?.sides?.front?.base||p?.sides?.front?.original||p?.pending?.ai?.front||null;
 const projBack=p=>p?.sides?.back?.base||p?.sides?.back?.original||p?.pending?.ai?.back||null;
-function setMine(k,piece){ S.custom[k]=piece; S[k]='mine'; if(k==='shoes'&&!S.garment.front) S.frame='shoes'; renderAll(); saveDraft(); toast((k==='shoes'?'Shoes':'Outfit piece')+' added: '+(piece.name||'your design')); }
-async function openPicker(k){ pickFor=k; $('#pTitle').textContent=k==='shoes'?'Your shoes — pick a project':'Your outfit piece — pick a project'; $('#pModal').classList.remove('hidden');
+function setMine(k,piece){ S.slots[k]={v:'mine',mine:piece}; if(!used(S.main)) S.main=k; S.cat=k; changed(); toast(`${CAT(k).label}: ${piece.name||'your design'} added`); }
+async function openPicker(k){ pickFor=k; $('#pTitle').textContent=`${CAT(k).label} — pick a project`; $('#pModal').classList.remove('hidden');
   const L=$('#pList'); L.innerHTML='<div class="mempty">Loading…</div>';
   const local=(await edDB.all('projects'))||[]; let cloud=[]; if(window.SPOOL_AUTH?.user){ try{ cloud=await window.SPOOL_AUTH.cloud.list(); }catch(e){} }
   const map=new Map(); local.forEach(p=>map.set(p.id,{id:p.id,name:p.name,thumb:p.thumb||projImg(p),updated:p.updated||0}));
   cloud.forEach(c=>{ if(!map.has(c.id)) map.set(c.id,{id:c.id,name:c.name,thumb:c.thumb,updated:Date.parse(c.updated_at)||0}); });
-  const list=[...map.values()].filter(p=>p.id!==S.garment.pid).sort((a,b)=>b.updated-a.updated);
-  L.innerHTML=list.length?'':'<div class="mempty">No other projects yet. <button class="btn" type="button" id="pUp" style="display:inline-block;flex:none;margin-left:6px">Upload a photo instead</button></div>';
+  const list=[...map.values()].sort((a,b)=>b.updated-a.updated);
+  L.innerHTML=list.length?'':'<div class="mempty">No projects yet. <button class="btn" type="button" id="pUp" style="display:inline-block;flex:none;margin-left:6px">Upload a photo instead</button></div>';
   $('#pUp')?.addEventListener('click',()=>{ $('#pModal').classList.add('hidden'); $('#myFile').click(); });
   list.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.className='pick'; b.innerHTML=`<img src="${p.thumb||''}" alt=""><div><b>${esc(p.name||'Untitled design')}</b><small>${p.updated?new Date(p.updated).toLocaleDateString([],{month:'short',day:'numeric'}):''}</small></div>`;
-    b.onclick=async()=>{ b.disabled=true; let q=await edDB.get('projects',p.id); if(!projImg(q)&&window.SPOOL_AUTH?.user){ try{ q=await window.SPOOL_AUTH.cloud.load(p.id)||q; }catch(e){} }
-      if(!projImg(q)){ b.disabled=false; return toast('Could not open this project'); }
-      const bk=projBack(q); setMine(pickFor,{front:await shrink(projImg(q),1024),back:bk?await shrink(bk,1024):null,name:q.name||p.name||'My design',pid:p.id}); $('#pModal').classList.add('hidden'); };
+    b.onclick=async()=>{ b.disabled=true; const piece=await pieceFromProject(p.id,p.name); if(!piece){ b.disabled=false; return toast('Could not open this project'); } setMine(pickFor,piece); $('#pModal').classList.add('hidden'); };
     L.appendChild(b); }); }
+async function pieceFromProject(id,name){ let q=await edDB.get('projects',id); if(!projImg(q)&&window.SPOOL_AUTH?.user){ try{ q=await window.SPOOL_AUTH.cloud.load(id)||q; }catch(e){} }
+  if(!projImg(q)) return null; const bk=projBack(q);
+  return {front:await shrink(projImg(q),1280),back:bk?await shrink(bk,1280):null,name:q.name||name||'My design',pid:id,body:q.body||''}; }
 $('#pClose').onclick=()=>$('#pModal').classList.add('hidden');
 $('#pModal').addEventListener('click',e=>{ if(e.target.id==='pModal') $('#pModal').classList.add('hidden'); });
-$('#myFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1024); if(!d) throw new Error('Could not read that image'); setMine(pickFor,{front:d,back:null,name:pickFor==='shoes'?'My shoes':'My outfit piece',pid:null}); }catch(er){ toast(er.message); } };
+$('#myFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1280); if(!d) throw new Error('Could not read that image'); setMine(pickFor,{front:d,back:null,name:'My '+CAT(pickFor).label.toLowerCase(),pid:null}); }catch(er){ toast(er.message); } };
+$('#myBackFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1280); if(!d||!S.slots[backFor]?.mine) throw new Error('Could not read that image'); S.slots[backFor].mine.back=d; changed(); toast('Back photo added — the back view is on'); }catch(er){ toast(er.message); } };
+document.addEventListener('paste',e=>{ const it=[...(e.clipboardData?.items||[])].find(x=>x.kind==='file'&&x.type.startsWith('image/')); if(!it||e.target.closest('textarea,input')) return; e.preventDefault();
+  const k=CAT(S.cat).slot?S.cat:'top'; readFile(it.getAsFile()).then(d=>shrink(d,1280)).then(d=>setMine(k,{front:d,back:null,name:'My '+CAT(k).label.toLowerCase(),pid:null})).catch(er=>toast(er.message)); });
 
 /* ---------- lightbox ---------- */
 const openLB=src=>{ $('#lbImg').src=src; $('#lb').classList.add('open'); };
 $('#lb').onclick=()=>$('#lb').classList.remove('open'); document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ $('#lb').classList.remove('open'); $('#pModal').classList.add('hidden'); } });
 
-/* ---------- start: from the editor (?from=editor), a saved shoot (?shoot=id) or the last draft ---------- */
+/* ---------- start: from the editor (?from=editor), a project (?pid=), a saved shoot (?shoot=id) or the last draft ---------- */
 window.SPOOL_AUTH?.mount($('#acct'));
 if(MOCK) $('#mockbar').classList.remove('hidden');
 (async()=>{
   const q=new URLSearchParams(location.search), d=await modelDB.get('kv','draft');
-  if(d){ Object.assign(S,{model:d.model||S.model,hair:d.hair||S.hair,hairColor:d.hairColor||'',outfit:d.outfit||S.outfit,shoes:d.shoes||S.shoes,pose:d.pose||S.pose,bg:d.bg||S.bg,fit:d.fit||S.fit,frame:d.frame||'full'}); if(d.garment?.front) S.garment=d.garment; if(d.custom) S.custom={outfit:d.custom.outfit||null,shoes:d.custom.shoes||null};
-    ['outfit','shoes'].forEach(k=>{ if(S[k]==='mine'&&!S.custom[k]) S[k]='auto'; });
+  if(d){ applySettings(d); const r=d.v===2?{slots:Object.assign(blankSlots(),d.slots||{}),main:d.main}:legacySlots(d.garment,d.custom,d); S.slots=r.slots; S.main=r.main;
     if(d.shootId){ const s=await modelDB.get('shoots',d.shootId); if(s) S.shoot=s; } }
-  if(q.get('from')==='editor'){ const h=await edDB.get('kv','toModel'); if(h?.front){ S.garment={front:h.front,back:h.back||null,pid:h.pid||null,name:h.name||''}; S.shoot=null; await edDB.put('kv',null,'toModel'); saveDraft(); } history.replaceState(null,'','model.html'); }
-  if(q.get('pid')){ const id=q.get('pid'); await window.SPOOL_AUTH?.ready; let p=await edDB.get('projects',id); const im=x=>x?.sides?.front?.base||x?.sides?.front?.original||x?.pending?.ai?.front;
-    if(!im(p)&&window.SPOOL_AUTH?.user){ try{ p=await window.SPOOL_AUTH.cloud.load(id)||p; }catch(e){} }
-    if(im(p)){ const bk=p.sides?.back?.base||p.sides?.back?.original||p.pending?.ai?.back; S.garment={front:await shrink(im(p),1280),back:bk?await shrink(bk,1280):null,pid:id,name:p.name||''}; S.shoot=null; saveDraft(); } else toast('Could not open that project');
-    history.replaceState(null,'','model.html'); }
+  const intoSlot=(piece)=>{ const k=BODY_SLOT[piece.body]||'top'; S.slots[k]={v:'mine',mine:piece}; S.main=k; S.cat=k; S.shoot=null; saveDraft(); };
+  if(q.get('from')==='editor'){ const h=await edDB.get('kv','toModel'); if(h?.front){ intoSlot({front:h.front,back:h.back||null,name:h.name||'My design',pid:h.pid||null,body:h.body||''}); await edDB.put('kv',null,'toModel'); } history.replaceState(null,'','model.html'); }
+  if(q.get('pid')){ await window.SPOOL_AUTH?.ready; const piece=await pieceFromProject(q.get('pid')); if(piece) intoSlot(piece); else toast('Could not open that project'); history.replaceState(null,'','model.html'); }
   if(q.get('shoot')){ const s=await modelDB.get('shoots',q.get('shoot')); if(s) openShoot(s); }
-  renderGarment(); renderAll(); renderResult(); renderMine();
+  if(S.main&&!q.get('shoot')) S.cat=S.main;
+  renderAll(); renderResult(); renderMine();
 })();
 </script>
 </body>

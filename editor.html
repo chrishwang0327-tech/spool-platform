@@ -879,7 +879,7 @@ $('#modelBtn')?.addEventListener('click',async e=>{ if(!P) return; e.preventDefa
   try{ await flushSave?.(); }catch(_){}
   busy(true,'Opening Model Photos','Preparing front and back');
   try{ const f=P.sides.front.base?await finalURL(P.sides.front):null, b=P.sides.back.base?await finalURL(P.sides.back):null;
-    await edDB.put('kv',{pid:P.id,name:P.name,front:f,back:b},'toModel'); location.href='model.html?from=editor'; }
+    await edDB.put('kv',{pid:P.id,name:P.name,body:P.body||'',front:f,back:b},'toModel'); location.href='model.html?from=editor'; }
   catch(er){ busy(false); toast('Could not open Model Photos: '+er.message); } });
 
 /* ---------- AI flat sketches (construction reference) ---------- */
