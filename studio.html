@@ -1060,7 +1060,7 @@ const PROJ=(()=>{ let p; const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_
     return await new Promise((res,rej)=>{ if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open('spool-editor-'+sc,1);
       r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains('projects')) db.createObjectStore('projects',{keyPath:'id'}); if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
       r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); })());
-  const tx=async(mode,fn)=>{ try{ const db=await open(); return await new Promise((res,rej)=>{ const t=db.transaction('projects',mode); const o=fn(t.objectStore('projects')); t.oncomplete=()=>res(o&&o.result); t.onerror=()=>rej(t.error); }); }catch(e){ console.warn(e); return null; } };
+  const tx=async(mode,fn)=>{ const t0=Date.now(); try{ const db=await open(); return await new Promise((res,rej)=>{ const t=db.transaction('projects',mode); const o=fn(t.objectStore('projects')); t.oncomplete=()=>res(o&&o.result); t.onerror=()=>rej(t.error); }); }catch(e){ console.warn(e); return null; } finally{ const ms=Date.now()-t0; if(ms>3000) window.SPOOL_TRACK?.('slow_storage',{page:'studio',db:'editor',op:mode,ms}); } };
   return { get:id=>tx('readonly',s=>s.get(id)), put:v=>tx('readwrite',s=>s.put(v)) }; })();
 async function thumbOfSrc(src){ try{ const i=await new Promise((res,rej)=>{ const im=new Image(); im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=rej; im.src=src; });
   const c=document.createElement('canvas'); c.width=c.height=200; const s=Math.min(i.width,i.height); c.getContext('2d').drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,200,200); return c.toDataURL('image/jpeg',.7); }catch(e){ return null; } }
@@ -1128,12 +1128,13 @@ async function rememberActive(){ saveDraft(); if(!curId) return; const d=((await
 
 /* ---------- Saved ★ ---------- */
 async function updateSaveBtn(){ const v=state.variations[state.active], b=$('#saveV'); let on=false;
+  if(!b.classList.contains('on')&&!b.disabled) b.textContent='☆ Save to My projects';   // shown at once — the check below can be slow on Safari
   if(v&&!v.mock){ try{ on=!!await PROJ.get((v.pid||designId(v))); }catch(e){} }
   if(v!==state.variations[state.active]) return; b.classList.toggle('on',on); b.textContent=on?'★ In My projects':'☆ Save to My projects'; }
 $('#saveV').onclick=async()=>{
   const v=state.variations[state.active]; if(!v) return; if(v.mock) return toast('Saving works with real designs');
-  const id=(v.pid||designId(v)); if(await PROJ.get(id)) return toast('Already in My projects — open it with “Edit selected design”');
-  const b=$('#saveV'); b.disabled=true; b.textContent='Saving…';
+  const id=(v.pid||designId(v)), b=$('#saveV'); if(b.disabled) return; b.disabled=true; b.textContent='Saving…';
+  if(await PROJ.get(id)){ b.disabled=false; updateSaveBtn(); return toast('Already in My projects — open it with “Edit selected design”'); }
   try{ const thumb=await thumbOfSrc(v.front||v.back), now=Date.now();
     const p={v:3,id,name:(bodyName()||'Design')+' · '+new Date(now).toLocaleDateString([], {month:'short',day:'numeric'}),created:now,updated:now,thumb,pending:{...handoffOf(v),pid:id}};
     if(!await PROJ.put(p)&&!await PROJ.get(id)) throw new Error('Could not save on this device');

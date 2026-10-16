@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model Photos — SPOOL</title>
 <link rel="icon" href="assets/spool-logo-1.png">
-<meta name="description" content="Put your garment on a model: front, side and back photos for your line sheet.">
+<meta name="description" content="Put your outfit on a model: photos for your line sheet.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -20,85 +20,70 @@ header>*{flex:1}.back{font-size:13px;font-weight:500;text-decoration:none;opacit
 .hdr-cta{display:flex;justify-content:flex-end}
 .mockbar{background:var(--ink);color:#FDFDF9;font-size:12px;text-align:center;padding:7px 12px}
 main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
-.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px;flex-wrap:wrap}
 .top h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-transform:uppercase;line-height:1}
 .top p{color:var(--muted);margin-top:6px}
-.garment{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:10px 14px 10px 10px;min-width:280px}
-.garment .ths{display:flex;gap:6px}
-.garment .th{width:54px;height:54px;border-radius:12px;background:var(--soft);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:300;cursor:pointer;flex:none}
-.garment .th img{width:100%;height:100%;object-fit:cover}
-.garment .th .tg{position:absolute;left:3px;bottom:3px;background:#fff;border-radius:99px;font-size:8px;font-weight:600;padding:0 5px;text-transform:uppercase}
-.garment small{display:block;color:var(--muted);font-size:11.5px}.garment b{font-weight:600}
-.garment .gx{font-size:12.5px;font-weight:600;text-decoration:underline;margin-left:auto;white-space:nowrap}
-.grid{display:grid;grid-template-columns:190px minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:start}
-.cats{display:flex;flex-direction:column;gap:6px}
-.cat{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-weight:600;letter-spacing:.06em;font-size:13px;text-transform:uppercase;text-align:left}
-.cat small{font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);font-size:11.5px;text-align:right}
-.cat.on{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}.cat.on small{color:#FDFDF9;opacity:.7}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:18px;align-items:stretch;margin-top:18px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px}
 .panel h2{font-size:13px;letter-spacing:.18em;font-weight:600;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .panel h2 span{letter-spacing:0;text-transform:none;font-weight:500;color:var(--muted);font-size:12px;text-align:right}
-.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
-.mc{border:2.5px solid transparent;border-radius:16px;background:var(--soft);overflow:hidden;position:relative;text-align:left}
+.sec{margin-top:20px}.sec:first-child{margin-top:4px}
+.sh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.sh b{font-size:13px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}.sh small{color:var(--muted);font-size:12px}
+.sh i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--y);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;align-self:center}
+.pics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.pc{position:relative;border:1.5px solid var(--line);border-radius:12px;background:#fff;aspect-ratio:1;overflow:hidden;cursor:pointer}
+.pc img{width:100%;height:100%;object-fit:contain}
+.pc.main{border:2px solid var(--ink);box-shadow:0 0 0 3px var(--y2)}
+.pc .star{position:absolute;left:5px;top:5px;background:var(--y);border-radius:99px;font-size:9.5px;font-weight:700;padding:1px 7px;font-style:normal}
+.pc .x{position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:11px;display:flex;align-items:center;justify-content:center}
+.pc .bk{position:absolute;left:5px;bottom:5px;background:#fff;border:1px solid var(--line);border-radius:99px;font-size:10px;font-weight:600;padding:2px 8px}
+.pc .bk.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pc.add{border-style:dashed;border-color:#c9c3ad;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--muted);text-align:center;background:#FDFDF9;line-height:1.3;padding:6px}
+.pc.add b{font-size:22px;color:var(--ink);font-weight:400}.pc.add:hover{border-color:var(--ink);background:var(--y2)}
+.hintl{font-size:11.5px;color:var(--muted);margin-top:8px}.hintl b{color:var(--ink)}
+.models{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin-top:10px}
+.mc{aspect-ratio:3/4;border-radius:10px;overflow:hidden;border:2px solid transparent;background:var(--soft);position:relative;padding:0}
 .mc.on{border-color:var(--ink);box-shadow:0 0 0 3px var(--y2)}
-.mc .ph{aspect-ratio:3/4;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(180deg,#ece9df,#dcd7c8);overflow:hidden}
-.mc .ph img{width:100%;height:100%;object-fit:cover;object-position:50% 0;transform:scale(1.9);transform-origin:50% 4%}.mc .ph svg{width:78%;height:auto;display:block}
-.mc .meta{padding:8px 10px 10px;background:#fff}.mc b{font-size:13.5px;font-weight:600}.mc small{display:block;color:var(--muted);font-size:11px}
-.mc .ck{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--y);display:none;align-items:center;justify-content:center;font-size:12px;font-weight:700}.mc.on .ck{display:flex}
-.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px}
-.tile{border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left;background:#FDFDF9}
-.tile b{display:block;font-weight:600;font-size:13.5px}.tile small{color:var(--muted);font-size:11.5px}
-.tile.on{border-color:var(--ink);background:var(--y2)}
-.mine-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:stretch}
-.mytile{display:flex;align-items:center;gap:12px;flex:1 1 260px;padding:8px 14px 8px 8px}
-.mytile img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--soft);flex:none}
-.mytile span{min-width:0}.mytile b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mylinks{display:flex;flex-direction:column;justify-content:center;gap:4px;font-size:12px}.mylinks button{text-decoration:underline;font-weight:500;text-align:left}
-.addmine{flex:1 1 180px;border:1.5px dashed #c9c3ad;border-radius:14px;padding:12px 14px;text-align:left;background:#FDFDF9}
-.addmine b{display:block;font-weight:600;font-size:13.5px}.addmine small{color:var(--muted);font-size:11.5px}.addmine:hover{border-color:var(--ink);background:var(--y2)}
-.orlbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:16px}
-.modal{position:fixed;inset:0;z-index:40;background:rgba(32,29,24,.5);display:flex;align-items:center;justify-content:center;padding:20px}
-.mbox{background:var(--bg);border-radius:22px;width:min(760px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
-.mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px 12px}.mhead h2{font-size:20px;font-weight:600}.mhead .btn{flex:none}
-.mlist{overflow:auto;padding:0 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.pick{background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden;text-align:left}
-.pick:hover{border-color:var(--ink)}.pick:disabled{opacity:.5}
-.pick img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center top;display:block;background:var(--soft)}
-.pick div{padding:7px 9px}.pick b{font-size:12.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pick small{color:var(--muted);font-size:11px}
-.mempty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:24px;text-align:center;border:1.5px dashed var(--line);border-radius:14px}
-.sub{margin-top:18px}.sub .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
+.mc img{width:100%;height:100%;object-fit:cover;object-position:50% 0;transform:scale(1.9);transform-origin:50% 4%}
+.mc.mine img{transform:none;object-position:50% 20%}
+.mc span{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.92);font-size:10px;font-weight:600;text-align:center;padding:2px 0}
+.mc.add{border:1.5px dashed #c9c3ad;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FDFDF9;font-size:11px;color:var(--muted);text-align:center;line-height:1.2}
+.mc.add b{font-size:18px;color:var(--ink);font-weight:400}
+.mc .x{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:10px;display:flex;align-items:center;justify-content:center;z-index:2}
+.rights{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px;color:var(--muted);background:var(--y2);border-radius:12px;padding:9px 12px}.rights input{margin-top:2px}.rights b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .chip{border:1px solid var(--line);border-radius:99px;padding:6px 13px;font-size:12.5px;background:#FDFDF9}.chip.on{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
-.field{width:100%;border:1px solid transparent;border-radius:14px;padding:11px 13px;background:var(--soft);outline:none;resize:none}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.lnk{font-size:12.5px;font-weight:500;text-decoration:underline;margin-left:4px}
+.refchip{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--ink);border-radius:99px;padding:3px 10px 3px 3px;font-size:12px;background:var(--y2)}
+.refchip img{width:28px;height:28px;border-radius:50%;object-fit:cover}.refchip button{font-size:11px;margin-left:2px}
+.field{width:100%;border:1px solid transparent;border-radius:14px;padding:11px 13px;background:var(--soft);outline:none;resize:none;margin-top:10px}
 .field:focus{background:#FDFDF9;border-color:var(--ink);box-shadow:0 0 0 4px var(--y2)}
-.picked{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-.picked span{background:var(--y2);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:500}
-.gen{margin-top:14px;width:100%;background:var(--y);border-radius:99px;padding:16px;font-weight:600;letter-spacing:.16em;font-size:14px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(254,227,43,.35);transition:.15s}
+.genrow{display:flex;gap:10px;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.genrow .chips{flex:none}
+.gen{flex:1;min-width:220px;background:var(--y);border-radius:99px;padding:15px;font-weight:600;letter-spacing:.16em;font-size:14px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(254,227,43,.35);transition:.15s}
 .gen:hover{background:var(--ink);color:var(--y)}.gen:disabled{opacity:.5;cursor:not-allowed}
 .gen small{font-weight:400;letter-spacing:0;opacity:.65;font-size:11.5px}
 .hint{font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center}
-.res{position:sticky;top:96px}
-.stage{background:var(--soft);border-radius:18px;aspect-ratio:1/1.25;position:relative;overflow:hidden;margin-top:12px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:0}
-.stage img.main{width:100%;height:100%;object-fit:contain;cursor:zoom-in}
-.stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
-.stage .empty{padding:30px;max-width:300px}.stage .empty b{display:block;color:var(--ink);letter-spacing:.06em;margin:10px 0 4px;font-weight:500}
-.vtag{position:absolute;top:12px;left:12px;background:#fff;border-radius:99px;padding:3px 10px;font-size:11px;z-index:2}
-.spin{position:absolute;inset:0;background:var(--y);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--ink);z-index:3;padding:24px;text-align:center}
+.res{display:flex;flex-direction:column}
+.stage{background:var(--soft);border-radius:18px;flex:1;min-height:360px;position:relative;overflow:hidden;margin-top:12px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted)}
+.stage img.main{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:zoom-in}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;z-index:2}
+.stage .empty{padding:30px;max-width:280px}.stage .empty b{display:block;color:var(--ink);letter-spacing:.06em;margin:10px 0 4px;font-weight:500}
+.vtag{position:absolute;top:12px;left:12px;background:#fff;border-radius:99px;padding:3px 10px;font-size:11px;z-index:3}
+.spin{position:absolute;inset:0;background:var(--y);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--ink);z-index:4;padding:24px;text-align:center}
 .spin b{font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;text-transform:uppercase;line-height:1}
 .spin .bar{width:min(240px,70%);height:4px;border-radius:99px;background:rgba(32,29,24,.15);overflow:hidden}.spin .bar i{display:block;height:100%;width:0;background:var(--ink);transition:width 1s linear}
-.angles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.angles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
 .ang{aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--soft);position:relative;border:2.5px solid transparent}
 .ang.on{border-color:var(--ink)}.ang img{width:100%;height:100%;object-fit:cover;object-position:center top}
 .ang span{position:absolute;left:5px;bottom:5px;background:#fff;border-radius:99px;font-size:9.5px;font-weight:600;padding:1px 7px;text-transform:uppercase;letter-spacing:.05em}
-.ang.soon{display:flex;align-items:center;justify-content:center;border:1.5px dashed #c9c3ad;color:var(--muted);font-size:11px;text-align:center;line-height:1.2;cursor:default}
 .acts{display:flex;gap:8px;margin-top:12px}
 .btn{flex:1;border:1px solid var(--line);background:#FDFDF9;border-radius:99px;padding:11px 12px;font-size:13px;font-weight:500;text-align:center;text-decoration:none}
 .btn:hover{background:var(--y2);border-color:transparent}.btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.y{background:var(--y);border-color:var(--y);font-weight:600}.btn.y:hover{background:var(--ink);color:var(--y)}
-.btn.dark{background:var(--ink);color:#FDFDF9;border-color:var(--ink)}
 .fixbox{margin-top:12px;background:var(--y2);border-radius:16px;padding:14px}
 .fixbox b{font-size:13.5px}.fixbox p{font-size:12px;color:var(--muted);margin:2px 0 8px}
-.fixbox .field{background:#fff}
+.fixbox .field{background:#fff;margin-top:0}
 .ver{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
 .ver button{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:12px;background:#fff}.ver button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .mine{max-width:1400px;margin:0 auto;padding:8px 32px 72px}
@@ -110,36 +95,25 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
 .mcard div{padding:8px 10px}.mcard b{font-size:12.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mcard small{color:var(--muted);font-size:11px}
 .mcard .del{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(253,253,249,.92);font-size:12px}
 .mine-empty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:24px;border:1.5px dashed var(--line);border-radius:16px;text-align:center}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(32,29,24,.5);display:flex;align-items:center;justify-content:center;padding:20px}
+.mbox{background:var(--bg);border-radius:22px;width:min(760px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px 12px}.mhead h2{font-size:20px;font-weight:600}.mhead .btn{flex:none}
+.mlist{overflow:auto;padding:0 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pick{background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden;text-align:left}
+.pick:hover{border-color:var(--ink)}.pick:disabled{opacity:.5}
+.pick img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center top;display:block;background:var(--soft)}
+.pick div{padding:7px 9px}.pick b{font-size:12.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pick small{color:var(--muted);font-size:11px}
+.mempty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:24px;text-align:center;border:1.5px dashed var(--line);border-radius:14px}
 .lb{position:fixed;inset:0;z-index:50;background:rgba(32,29,24,.82);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s}
 .lb.open{opacity:1;pointer-events:auto}.lb img{max-width:min(92vw,1100px);max-height:86vh;object-fit:contain;border-radius:14px;background:#FDFDF9}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#FDFDF9;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%)}
 @media (max-width:960px){
   header{padding:14px 16px}main{padding:16px 16px 40px}.mine{padding:8px 16px 60px}
-  .grid{grid-template-columns:1fr}.res{position:static}.grid.has-res .res{order:-1}.grid:not(.has-res) .stage{aspect-ratio:16/9}
-  .cats{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
-  .cat{flex:0 0 auto;padding:10px 13px}.cat small{display:none}
-  .garment{min-width:0;width:100%}
+  .grid{grid-template-columns:1fr}.grid.has-res .res{order:-1}.stage{min-height:0;aspect-ratio:4/5;flex:none}
+  .models{grid-template-columns:repeat(5,1fr)}
 }
-@media (max-width:520px){.mylinks{flex-direction:row;gap:14px;flex:1 1 100%}.opts{grid-template-columns:repeat(2,1fr)}.tiles{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
-.grp{font-size:10.5px;letter-spacing:.14em;color:var(--muted);font-weight:600;text-transform:uppercase;margin:8px 4px 0}.grp:first-child{margin-top:0}
-.cat .ct{width:34px;height:34px;border-radius:9px;background:var(--soft);overflow:hidden;flex:none}.cat .ct img{width:100%;height:100%;object-fit:cover}
-.cat .cl{display:flex;flex-direction:column;min-width:0;flex:1}.cat .cl small{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cat .star{font-style:normal;background:var(--y);color:var(--ink);border-radius:99px;font-size:9.5px;padding:2px 7px;letter-spacing:.04em;white-space:nowrap;flex:none}
-.mypiece{display:flex;gap:14px;align-items:center;border:1.5px solid var(--line);background:#FDFDF9;border-radius:16px;padding:12px;margin-top:14px;cursor:pointer}
-.mypiece.on{border:2px solid var(--ink);background:var(--y2);cursor:default}
-.sides{display:flex;gap:8px;flex:none}.sd{width:84px;height:84px;border-radius:12px;background:#fff;position:relative;overflow:hidden;cursor:zoom-in}.sd img{width:100%;height:100%;object-fit:cover}
-.sd span{position:absolute;left:4px;bottom:4px;background:#fff;border-radius:99px;font-size:9px;font-weight:600;padding:0 6px;text-transform:uppercase}
-.sd .x{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:11px;display:flex;align-items:center;justify-content:center}
-.sd.add{border:1.5px dashed #b9b29a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;background:transparent;cursor:pointer;line-height:1.25}.sd.add small{font-size:10px}.sd.add:hover{border-color:var(--ink);color:var(--ink)}
-.mypiece .info{min-width:0;flex:1}.mypiece .info b{font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mypiece .info small{color:var(--muted);font-size:12px;display:block}
-.mainbtn{margin-top:8px;display:inline-flex;gap:6px;align-items:center;background:var(--ink);color:var(--y);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600}
-.mainbtn.ghost{background:#fff;color:var(--ink);border:1px solid var(--ink)}.mainbtn.ghost:hover{background:var(--y)}
-.links{display:flex;flex-direction:column;gap:6px;font-size:12.5px;flex:none}.links button{text-decoration:underline;font-weight:500;text-align:left}
-.shot{margin-top:18px;padding-top:4px;border-top:1px solid var(--line)}.shot .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:12px 0 8px}
-.chip.fixed{cursor:default}.chip.off{border-style:dashed;color:var(--muted)}.chip:disabled{opacity:.4;cursor:not-allowed}
-@media (max-width:960px){.grp{display:none}.cat .ct{width:26px;height:26px}.cat .star{display:none}}
-@media (max-width:520px){.mypiece{flex-wrap:wrap}.links{flex-direction:row;gap:14px;flex:1 1 100%}}
+@media (max-width:520px){.pics{grid-template-columns:repeat(3,1fr)}.acts{flex-wrap:wrap}.genrow .chips{flex:1 1 100%}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="auth.js?v=20261016f"></script>
@@ -153,24 +127,28 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
 </header>
 
 <main>
-  <div class="top">
-    <div><h1>Put it on a model.</h1><p>Dress the model piece by piece — your own designs or ours. Get photos for your line sheet.</p></div>
-  </div>
-
+  <div class="top"><h1>Put it on a model.</h1><p>Add the outfit, pick a model and a background.</p></div>
   <div class="grid">
-    <nav class="cats" id="cats" aria-label="Model settings"></nav>
     <section class="panel" id="optPanel">
-      <h2 id="optH">Top <span></span></h2>
-      <div id="optBody"></div>
-      <div class="shot" id="shot"></div>
-      <div class="picked" id="picked"></div>
-      <button class="gen" id="gen">GENERATE <small id="genViews">Front</small></button>
-      <div class="hint" id="genHint">About 30 seconds. Uses one AI generation.</div>
+      <div class="sec"><div class="sh"><i>1</i><b>Outfit</b><small>One outfit photo, or one photo per piece</small></div>
+        <div class="pics" id="pics"></div>
+        <div class="hintl" id="picHint"></div>
+      </div>
+      <div class="sec"><div class="sh"><i>2</i><b>Model</b><small id="modelSub">Same model on every style</small></div>
+        <div class="models" id="models"></div>
+        <label class="rights hidden" id="rightsRow"><input type="checkbox" id="rights"><span><b>I have the right to use this photo</b> (my own shoot or a licensed model). Only the clothes change — the person, pose and light stay.</span></label>
+      </div>
+      <div class="sec"><div class="sh"><i>3</i><b>Background</b><small>and anything else, in your words</small></div>
+        <div class="chips" id="bgs" style="margin-top:10px"></div>
+        <textarea class="field" id="note" rows="2" maxlength="300" placeholder="Note (optional) — e.g. black beanie, hands in pockets, NYC street at night"></textarea>
+      </div>
+      <div class="genrow"><div class="chips" id="views"></div><button class="gen" id="gen">GENERATE <small>1 credit</small></button></div>
+      <div class="hint" id="genHint"></div>
     </section>
     <section class="panel res">
       <h2>Result <span id="resHint">Tap a view</span></h2>
       <div class="stage" id="stage">
-        <div class="empty" id="stEmpty"><svg width="56" height="56" viewBox="0 0 100 110" fill="none" stroke="#877928" stroke-width="4"><circle cx="50" cy="30" r="16"/><path d="M20 106 Q22 62 50 58 Q78 62 80 106"/></svg><b>YOUR MODEL PHOTO</b>Add your design to Top, Bottom, Outerwear, Accessories or Shoes, then hit Generate.</div>
+        <div class="empty" id="stEmpty"><svg width="56" height="56" viewBox="0 0 100 110" fill="none" stroke="#877928" stroke-width="4"><circle cx="50" cy="30" r="16"/><path d="M20 106 Q22 62 50 58 Q78 62 80 106"/></svg><b>YOUR MODEL PHOTO</b>Add the outfit, pick a model, then hit Generate.</div>
         <img class="main hidden" id="mainImg" alt="Model photo">
         <canvas class="hidden" id="draw"></canvas>
         <span class="vtag hidden" id="vtag"></span>
@@ -183,7 +161,7 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
         <textarea class="field" id="fixNote" rows="2" placeholder="e.g. the chest print is too small — make it like my photo; remove the necklace"></textarea>
         <div class="acts"><button class="btn" id="fixClear">Clear circles</button><button class="btn" id="fixCancel">Cancel</button><button class="btn y" id="fixGo">Fix this</button></div>
       </div>
-      <div class="acts" id="resActs"><button class="btn" id="fixBtn" disabled>✎ Fix it</button><button class="btn" id="regen" disabled>↻ Regenerate</button><button class="btn" id="dl" disabled>Download</button></div>
+      <div class="acts" id="resActs"><button class="btn" id="fixBtn" disabled>✎ Fix it</button><button class="btn" id="regen" disabled>↻ Again</button><button class="btn" id="dl" disabled>Download</button></div>
       <div class="acts"><button class="btn y" id="toSheet" disabled>Add to line sheet →</button></div>
     </section>
   </div>
@@ -194,21 +172,24 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
   <div class="mine-grid" id="mineGrid"></div>
 </section>
 <div class="modal hidden" id="pModal"><div class="mbox">
-  <div class="mhead"><h2 id="pTitle">Pick from My projects</h2><button class="btn" id="pClose">Close</button></div>
+  <div class="mhead"><h2>Pick from My projects</h2><button class="btn" id="pClose">Close</button></div>
   <div class="mlist" id="pList"></div>
 </div></div>
-<input type="file" accept="image/*" id="myFile" hidden><input type="file" accept="image/*" id="myBackFile" hidden>
+<input type="file" accept="image/*" id="picFile" multiple hidden><input type="file" accept="image/*" id="backFile" hidden>
+<input type="file" accept="image/*" id="mineFile" hidden><input type="file" accept="image/*" id="refFile" hidden>
 <div class="lb" id="lb"><img id="lbImg" alt=""></div>
 <div class="toast" id="toast"></div>
 
 <script>
 /* ============================================================
    SPOOL Model Photos
-   The outfit is built slot by slot (top, bottom, outerwear, accessories, shoes). Each slot is
-   the customer's own design or one of our presets. One own design is the MAIN item: it is drawn
-   most exactly and is what the line sheet files the photo under.
-   One Gemini call draws only the views asked for (front always, back only when the main item has
-   a back photo, side only when asked), side by side; the browser crops them apart.
+   1) Outfit: one outfit photo (a board, a lookbook, someone wearing it) or one photo per piece.
+      The ★ main photo is sent on its own and drawn most exactly; the other photos go as one
+      outfit board. Only the clothes are copied — never a person.
+   2) Model: one of the fixed SPOOL models (same face on every style), or "My photo":
+      the person in the customer's own photo keeps face, pose and light; only the clothes change.
+   3) Background preset or a mood reference (pose / light / background only) + a free note.
+   One Gemini call draws the views asked for side by side; the browser crops them apart.
    ============================================================ */
 const AI_URL='https://spool-studio-ai.chrishwang0327.workers.dev';
 const AI_ENDPOINT=(/(^|\.)spoolnyc\.com$/.test(location.hostname)||new URLSearchParams(location.search).has('ai'))?AI_URL:'';
@@ -218,7 +199,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const toast=(m,ms)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms||2800)};
 
-/* ---------- options ---------- */
+/* ---------- models + backgrounds ---------- */
 // fixed SPOOL models: the same text and the same reference photo (assets/models/<id>.jpg) every time
 const MODELS=[
   {id:'marcus',name:'Marcus',tag:'Street · tall',g:'m',skin:'#6b4a32',desc:'Marcus: a Black man in his mid-20s, tall (6\'1"), slim athletic build, dark brown skin, short black twists, calm confident expression, clean-shaven'},
@@ -230,46 +211,17 @@ const MODELS=[
   {id:'sofia',name:'Sofia',tag:'Vintage · curvy',g:'f',skin:'#c4906a',desc:'Sofia: a Latina woman in her late 20s, 5\'6", curvy build, warm medium skin, long dark brown wavy hair, warm expression'},
   {id:'chloe',name:'Chloe',tag:'Clean · tall',g:'f',skin:'#f3d6c2',desc:'Chloe: a white woman in her mid-20s, tall (5\'9"), slim build, fair skin, long straight light blonde hair, calm expression'}
 ];
-const SLOTS=['top','bottom','outer','acc','shoes'];
-const CATS=[
-  {k:'model',label:'Model',grp:'Model'},
-  {k:'hair',label:'Hair',grp:'Model',opts:[['own',"Model's own",'As in the model card'],['fade','Short fade'],['twists','Twists'],['locs','Locs'],['braids','Braids'],['buzz','Buzz cut'],['curly','Curly'],['long','Long straight'],['wavy','Wavy, shoulder length'],['bun','Bun']],
-    words:{fade:'short fade haircut',twists:'short twists',locs:'shoulder-length locs',braids:'long box braids',buzz:'buzz cut',curly:'natural curly hair',long:'long straight hair',wavy:'wavy shoulder-length hair',bun:'hair in a neat bun'},
-    sub:{lbl:'Hair color',key:'hairColor',opts:[['','Natural'],['black','Black'],['brown','Dark brown'],['blonde','Blonde'],['red','Red'],['grey','Grey']]}},
-  {k:'top',label:'Top',grp:'Outfit',slot:true,hint:'Tee, hoodie, crewneck, shirt…',def:'auto',opts:[['auto','Auto','Goes with the look'],['white tee','Plain white tee'],['black tee','Plain black tee'],['grey hoodie','Grey hoodie'],['white tank','White tank']],
-    words:{'white tee':'a plain white t-shirt','black tee':'a plain black t-shirt','grey hoodie':'a plain heather grey hoodie','white tank':'a plain white tank top'}},
-  {k:'bottom',label:'Bottom',grp:'Outfit',slot:true,hint:'Pants, shorts, skirt…',def:'auto',opts:[['auto','Auto','Goes with the look'],['black jeans','Black jeans'],['blue jeans','Blue jeans'],['cargo','Cargo pants'],['sweatpants','Grey sweatpants'],['shorts','Shorts']],
-    words:{'black jeans':'straight black jeans','blue jeans':'straight mid-blue jeans',cargo:'loose olive cargo pants',sweatpants:'plain grey sweatpants',shorts:'plain black knee-length shorts'}},
-  {k:'outer',label:'Outerwear',grp:'Outfit',slot:true,hint:'Jacket, coat, vest…',def:'none',opts:[['none','None'],['denim jacket','Denim jacket'],['bomber','Black bomber'],['leather','Leather jacket'],['coach','Coach jacket']],
-    words:{'denim jacket':'a classic mid-blue denim jacket, worn open',bomber:'a plain black nylon bomber jacket, worn open',leather:'a black leather jacket, worn open',coach:'a plain black coach jacket, worn open'}},
-  {k:'acc',label:'Accessories',grp:'Outfit',slot:true,hint:'Cap, beanie, bag, jewelry…',def:'none',opts:[['none','None'],['cap','Baseball cap'],['beanie','Black beanie'],['chain','Silver chain'],['crossbody','Crossbody bag'],['tote','Tote bag']],
-    words:{cap:'a plain black baseball cap',beanie:'a plain black beanie',chain:'a thin silver chain necklace',crossbody:'a small black crossbody bag',tote:'a plain canvas tote bag on the shoulder'}},
-  {k:'shoes',label:'Shoes',grp:'Outfit',slot:true,hint:'Your shoe design',def:'auto',opts:[['auto','Auto','Goes with the outfit'],['white','White sneakers'],['black','Black sneakers'],['skate','Skate shoes'],['boots','Leather boots'],['runners','Running shoes']],
-    words:{white:'clean white leather sneakers',black:'black low-top sneakers',skate:'black and white canvas skate shoes',boots:'brown leather work boots',runners:'grey running shoes'}},
-  {k:'pose',label:'Pose',grp:'Shot',opts:[['standing','Standing','Relaxed, arms down'],['pockets','Hands in pockets'],['walking','Walking']],
-    words:{standing:'relaxed standing pose, arms down at the sides',pockets:'relaxed standing pose, hands in pockets (clothes fully visible)',walking:'mid-stride walking pose'}},
-  {k:'bg',label:'Background',grp:'Shot',opts:[['grey','Studio grey'],['white','Studio white'],['cream','Warm cream'],['black','Studio black'],['yellow','Color · yellow'],['concrete','Concrete wall'],['street','City street'],['loft','Loft interior']],
-    words:{grey:'seamless light grey studio backdrop',white:'seamless white studio backdrop',cream:'seamless warm cream studio backdrop',black:'seamless matte black studio backdrop with soft rim light',yellow:'seamless bright lemon-yellow studio backdrop',concrete:'plain raw concrete wall and floor',street:'quiet city sidewalk, softly blurred',loft:'bright loft interior with white brick wall and pale wood floor, softly blurred'}}
-];
-const CAT=k=>CATS.find(c=>c.k===k);
-const SLOT_NAME={top:'top',bottom:'bottoms (pants, shorts or skirt)',outer:'outerwear (jacket)',acc:'accessory',shoes:'shoes'};
-const CLOSE={top:'framed from the waist up, the top large and sharp',bottom:'framed from the waist down to the feet, the bottoms large and sharp',outer:'framed from mid-thigh up, the jacket large and sharp',acc:'framed close around the accessory (head and shoulders for headwear or jewelry, the torso for a bag), the accessory large and sharp',shoes:'framed from the knees down, the shoes large and sharp, filling most of the view'};
-const CLOSE_LBL={top:'top',bottom:'bottoms',outer:'jacket',acc:'accessory',shoes:'shoes'};
-const FITS=[['slim','Slim'],['regular','Regular'],['oversized','Oversized']];
+const BGS=[['grey','Studio grey','seamless light grey studio backdrop'],['white','White','seamless white studio backdrop'],['cream','Cream','seamless warm cream studio backdrop'],['black','Black','seamless matte black studio backdrop with soft rim light'],['street','City street','quiet city sidewalk, softly blurred'],['loft','Loft','bright loft interior with white brick wall and pale wood floor, softly blurred']];
 const VIEW_TXT={front:'FRONT view facing the camera',side:'SIDE view (left profile)',back:'BACK view (facing away)'};
-const BODY_SLOT={trucker:'outer',sweatpant:'bottom',denim:'bottom',shorts:'bottom'};   // editor project body → slot
-const blankSlots=()=>Object.fromEntries(SLOTS.map(k=>[k,{v:CAT(k).def,mine:null}]));
-const S={slots:blankSlots(),main:null,model:'marcus',hair:'own',hairColor:'',pose:'standing',bg:'grey',fit:'regular',frame:'full',side:false,cat:'top',
-  shoot:null, view:'front', fixing:false};   // shoot = {id, pid, name, slots, main, versions:[{sheet,views,front,side?,back?,provider,note}], cur}
-
-/* ---------- outfit helpers ---------- */
-const used=(k,sl=S.slots)=>sl[k]?.v==='mine'&&sl[k].mine?sl[k].mine:null;   // the customer's own piece when it's selected
-const usedKeys=(sl=S.slots)=>SLOTS.filter(k=>used(k,sl));
-function fixMain(){ if(!used(S.main)) S.main=usedKeys()[0]||null; }
-const mainPiece=()=>S.main?used(S.main):null;
-const viewsOf=()=>['front',...(S.side?['side']:[]),...(mainPiece()?.back?['back']:[])];
-const canGen=()=>!!mainPiece();
 const ASPECT={1:'3:4',2:'4:3',3:'3:2'};
+const S={photos:[],main:null,model:'marcus',mine:null,rights:false,bg:'grey',ref:null,note:'',back:false,side:false,
+  shoot:null,view:'front',fixing:false};   // photo = {id, front, back, name, pid}
+const uid=()=>'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const mainPhoto=()=>S.photos.find(p=>p.id===S.main)||S.photos[0]||null;
+const isMine=()=>S.model==='mine';
+const viewsOf=()=>isMine()?['front']:['front',...(S.side?['side']:[]),...(S.back&&mainPhoto()?.back?['back']:[])];
+const canGen=()=>!!mainPhoto()&&(!isMine()||(S.mine&&S.rights));
+function fixMain(){ if(!S.photos.some(p=>p.id===S.main)) S.main=S.photos[0]?.id||null; }
 
 /* ---------- storage (this device; scoped to the signed-in account like the other pages) ---------- */
 const IDB=(name,up)=>{let p;const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest'; return await new Promise((res,rej)=>{if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open(name+'-'+sc,1);r.onupgradeneeded=()=>up(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); })());
@@ -286,104 +238,107 @@ async function cropViews(sheet,views){ // the sheet is the views side by side, l
   const i=await loadImg(sheet), w=i.width/views.length, out={};
   views.forEach((k,n)=>{ const c=document.createElement('canvas'); c.width=Math.round(w); c.height=i.height; c.getContext('2d').drawImage(i,n*w,0,w,i.height,0,0,c.width,c.height); out[k]=c.toDataURL('image/jpeg',.92); });
   return out; }
-async function panels(srcs){ // several photos side by side on white → one reference image
+async function board(srcs){ // several photos side by side on white → one outfit board (what Chris does in Illustrator)
   if(srcs.length===1) return shrink(srcs[0],1024);
-  const W=600,H=760,G=24, c=document.createElement('canvas'); c.width=srcs.length*W+(srcs.length+1)*G; c.height=H+2*G; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
-  for(let n=0;n<srcs.length;n++){ try{ const i=await loadImg(srcs[n]), s=Math.min(W/i.width,H/i.height); x.drawImage(i,G+n*(W+G)+(W-i.width*s)/2,G+(H-i.height*s)/2,i.width*s,i.height*s); }catch(e){} }
+  const cols=srcs.length<=3?srcs.length:Math.ceil(srcs.length/2), rows=Math.ceil(srcs.length/cols), W=520,H=620,G=22;
+  const c=document.createElement('canvas'); c.width=cols*W+(cols+1)*G; c.height=rows*H+(rows+1)*G; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+  for(let n=0;n<srcs.length;n++){ try{ const i=await loadImg(srcs[n]), s=Math.min(W/i.width,H/i.height), cx=G+(n%cols)*(W+G), cy=G+Math.floor(n/cols)*(H+G); x.drawImage(i,cx+(W-i.width*s)/2,cy+(H-i.height*s)/2,i.width*s,i.height*s); }catch(e){} }
   return shrink(c.toDataURL('image/jpeg',.92),1600); }
-const modelRef={}; // assets/models/<id>.jpg
+const modelRef={};
 async function refFor(id){ if(id in modelRef) return modelRef[id]; try{ const r=await fetch(`assets/models/${id}.jpg`,{cache:'force-cache'}); modelRef[id]=r.ok?await shrink(URL.createObjectURL(await r.blob()),768):null; }catch(e){ modelRef[id]=null; } return modelRef[id]; }
+const sizeOf=async src=>{ try{ const i=await loadImg(src); return [i.width,i.height]; }catch(e){ return [3,4]; } };
 
-/* ---------- settings UI ---------- */
-const optName=(k,v,sl=S.slots)=>{ if(k==='model') return MODELS.find(m=>m.id===v)?.name||''; if(v==='mine') return sl[k]?.mine?.name||'My design'; const c=CAT(k); return (c.opts.find(o=>o[0]===v)||[])[1]||''; };
-const valOf=k=>CAT(k).slot?S.slots[k].v:S[k];
-const avatar=m=>`<svg viewBox="0 0 100 110"><path d="M18 110 Q20 78 50 74 Q80 78 82 110 Z" fill="#201D18" opacity=".85"/><circle cx="50" cy="44" r="${m.g==='f'?19:20}" fill="${m.skin}"/>${m.g==='f'?'<path d="M30 46 Q28 20 50 22 Q72 20 70 46 Q72 70 64 72 L64 44 Q50 34 36 44 L36 72 Q28 70 30 46Z" fill="#2a211b"/>':'<path d="M31 40 Q34 22 50 23 Q66 22 69 40 Q60 30 50 31 Q40 30 31 40Z" fill="#2a211b"/>'}<rect x="44" y="60" width="12" height="14" fill="${m.skin}"/></svg>`;
-function renderCats(){ let g='', h='';
-  CATS.forEach(c=>{ if(c.grp!==g){ g=c.grp; h+=`<div class="grp">${g}</div>`; }
-    const v=c.k==='model'?optName('model',S.model)+' · '+FITS.find(f=>f[0]===S.fit)[1]:optName(c.k,valOf(c.k))+(c.k==='hair'&&S.hairColor?' · '+S.hairColor:''), my=c.slot?used(c.k):null;
-    h+=`<button type="button" class="cat${S.cat===c.k?' on':''}" data-k="${c.k}">${my?`<span class="ct"><img src="${my.front}" alt=""></span>`:''}<span class="cl">${c.label}<small>${esc(v)}</small></span>${S.main===c.k?'<i class="star">★ MAIN</i>':''}</button>`; });
-  $('#cats').innerHTML=h; }
-$('#cats').addEventListener('click',e=>{ const b=e.target.closest('.cat'); if(!b) return; S.cat=b.dataset.k; renderAll(); });
-function renderOpts(){ const c=CAT(S.cat); let h='';
-  if(c.k==='model'){ $('#optH').innerHTML='Model <span>Same model on every photo and every design</span>';
-    h=`<div class="opts">${MODELS.map(m=>`<button type="button" class="mc${S.model===m.id?' on':''}" data-m="${m.id}"><div class="ph" data-ph="${m.id}">${avatar(m)}</div><div class="meta"><b>${m.name}</b><small>${m.tag}</small></div><span class="ck">✓</span></button>`).join('')}</div>
-      <div class="sub"><div class="lbl">Fit on the model</div><div class="chips">${FITS.map(([v,l])=>`<button type="button" class="chip${S.fit===v?' on':''}" data-fit="${v}">${l}</button>`).join('')}</div></div>`; }
-  else { $('#optH').innerHTML=`${c.label} <span>${c.slot?'Your design or one of ours':''}</span>`;
-    if(c.slot){ const sl=S.slots[c.k], my=sl.mine, on=sl.v==='mine';
-      h=my?`<div class="mypiece${on?' on':''}" data-usemine>
-          <div class="sides"><div class="sd" data-zoom="front"><img src="${my.front}" alt="Front"><span>front</span><button type="button" class="x" data-rm="front" title="Remove this design" aria-label="Remove">✕</button></div>
-            ${my.back?`<div class="sd" data-zoom="back"><img src="${my.back}" alt="Back"><span>back</span><button type="button" class="x" data-rm="back" title="Remove the back photo" aria-label="Remove back">✕</button></div>`:`<button type="button" class="sd add" data-addback>+<br>Back photo<small>optional</small></button>`}</div>
-          <div class="info"><b>${esc(my.name||'My design')}</b><small>${my.pid?'From My projects':'Your photo'}</small>
-            ${!on?'<button type="button" class="mainbtn ghost" data-usemine>Use this</button>':S.main===c.k?'<span class="mainbtn">★ Main item</span>':'<button type="button" class="mainbtn ghost" data-main>Make main item</button>'}</div>
-          <div class="links"><button type="button" data-pick="proj">From My projects</button><button type="button" data-pick="up">Upload another</button></div></div>`
-        :`<div class="mine-row"><button type="button" class="addmine" data-pick="proj"><b>+ From My projects</b><small>${c.hint}</small></button><button type="button" class="addmine" data-pick="up"><b>+ Upload a photo</b><small>A clear photo of just this piece</small></button></div>`;
-      h+='<div class="orlbl">Or pick one</div>'; }
-    h+=`<div class="tiles">${c.opts.map(([v,l,d])=>`<button type="button" class="tile${valOf(c.k)===v?' on':''}" data-v="${v}"><b>${l}</b>${d?`<small>${d}</small>`:''}</button>`).join('')}</div>`;
-    if(c.sub) h+=`<div class="sub"><div class="lbl">${c.sub.lbl}</div><div class="chips">${c.sub.opts.map(([v,l])=>`<button type="button" class="chip${S[c.sub.key]===v?' on':''}" data-sub="${v}">${l}</button>`).join('')}</div></div>`; }
-  $('#optBody').innerHTML=h;
-  if(c.k==='model') MODELS.forEach(async m=>{ const r=await refFor(m.id); const ph=document.querySelector(`[data-ph="${m.id}"]`); if(r&&ph) ph.innerHTML=`<img src="${r}" alt="${m.name}">`; }); }
-$('#optBody').addEventListener('click',e=>{ const c=CAT(S.cat), k=c.k, q=s=>e.target.closest(s);
-  if(q('[data-pick]')){ const a=q('[data-pick]').dataset.pick; if(a==='up'){ pickFor=k; $('#myFile').click(); } else openPicker(k); return; }
-  if(q('[data-rm]')){ const sl=S.slots[k]; if(q('[data-rm]').dataset.rm==='back') sl.mine.back=null; else { sl.mine=null; if(sl.v==='mine') sl.v=c.def; } fixMain(); return changed(); }
-  if(q('[data-addback]')){ backFor=k; $('#myBackFile').click(); return; }
-  if(q('[data-main]')){ S.main=k; return changed(); }
-  if(q('[data-zoom]')&&S.slots[k].v==='mine') return openLB(q('[data-zoom]').querySelector('img').src);
-  if(q('[data-usemine]')){ S.slots[k].v='mine'; fixMain(); return changed(); }
-  const m=q('[data-m]'), f=q('[data-fit]'), t=q('.tile'), sb=q('[data-sub]');
-  if(m) S.model=m.dataset.m; else if(f) S.fit=f.dataset.fit; else if(t){ if(c.slot) S.slots[k].v=t.dataset.v; else S[k]=t.dataset.v; fixMain(); } else if(sb) S[c.sub.key]=sb.dataset.sub; else return;
+/* ---------- 1. outfit photos ---------- */
+function renderPics(){ fixMain(); const mp=mainPhoto();
+  $('#pics').innerHTML=S.photos.map(p=>`<div class="pc${p===mp?' main':''}" data-id="${p.id}" title="${p===mp?'Main piece — drawn most exactly':'Tap to make this the main piece'}"><img src="${p.front}" alt="">${p===mp?'<i class="star">★ MAIN</i>':''}<button type="button" class="x" data-rm aria-label="Remove">✕</button>${p===mp?`<button type="button" class="bk${p.back?' on':''}" data-back>${p.back?'back ✓':'+ back'}</button>`:''}</div>`).join('')
+    +`<button type="button" class="pc add" data-add><b>+</b>Add photo</button><button type="button" class="pc add" data-proj><b>+</b>From My projects</button>`;
+  $('#picHint').innerHTML=(S.photos.length===1?'<b>Only one piece?</b> Plain pants and shoes are added to match — want something specific? Write it in the note.<br>':'')
+    +'A screenshot works — your own outfit board, a lookbook, or someone wearing it (we take the clothes only). ★ = drawn most exactly; tap another photo to move it.'; }
+$('#pics').addEventListener('click',e=>{ const q=s=>e.target.closest(s), pc=q('.pc[data-id]'), p=pc&&S.photos.find(x=>x.id===pc.dataset.id);
+  if(q('[data-add]')) return $('#picFile').click();
+  if(q('[data-proj]')) return openPicker();
+  if(!p) return;
+  if(q('[data-rm]')){ S.photos=S.photos.filter(x=>x!==p); if(S.main===p.id) S.main=null; return changed(); }
+  if(q('[data-back]')){ if(p.back){ if(S.back){ S.back=false; } p.back=null; return changed(); } backFor=p.id; return $('#backFile').click(); }
+  if(S.main===p.id) return openLB(p.front);
+  S.main=p.id; changed(); });
+async function addPhotos(files){ let n=0; for(const f of files){ try{ const d=await shrink(await readFile(f),1280); if(d){ S.photos.push({id:uid(),front:d,back:null,name:'',pid:null}); n++; } }catch(er){ toast(er.message); } }
+  if(n){ changed(); toast(n>1?`${n} photos added`:'Photo added'); } }
+$('#picFile').onchange=e=>{ const fs=[...e.target.files]; e.target.value=''; addPhotos(fs); };
+let backFor=null;
+$('#backFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; const p=S.photos.find(x=>x.id===backFor); if(!p) return; try{ p.back=await shrink(await readFile(f),1280); S.back=true; changed(); toast('Back photo added — the back view is on'); }catch(er){ toast(er.message); } };
+document.addEventListener('paste',e=>{ const fs=[...(e.clipboardData?.items||[])].filter(x=>x.kind==='file'&&x.type.startsWith('image/')).map(x=>x.getAsFile()); if(!fs.length||e.target.closest('textarea,input')) return; e.preventDefault(); addPhotos(fs); });
+
+/* ---------- 2. model ---------- */
+const avatar=m=>`<svg viewBox="0 0 100 110" width="100%" height="100%"><rect width="100" height="110" fill="#e4e0d4"/><path d="M18 110 Q20 78 50 74 Q80 78 82 110 Z" fill="#201D18" opacity=".85"/><circle cx="50" cy="44" r="19" fill="${m.skin}"/></svg>`;
+function renderModels(){
+  $('#models').innerHTML=MODELS.map(m=>`<button type="button" class="mc${S.model===m.id?' on':''}" data-m="${m.id}" data-ph="${m.id}">${avatar(m)}<span>${m.name}</span></button>`).join('')
+    +(S.mine?`<button type="button" class="mc mine${isMine()?' on':''}" data-m="mine" title="The person in your photo"><img src="${S.mine}" alt=""><span>My photo</span><i class="x" data-rmmine>✕</i></button>`:`<button type="button" class="mc add" data-addmine><b>+</b>My photo</button>`);
+  MODELS.forEach(async m=>{ const r=await refFor(m.id); const el=document.querySelector(`[data-ph="${m.id}"]`); if(r&&el) el.innerHTML=`<img src="${r}" alt="${m.name}"><span>${m.name}</span>`; });
+  $('#rightsRow').classList.toggle('hidden',!isMine()); $('#rights').checked=!!S.rights;
+  $('#modelSub').textContent=isMine()?'Your photo — only the clothes change':'Same model on every style'; }
+$('#models').addEventListener('click',e=>{ const q=s=>e.target.closest(s);
+  if(q('[data-rmmine]')){ e.stopPropagation(); S.mine=null; S.rights=false; if(isMine()) S.model='marcus'; if(S.bg==='photo') S.bg='grey'; return changed(); }
+  if(q('[data-addmine]')) return $('#mineFile').click();
+  const b=q('[data-m]'); if(!b) return; S.model=b.dataset.m; if(isMine()){ if(S.bg!=='photo'&&!S.bgSet) S.bg='photo'; } else if(S.bg==='photo') S.bg='grey'; changed(); });
+$('#mineFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ S.mine=await shrink(await readFile(f),1536); S.model='mine'; S.rights=false; S.bg='photo'; S.bgSet=false; changed(); toast('Tick the box to confirm you can use this photo'); }catch(er){ toast(er.message); } };
+$('#rights').onchange=e=>{ S.rights=e.target.checked; changed(); };
+
+/* ---------- 3. background + note ---------- */
+function renderBgs(){ const list=isMine()?[['photo',"Photo's own"],...BGS]:BGS;
+  $('#bgs').innerHTML=(S.ref&&!isMine()?'':list.map(([v,l])=>`<button type="button" class="chip${S.bg===v?' on':''}" data-bg="${v}">${l}</button>`).join(''))
+    +(isMine()?'':S.ref?`<span class="refchip"><img src="${S.ref}" alt="">Mood reference: pose, light, background<button type="button" data-rmref aria-label="Remove reference">✕</button></span>`:`<button type="button" class="lnk" data-addref>+ Reference photo</button>`); }
+$('#bgs').addEventListener('click',e=>{ const q=s=>e.target.closest(s);
+  if(q('[data-addref]')) return $('#refFile').click();
+  if(q('[data-rmref]')){ S.ref=null; return changed(); }
+  const b=q('[data-bg]'); if(!b) return; S.bg=b.dataset.bg; S.bgSet=true; changed(); });
+$('#refFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ S.ref=await shrink(await readFile(f),1024); changed(); toast('Pose, light and background will follow this photo — never the face'); }catch(er){ toast(er.message); } };
+$('#note').addEventListener('input',e=>{ S.note=e.target.value; saveDraft(); });
+
+/* ---------- views + generate ---------- */
+function renderViews(){ const mp=mainPhoto(), mine=isMine();
+  $('#views').innerHTML=`<span class="chip on" style="cursor:default">✓ Front</span>`
+    +`<button type="button" class="chip${S.back&&mp?.back&&!mine?' on':''}" data-v="back" ${mine?'disabled':''} title="${mp?.back?'Draw the back view':'Add a back photo to the main piece first'}">${S.back&&mp?.back&&!mine?'✓':'+'} Back</button>`
+    +`<button type="button" class="chip${S.side&&!mine?' on':''}" data-v="side" ${mine?'disabled':''}>${S.side&&!mine?'✓':'+'} Side</button>`; }
+$('#views').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b||b.disabled) return;
+  if(b.dataset.v==='side') S.side=!S.side;
+  else { const mp=mainPhoto(); if(!mp) return toast('Add the outfit first'); if(!mp.back){ backFor=mp.id; return $('#backFile').click(); } S.back=!S.back; }
   changed(); });
-function renderShot(){ const mp=mainPiece(), vs=viewsOf();
-  $('#shot').innerHTML=`<div class="lbl">Views</div><div class="chips"><span class="chip on fixed">✓ Front</span>
-      <button type="button" class="chip${S.side?' on':''}" data-side>${S.side?'✓ ':'+ '}Side</button>
-      ${mp?.back?'<span class="chip on fixed" title="On because your main item has a back photo">✓ Back</span>':`<button type="button" class="chip off" data-needback title="Add a back photo to your main item to get a back view">Back — add a back photo</button>`}</div>
-    <div class="lbl">Framing</div><div class="chips"><button type="button" class="chip${S.frame==='full'?' on':''}" data-frame="full">Full body</button><button type="button" class="chip${S.frame==='close'?' on':''}" data-frame="close"${mp?'':' disabled'}>Close-up on ${mp?CLOSE_LBL[S.main]:'main item'}</button></div>`;
-  $('#genViews').textContent=vs.map(v=>v[0].toUpperCase()+v.slice(1)).join(' + '); }
-$('#shot').addEventListener('click',e=>{ const q=s=>e.target.closest(s);
-  if(q('[data-side]')) S.side=!S.side; else if(q('[data-frame]')) S.frame=q('[data-frame]').dataset.frame;
-  else if(q('[data-needback]')){ if(!S.main) return toast('Add your design first'); backFor=S.main; return $('#myBackFile').click(); } else return;
-  changed(); });
-function renderPicked(){ const mp=mainPiece(), p=[optName('model',S.model)];
-  if(mp) p.push('★ '+(mp.name||'My design'));
-  SLOTS.forEach(k=>{ const v=S.slots[k].v; if(k===S.main||v==='auto'||v==='none') return; p.push(optName(k,v)); });
-  if(S.hair!=='own') p.push(optName('hair',S.hair)); if(S.hairColor) p.push(S.hairColor+' hair');
-  if(S.frame==='close'&&mp) p.push('Close-up'); p.push(optName('pose',S.pose),optName('bg',S.bg));
-  $('#picked').innerHTML=p.filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join(''); }
 function syncGen(){ const b=$('#gen'); if(b.dataset.busy) return; b.disabled=!canGen();
-  const n=usedKeys().length; $('#genHint').textContent=!canGen()?'Add your design to Top, Bottom, Outerwear, Accessories or Shoes first.':n>3?'More than 3 of your own designs — each one may come out a little less exact.':'About 30 seconds. Uses one AI generation.'; }
-function renderAll(){ fixMain(); renderCats(); renderOpts(); renderShot(); renderPicked(); syncGen(); }
+  $('#genHint').textContent=!mainPhoto()?'Add the outfit first — one photo is enough.':isMine()&&!S.mine?'Add your photo, or pick a SPOOL model.':isMine()&&!S.rights?'Tick the box under the models to use your own photo.':'About 30 seconds. Uses one AI generation.'; }
+function renderAll(){ renderPics(); renderModels(); renderBgs(); renderViews(); syncGen(); }
 function changed(){ renderAll(); saveDraft(); }
 
 /* ---------- prompt + reference images ---------- */
-async function buildJob(){ const M=MODELS.find(m=>m.id===S.model), mp=mainPiece(), views=viewsOf(), close=S.frame==='close', L=[], imgs=[];
-  const frame=close?CLOSE[S.main]:'full body, head to toe';
-  L.push(views.length===1?`Create ONE realistic fashion lookbook photo: the model in a ${VIEW_TXT.front}, ${frame}, centered, nothing cut off.`
-    :`Create ONE realistic fashion lookbook photo on a wide canvas: the SAME model shown ${views.length} times side by side, left to right — ${views.map((v,i)=>`${i+1}) ${VIEW_TXT[v]}`).join(', ')}. ${frame[0].toUpperCase()+frame.slice(1)} in every view; same size and scale; evenly spaced in ${views.length} equal columns; nothing overlapping or cut off. It must be the exact same person, hair, outfit and lighting in every view.`);
-  imgs.push(await shrink(mp.front,1024)); if(mp.back) imgs.push(await shrink(mp.back,1024));
-  L.push(`Reference image 1 is the MAIN ITEM — the customer's ${SLOT_NAME[S.main]}${mp.back?'; reference image 2 is the same item from the back':''}. The model wears THIS EXACT item — same type, color, wash, material, cut, every print, text, patch, embroidery and trim in the same place and the same size. Do not redesign, simplify or invent anything on it; keep all text exactly as printed.${views.includes('back')?' Show its back design in the BACK view.':''}`);
-  const ref=await refFor(S.model); if(ref){ imgs.push(ref); L.push(`Reference image ${imgs.length} is the MODEL: use this exact person — same face, skin tone and body.`); }
-  const others=usedKeys().filter(k=>k!==S.main), groups=others.map(k=>[k]);
-  while(groups.length>MAX_REFS-imgs.length){ const last=groups.pop(); groups[groups.length-1].push(...last); }   // too many → share an image
-  for(const g of groups){ const ps=g.map(k=>used(k)); imgs.push(await panels(ps.flatMap(p=>[p.front,p.back].filter(Boolean))));
-    L.push(`Reference image ${imgs.length} shows ${g.map((k,n)=>`the customer's ${SLOT_NAME[k]}${used(k).back?' (front and back)':''}`).join(', then ')}${g.length>1||ps[0].back?', side by side left to right':''}. The model also wears ${g.length>1?'these pieces':['bottom','shoes'].includes(g[0])?'them':'it'} exactly as shown — same type, color, material, every print, logo and detail. Do not redesign or simplify.`); }
-  if(others.length) L.push('The main item always stays fully visible; wear the other pieces with it the way they are normally worn.');
-  L.push(`Model: ${M.desc}.`);
-  if(S.hair!=='own'||S.hairColor) L.push(`Hair: ${S.hair==='own'?'the model\'s own style':CAT('hair').words[S.hair]}${S.hairColor?', '+S.hairColor+' color':''}.`);
-  if(['top','bottom','outer'].includes(S.main)) L.push(`Fit: the main item fits ${S.fit==='oversized'?'oversized and roomy':S.fit==='slim'?'slim, close to the body':'regular, true to size'}.`);
-  const plain={top:'Top: a simple plain top that goes with the look (no prints, no logos).',bottom:'Bottoms: simple plain pants that go with the look (no prints, no logos).',outer:'No jacket.',acc:'No accessories.',shoes:'Shoes: simple plain sneakers that go with the outfit.'};
-  const label={top:'Top',bottom:'Bottoms',outer:'Outerwear',acc:'Accessory',shoes:'Shoes'};
-  SLOTS.forEach(k=>{ if(used(k)) return; const v=S.slots[k].v; L.push(v==='auto'||v==='none'?plain[k]:`${label[k]}: ${CAT(k).words[v]}${k==='shoes'?'':' (no prints, no logos)'}.`); });
-  L.push(close&&S.main==='shoes'?'Pose: standing naturally, weight even, feet fully visible.':`Pose: ${CAT('pose').words[S.pose]}${views.length>1?' (adapted for the other views)':''}.`);
-  L.push(`Background: ${CAT('bg').words[S.bg]}${views.length>1?', the same in every view':''}. Soft even e-commerce lighting, sharp detail, realistic photo. No text, labels, logos or watermarks added to the image.`);
-  return {prompt:L.join('\n'),images:imgs,views}; }
+async function buildJob(){ const mp=mainPhoto(), others=S.photos.filter(p=>p!==mp), views=viewsOf(), mine=isMine(), L=[], imgs=[];
+  const add=(img,line)=>{ imgs.push(img); L.push(`Reference image ${imgs.length} ${line}`); };
+  if(mine){ add(await shrink(S.mine,1536),'is a PHOTO TO EDIT. Keep this exact person — face, hair, skin, body, pose and expression — and the same framing, camera angle and lighting'+(S.bg==='photo'?', and the same background.':'.')+' Replace ONLY their clothes with the outfit below. Do not change anything else.');
+    if(S.bg!=='photo') L.push(`Change the background to: ${(BGS.find(b=>b[0]===S.bg)||BGS[0])[2]}.`); }
+  else L.push(views.length===1?`Create ONE realistic fashion lookbook photo: the model in a ${VIEW_TXT.front}, full body, head to toe, centered, nothing cut off.`
+    :`Create ONE realistic fashion lookbook photo on a wide canvas: the SAME model shown ${views.length} times side by side, left to right — ${views.map((v,i)=>`${i+1}) ${VIEW_TXT[v]}`).join(', ')}. Full body, head to toe, in every view; same size and scale; evenly spaced in ${views.length} equal columns; nothing overlapping or cut off. The exact same person, hair, outfit and lighting in every view.`);
+  add(await shrink(mp.front,1024),`is the MAIN PIECE. It may be a product photo, a flat lay, an outfit board or a photo of someone wearing it. If it shows one garment, the model wears exactly that garment; if it shows a whole outfit, the model wears that whole outfit. Copy the clothes exactly — type, color, wash, fabric, cut, fit, every print, text, patch, embroidery, appliqué and trim in the same place and the same size; keep all text exactly as printed. Do not redesign or simplify anything. Ignore any person, face, body, pose or background in it.`);
+  if(views.includes('back')&&mp.back) add(await shrink(mp.back,1024),'is the same main piece from the back: show this back design in the BACK view.');
+  if(!mine){ const r=await refFor(S.model); if(r) add(r,'is the MODEL: use this exact person — same face, skin tone, hair and body.'); }
+  if(others.length&&imgs.length<MAX_REFS-(S.ref&&!mine?1:0)) add(await board(others.map(p=>p.front)),`shows the REST OF THE OUTFIT${others.length>1?' — several pieces side by side':''}. The model also wears ${others.length>1?'every piece shown':'this piece'}, exactly as shown — same type, color, fabric and every detail. Copy only the clothes and accessories; ignore any person, face or background in it.`);
+  L.push('Dress the model the way these pieces are normally worn together, layers in the usual order. Outerwear over the main piece is worn wide open and pushed back off the chest, so the main piece\'s front artwork and text are fully visible and readable — never cover it.');
+  L.push('Anything the references do not show (for example pants or shoes when only a top is given): simple plain pieces that go with the main piece — no prints, no logos.');
+  if(!mine){ const M=MODELS.find(m=>m.id===S.model); L.push(`Model: ${M.desc}.`);
+    if(S.ref) add(await shrink(S.ref,1024),'is a MOOD reference: copy its pose, framing, camera angle, lighting and background — NOT the person. Never copy that face, body, hair or clothes.');
+    else L.push(`Background: ${(BGS.find(b=>b[0]===S.bg)||BGS[0])[2]}${views.length>1?', the same in every view':''}. Soft even e-commerce lighting.`);
+    L.push(`Pose: ${S.ref?'as in the mood reference':'relaxed and natural, the clothes fully visible'}${views.length>1?' (adapted for the other views)':''}.`); }
+  if(S.note.trim()) L.push(`Customer note — follow it: ${S.note.trim().slice(0,300)}`);
+  L.push('Realistic photo, sharp detail. No text, labels, logos or watermarks added to the image.');
+  const [w,h]=mine?await sizeOf(S.mine):[3,4];
+  return {prompt:L.join('\n'),images:imgs,views,aspect:mine?(w>h*1.15?'4:3':'3:4'):ASPECT[views.length]}; }
 
 /* ---------- AI (Gemini only — one call per photo) ---------- */
 async function callAI(body){ const tk=await window.SPOOL_AUTH?.token?.();
   const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,provider:'gemini',task:'design',n:1,quality:'high',images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
   const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length){ const er=new Error(d.error||d.errors?.[0]||'The AI could not finish this one — try again'); er.code=d.code||''; throw er; } return d.images[0]; }
-async function mockSheet(views,label){ const g=await loadImg(mainPiece()?.front||S.shoot?.garment), n=views.length, CW=512, c=document.createElement('canvas'); c.width=CW*n; c.height=n===1?683:1024; const x=c.getContext('2d');
-  x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',cream:'#efe6d2',black:'#2b2a28',yellow:'#f7e24a',concrete:'#b9b6ae',street:'#c9ccd1',loft:'#e4ddd2'}[S.bg]||'#d9d9d6'; x.fillRect(0,0,c.width,c.height);
+async function mockSheet(views,label){ const g=await loadImg(mainPhoto()?.front||S.shoot?.garment), n=views.length, CW=512, c=document.createElement('canvas'); c.width=CW*n; c.height=n===1?683:1024; const x=c.getContext('2d');
+  x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',cream:'#efe6d2',black:'#2b2a28',street:'#c9ccd1',loft:'#e4ddd2',photo:'#cfc8bb'}[S.bg]||'#d9d9d6'; x.fillRect(0,0,c.width,c.height);
   views.forEach((v,i)=>{ const s=Math.min(440/g.width,(c.height-260)/g.height); x.globalAlpha=v==='back'?.55:1; x.drawImage(g,i*CW+CW/2-g.width*s/2,170,g.width*s,g.height*s); x.globalAlpha=1;
-    x.fillStyle='rgba(32,29,24,.6)'; x.font='600 26px Outfit, sans-serif'; x.textAlign='center'; x.fillText(`MOCK · ${v.toUpperCase()} · ${optName('model',S.model).toUpperCase()}`,i*CW+CW/2,80); if(label){ x.font='18px Outfit, sans-serif'; x.fillText(label.slice(0,44),i*CW+CW/2,120); } });
+    x.fillStyle='rgba(32,29,24,.6)'; x.font='600 24px Outfit, sans-serif'; x.textAlign='center'; x.fillText(`MOCK · ${v.toUpperCase()} · ${isMine()?'MY PHOTO':(MODELS.find(m=>m.id===S.model)?.name||'').toUpperCase()}`,i*CW+CW/2,80); if(label){ x.font='18px Outfit, sans-serif'; x.fillText(label.slice(0,44),i*CW+CW/2,120); } });
   await new Promise(r=>setTimeout(r,800)); return c.toDataURL('image/jpeg',.9); }
 let spinT=null;
 function busy(on,txt){ $('#spin').classList.toggle('hidden',!on); clearInterval(spinT); const g=$('#gen'); if(on){ g.dataset.busy='1'; g.disabled=true; } else { delete g.dataset.busy; syncGen(); }
@@ -393,18 +348,20 @@ function busy(on,txt){ $('#spin').classList.toggle('hidden',!on); clearInterval(
 async function needSignIn(){ if(!window.SPOOL_AUTH) return true; const u=await window.SPOOL_AUTH.requireLogin('Sign in to make model photos. They are saved to your account.'); return !!u; }
 function failed(e){ console.error(e); if(e.code==='free_limit'||e.code==='daily_limit'){ toast(e.message,6000); if(e.code==='free_limit') window.SPOOL_AUTH?.upgrade(e.message,{why:'model'}); } else toast('Couldn’t finish: '+e.message,5000); }
 const clone=o=>JSON.parse(JSON.stringify(o));
-async function generate(){ if(!canGen()) return toast('Add your design first'); if(!(await needSignIn())) return;
+const modelName=st=>st?.model==='mine'?'My photo':MODELS.find(m=>m.id===st?.model)?.name||'';
+async function generate(){ if(!canGen()) return toast($('#genHint').textContent); if(!(await needSignIn())) return;
   const views=viewsOf(); busy(true,views.map(v=>v[0].toUpperCase()+v.slice(1)).join(' + '));
-  window.SPOOL_TRACK?.('model_generate',{model:S.model,main:S.main,mine:usedKeys().length,views:views.join('+'),frame:S.frame,pose:S.pose,bg:S.bg});
+  window.SPOOL_TRACK?.('model_generate',{model:S.model,photos:S.photos.length,views:views.join('+'),bg:S.ref?'ref':S.bg,note:!!S.note.trim()});
   try{ let sheet;
-    if(MOCK) sheet=await mockSheet(views,usedKeys().length>1?'+ '+usedKeys().filter(k=>k!==S.main).map(k=>CLOSE_LBL[k]).join(' + '):'');
-    else { const job=await buildJob(); const r=await callAI({prompt:job.prompt,images:job.images,wide:views.length>1,aspect:ASPECT[views.length]}); sheet=await shrink(r.src,2048,.92); }
-    const mp=mainPiece(), crops=await cropViews(sheet,views);
-    S.shoot={id:'m'+Date.now(),pid:mp.pid||null,name:mp.name||'Model photo',garment:await shrink(mp.front,300,.8),garmentFront:mp.front,garmentBack:mp.back||null,slots:clone(S.slots),main:S.main,settings:settingsOf(),created:Date.now(),versions:[{sheet,views,...crops,provider:'Gemini',note:''}],cur:0};
+    if(MOCK) sheet=await mockSheet(views,S.photos.length>1?`+ ${S.photos.length-1} more piece${S.photos.length>2?'s':''}`:'');
+    else { const job=await buildJob(); const r=await callAI({prompt:job.prompt,images:job.images,wide:job.views.length>1,aspect:job.aspect}); sheet=await shrink(r.src,2048,.92); }
+    const mp=mainPhoto(), crops=await cropViews(sheet,views);
+    S.shoot={id:'m'+Date.now(),pid:mp.pid||null,name:mp.name||'Model photo',garment:await shrink(mp.front,300,.8),garmentFront:mp.front,garmentBack:mp.back||null,
+      photos:clone(S.photos),main:mp.id,mine:isMine()?S.mine:null,ref:S.ref,settings:settingsOf(),created:Date.now(),versions:[{sheet,views,...crops,provider:'Gemini',note:''}],cur:0};
     S.view='front'; await saveShoot(); window.SPOOL_TRACK?.('model_ok');
   }catch(e){ failed(e); window.SPOOL_TRACK?.('model_fail',{err:String(e.message).slice(0,120)}); }
   busy(false); renderResult(); }
-const settingsOf=()=>({model:S.model,hair:S.hair,hairColor:S.hairColor,pose:S.pose,bg:S.bg,fit:S.fit,frame:S.frame,side:S.side});
+const settingsOf=()=>({model:S.model,bg:S.bg,note:S.note,back:S.back,side:S.side,rights:S.rights});
 
 /* ---------- result ---------- */
 const curV=()=>S.shoot?.versions[S.shoot.cur];
@@ -413,7 +370,7 @@ function renderResult(){ const v=curV(); $('.grid').classList.toggle('has-res',!
   ['#fixBtn','#regen','#dl','#toSheet'].forEach(s=>$(s).disabled=!v);
   if(!v){ $('#angles').innerHTML=''; $('#ver').classList.add('hidden'); return; }
   if(!vViews(v).includes(S.view)) S.view='front';
-  $('#mainImg').src=v[S.view]; $('#vtag').textContent=`${S.view[0].toUpperCase()+S.view.slice(1)} · ${optName('model',S.shoot.settings.model)}`;
+  $('#mainImg').src=v[S.view]; $('#vtag').textContent=`${S.view[0].toUpperCase()+S.view.slice(1)} · ${modelName(S.shoot.settings)}`;
   $('#angles').innerHTML=vViews(v).length>1?vViews(v).map(k=>`<button type="button" class="ang${S.view===k?' on':''}" data-a="${k}"><img src="${v[k]}" alt="${k}"><span>${k}</span></button>`).join(''):'';
   const vs=S.shoot.versions; $('#ver').classList.toggle('hidden',vs.length<2);
   $('#ver').innerHTML='Versions: '+vs.map((x,i)=>`<button type="button" class="${i===S.shoot.cur?'on':''}" data-ver="${i}" title="${esc(x.note||'First version')}">${i===0?'Original':'Fix '+i}</button>`).join('');
@@ -447,68 +404,64 @@ $('#fixGo').onclick=async()=>{ const v=curV(), note=$('#fixNote').value.trim(); 
   const marked=strokes.length?await markedSheet(v):null; setFix(false); busy(true,'Fixing only what you marked');
   try{ let sheet; const vs=vViews(v);
     if(MOCK) sheet=await mockSheet(vs,'Fixed: '+note);
-    else { const sh=S.shoot, sl=sh.slots||{}, imgs=[await shrink(v.sheet,1536)]; if(marked) imgs.push(await shrink(marked,1536));
+    else { const sh=S.shoot, imgs=[await shrink(v.sheet,1536)]; if(marked) imgs.push(await shrink(marked,1536));
       const gf=sh.garmentFront; if(gf) imgs.push(await shrink(gf,1024)); const g=gf?imgs.length:0;
-      const others=usedKeys(sl).filter(k=>k!==sh.main); if(others.length) imgs.push(await panels(others.map(k=>sl[k].mine.front)));
-      const prompt=[`Reference image 1 is a fashion lookbook photo: ${vs.length>1?`the same model ${vs.length} times — ${vs.join(', ')} views — side by side`:'the model in a front view'}.`,
+      const others=(sh.photos||[]).filter(p=>p.id!==sh.main); if(others.length) imgs.push(await board(others.map(p=>p.front)));
+      const prompt=[`Reference image 1 is a fashion lookbook photo: ${vs.length>1?`the same model ${vs.length} times — ${vs.join(', ')} views — side by side`:'one view of the model'}.`,
         marked?`Reference image 2 is the same photo with areas circled in red. Change ONLY what is inside the red circles, as described below. Do not draw any red marks in the result.`:`Change only what is described below.`,
         `Change: ${note}`,
         `Keep everything else in reference image 1 exactly the same: same person, face, hair, pose, clothes, prints, background, framing, layout and image size${vs.length>1?` — still ${vs.length} views side by side`:''}.`,
-        g?`Reference image ${g} is the main item: its prints, text and details must stay exactly like it.`:'',
-        others.length?`Reference image ${imgs.length} shows the customer's other pieces (${others.map(k=>CLOSE_LBL[k]).join(', ')}): keep them exactly like that too.`:''].filter(Boolean).join('\n');
-      const r=await callAI({prompt,images:imgs,wide:vs.length>1,aspect:ASPECT[vs.length]}); sheet=await shrink(r.src,2048,.92); }
+        g?`Reference image ${g} is the main piece: its prints, text and details must stay exactly like it.`:'',
+        others.length?`Reference image ${imgs.length} shows the rest of the outfit: keep those pieces exactly like that too.`:''].filter(Boolean).join('\n');
+      const [w,h]=await sizeOf(v.sheet);
+      const r=await callAI({prompt,images:imgs,wide:vs.length>1,aspect:vs.length>1?ASPECT[vs.length]:(w>h*1.15?'4:3':'3:4')}); sheet=await shrink(r.src,2048,.92); }
     const crops=await cropViews(sheet,vs); S.shoot.versions.push({sheet,views:vs,...crops,provider:'Gemini',note}); S.shoot.cur=S.shoot.versions.length-1; await saveShoot(); window.SPOOL_TRACK?.('model_fix');
   }catch(e){ failed(e); }
   $('#fixNote').value=''; busy(false); renderResult(); };
 
 /* ---------- save + list ---------- */
 async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',clone(S.shoot)); saveDraft(); renderMine(); }
-let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{v:2,slots:S.slots,main:S.main,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
+let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{v:3,photos:S.photos,main:S.main,mine:S.mine,ref:S.ref,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
 async function renderMine(){ const all=((await modelDB.all('shoots'))||[]).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created)), g=$('#mineGrid');
   g.innerHTML=all.length?'':'<div class="mine-empty">Your model photos will appear here.</div>';
   all.forEach(s=>{ const v=s.versions[s.cur||0], c=document.createElement('div'); c.className='mcard';
-    c.innerHTML=`<img src="${v.front}" alt=""><div><b>${esc(s.name)}</b><small>${esc(optName('model',s.settings?.model))} · ${new Date(s.created).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div><button class="del" title="Delete" aria-label="Delete">✕</button>`;
+    c.innerHTML=`<img src="${v.front}" alt=""><div><b>${esc(s.name)}</b><small>${esc(modelName(s.settings))} · ${new Date(s.created).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div><button class="del" title="Delete" aria-label="Delete">✕</button>`;
     c.onclick=e=>{ if(e.target.closest('.del')){ e.stopPropagation(); if(!confirm('Delete this model photo?')) return; modelDB.del('shoots',s.id).then(()=>{ if(S.shoot?.id===s.id){ S.shoot=null; renderResult(); } renderMine(); }); return; }
       openShoot(s); window.scrollTo({top:0,behavior:'smooth'}); };
     g.appendChild(c); }); }
-// shoots and drafts saved before the outfit slots: one garment (+ an optional outfit piece and shoes)
-function legacySlots(g,custom,st){ const sl=blankSlots(); let main=null;
-  if(g?.front){ sl.top={v:'mine',mine:{front:g.front,back:g.back||null,name:g.name||'My design',pid:g.pid||null}}; main='top'; }
-  if(custom?.outfit&&st?.outfit==='mine') sl.bottom={v:'mine',mine:custom.outfit}; else if(CAT('bottom').opts.some(o=>o[0]===st?.outfit)) sl.bottom.v=st.outfit;
-  if(custom?.shoes&&st?.shoes==='mine') sl.shoes={v:'mine',mine:custom.shoes}; else if(CAT('shoes').opts.some(o=>o[0]===st?.shoes)) sl.shoes.v=st.shoes;
-  return {slots:sl,main:main||(sl.bottom.mine?'bottom':sl.shoes.mine?'shoes':null)}; }
-function applySettings(o){ Object.assign(S,{model:o.model||S.model,hair:o.hair||'own',hairColor:o.hairColor||'',pose:o.pose||'standing',bg:o.bg||'grey',fit:o.fit||'regular',frame:o.frame==='close'?'close':'full',side:!!o.side}); }
+// shoots and drafts from the earlier versions of this page (one garment, or outfit slots) → photos + a note
+const OLD_WORDS={'black jeans':'black jeans','blue jeans':'blue jeans',cargo:'olive cargo pants',sweatpants:'grey sweatpants',shorts:'black shorts','white tee':'plain white tee','black tee':'plain black tee','grey hoodie':'grey hoodie','white tank':'white tank top','denim jacket':'denim jacket',bomber:'black bomber jacket',leather:'black leather jacket',coach:'black coach jacket',cap:'black baseball cap',beanie:'black beanie',chain:'silver chain',crossbody:'black crossbody bag',tote:'canvas tote bag',white:'white sneakers',black:'black sneakers',skate:'skate shoes',boots:'brown leather boots',runners:'grey running shoes'};
+function fromOld(o){ const photos=[]; let main=null; const notes=[];
+  if(o.slots){ const order=[o.main,...['top','bottom','outer','acc','shoes'].filter(k=>k!==o.main)];
+    order.forEach(k=>{ const sl=o.slots[k]; if(!sl) return; if(sl.v==='mine'&&sl.mine){ const id=uid(); photos.push({id,front:sl.mine.front,back:sl.mine.back||null,name:sl.mine.name||'',pid:sl.mine.pid||null}); if(k===o.main) main=id; } else if(OLD_WORDS[sl.v]) notes.push(OLD_WORDS[sl.v]); }); }
+  else { const g=o.garment||{front:o.garmentFront,back:o.garmentBack,name:o.name,pid:o.pid}; if(g?.front){ const id=uid(); photos.push({id,front:g.front,back:g.back||null,name:g.name||'',pid:g.pid||null}); main=id; }
+    for(const k of ['outfit','shoes']){ const c=o.custom?.[k]; if(c&&(o[k]==='mine'||o.settings?.[k]==='mine')) photos.push({id:uid(),front:c.front,back:c.back||null,name:c.name||'',pid:c.pid||null}); else { const v=o[k]||o.settings?.[k]; if(OLD_WORDS[v]) notes.push(OLD_WORDS[v]); } } }
+  return {photos,main,note:notes.join(', ')}; }
+function applySettings(o){ Object.assign(S,{model:o.model&&(o.model==='mine'||MODELS.some(m=>m.id===o.model))?o.model:'marcus',bg:o.bg&&(o.bg==='photo'||BGS.some(b=>b[0]===o.bg))?o.bg:'grey',back:!!o.back,side:!!o.side,rights:!!o.rights}); if(typeof o.note==='string') S.note=o.note; }
 function openShoot(s){ S.shoot=s; S.view='front'; applySettings(s.settings||{});
-  const r=s.slots?{slots:clone(s.slots),main:s.main}:legacySlots({front:s.garmentFront||s.garment,back:s.garmentBack,name:s.name,pid:s.pid},s.custom?{outfit:s.custom.outfit,shoes:s.custom.shoes}:null,{outfit:s.custom?.outfit?'mine':s.settings?.outfit,shoes:s.custom?.shoes?'mine':s.settings?.shoes});
-  if(!s.slots&&s.custom&&!s.garmentFront){ r.slots.top={v:'auto',mine:null}; r.main=r.slots.shoes.mine?'shoes':r.slots.bottom.mine?'bottom':null; }
-  S.slots=r.slots; S.main=r.main; if(S.main) S.cat=S.main; renderAll(); renderResult(); }
+  if(s.photos){ S.photos=clone(s.photos); S.main=s.main; S.mine=s.mine||null; S.ref=s.ref||null; }
+  else { const r=fromOld({...s,settings:s.settings}); S.photos=r.photos; S.main=r.main; if(r.note&&!S.note) S.note=r.note; S.mine=null; S.ref=null; if(S.model==='mine') S.model='marcus'; }
+  $('#note').value=S.note; renderAll(); renderResult(); }
 $('#toSheet').onclick=async()=>{ if(!S.shoot) return; await saveShoot(); location.href='linesheet.html?add='+encodeURIComponent(S.shoot.id); };
 
-/* ---------- your own design for a slot: My projects or an upload ---------- */
-let pickFor='top', backFor='top';
+/* ---------- From My projects ---------- */
 const projImg=p=>p?.sides?.front?.base||p?.sides?.front?.original||p?.pending?.ai?.front||null;
 const projBack=p=>p?.sides?.back?.base||p?.sides?.back?.original||p?.pending?.ai?.back||null;
-function setMine(k,piece){ S.slots[k]={v:'mine',mine:piece}; if(!used(S.main)) S.main=k; S.cat=k; changed(); toast(`${CAT(k).label}: ${piece.name||'your design'} added`); }
-async function openPicker(k){ pickFor=k; $('#pTitle').textContent=`${CAT(k).label} — pick a project`; $('#pModal').classList.remove('hidden');
-  const L=$('#pList'); L.innerHTML='<div class="mempty">Loading…</div>';
+async function pieceFromProject(id,name){ let q=await edDB.get('projects',id); if(!projImg(q)&&window.SPOOL_AUTH?.user){ try{ q=await window.SPOOL_AUTH.cloud.load(id)||q; }catch(e){} }
+  if(!projImg(q)) return null; const bk=projBack(q);
+  return {id:uid(),front:await shrink(projImg(q),1280),back:bk?await shrink(bk,1280):null,name:q.name||name||'My design',pid:id}; }
+async function openPicker(){ $('#pModal').classList.remove('hidden'); const L=$('#pList'); L.innerHTML='<div class="mempty">Loading…</div>';
   const local=(await edDB.all('projects'))||[]; let cloud=[]; if(window.SPOOL_AUTH?.user){ try{ cloud=await window.SPOOL_AUTH.cloud.list(); }catch(e){} }
   const map=new Map(); local.forEach(p=>map.set(p.id,{id:p.id,name:p.name,thumb:p.thumb||projImg(p),updated:p.updated||0}));
   cloud.forEach(c=>{ if(!map.has(c.id)) map.set(c.id,{id:c.id,name:c.name,thumb:c.thumb,updated:Date.parse(c.updated_at)||0}); });
   const list=[...map.values()].sort((a,b)=>b.updated-a.updated);
-  L.innerHTML=list.length?'':'<div class="mempty">No projects yet. <button class="btn" type="button" id="pUp" style="display:inline-block;flex:none;margin-left:6px">Upload a photo instead</button></div>';
-  $('#pUp')?.addEventListener('click',()=>{ $('#pModal').classList.add('hidden'); $('#myFile').click(); });
+  L.innerHTML=list.length?'':'<div class="mempty">No projects yet — add a photo instead.</div>';
   list.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.className='pick'; b.innerHTML=`<img src="${p.thumb||''}" alt=""><div><b>${esc(p.name||'Untitled design')}</b><small>${p.updated?new Date(p.updated).toLocaleDateString([],{month:'short',day:'numeric'}):''}</small></div>`;
-    b.onclick=async()=>{ b.disabled=true; const piece=await pieceFromProject(p.id,p.name); if(!piece){ b.disabled=false; return toast('Could not open this project'); } setMine(pickFor,piece); $('#pModal').classList.add('hidden'); };
+    b.onclick=async()=>{ b.disabled=true; const piece=await pieceFromProject(p.id,p.name); if(!piece){ b.disabled=false; return toast('Could not open this project'); }
+      S.photos.unshift(piece); S.main=piece.id; if(piece.back) S.back=true; $('#pModal').classList.add('hidden'); changed(); toast(`${piece.name} added as the main piece`); };
     L.appendChild(b); }); }
-async function pieceFromProject(id,name){ let q=await edDB.get('projects',id); if(!projImg(q)&&window.SPOOL_AUTH?.user){ try{ q=await window.SPOOL_AUTH.cloud.load(id)||q; }catch(e){} }
-  if(!projImg(q)) return null; const bk=projBack(q);
-  return {front:await shrink(projImg(q),1280),back:bk?await shrink(bk,1280):null,name:q.name||name||'My design',pid:id,body:q.body||''}; }
 $('#pClose').onclick=()=>$('#pModal').classList.add('hidden');
 $('#pModal').addEventListener('click',e=>{ if(e.target.id==='pModal') $('#pModal').classList.add('hidden'); });
-$('#myFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1280); if(!d) throw new Error('Could not read that image'); setMine(pickFor,{front:d,back:null,name:'My '+CAT(pickFor).label.toLowerCase(),pid:null}); }catch(er){ toast(er.message); } };
-$('#myBackFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1280); if(!d||!S.slots[backFor]?.mine) throw new Error('Could not read that image'); S.slots[backFor].mine.back=d; changed(); toast('Back photo added — the back view is on'); }catch(er){ toast(er.message); } };
-document.addEventListener('paste',e=>{ const it=[...(e.clipboardData?.items||[])].find(x=>x.kind==='file'&&x.type.startsWith('image/')); if(!it||e.target.closest('textarea,input')) return; e.preventDefault();
-  const k=CAT(S.cat).slot?S.cat:'top'; readFile(it.getAsFile()).then(d=>shrink(d,1280)).then(d=>setMine(k,{front:d,back:null,name:'My '+CAT(k).label.toLowerCase(),pid:null})).catch(er=>toast(er.message)); });
 
 /* ---------- lightbox ---------- */
 const openLB=src=>{ $('#lbImg').src=src; $('#lb').classList.add('open'); };
@@ -519,14 +472,14 @@ window.SPOOL_AUTH?.mount($('#acct'));
 if(MOCK) $('#mockbar').classList.remove('hidden');
 (async()=>{
   const q=new URLSearchParams(location.search), d=await modelDB.get('kv','draft');
-  if(d){ applySettings(d); const r=d.v===2?{slots:Object.assign(blankSlots(),d.slots||{}),main:d.main}:legacySlots(d.garment,d.custom,d); S.slots=r.slots; S.main=r.main;
+  if(d){ applySettings(d); if(d.v===3){ S.photos=d.photos||[]; S.main=d.main; S.mine=d.mine||null; S.ref=d.ref||null; } else { const r=fromOld(d); S.photos=r.photos; S.main=r.main; if(r.note) S.note=r.note; }
+    if(S.model==='mine'&&!S.mine) S.model='marcus';
     if(d.shootId){ const s=await modelDB.get('shoots',d.shootId); if(s) S.shoot=s; } }
-  const intoSlot=(piece)=>{ const k=BODY_SLOT[piece.body]||'top'; S.slots[k]={v:'mine',mine:piece}; S.main=k; S.cat=k; S.shoot=null; saveDraft(); };
-  if(q.get('from')==='editor'){ const h=await edDB.get('kv','toModel'); if(h?.front){ intoSlot({front:h.front,back:h.back||null,name:h.name||'My design',pid:h.pid||null,body:h.body||''}); await edDB.put('kv',null,'toModel'); } history.replaceState(null,'','model.html'); }
-  if(q.get('pid')){ await window.SPOOL_AUTH?.ready; const piece=await pieceFromProject(q.get('pid')); if(piece) intoSlot(piece); else toast('Could not open that project'); history.replaceState(null,'','model.html'); }
+  const asMain=piece=>{ S.photos=S.photos.filter(p=>!(piece.pid&&p.pid===piece.pid)); S.photos.unshift(piece); S.main=piece.id; if(piece.back) S.back=true; S.shoot=null; saveDraft(); };
+  if(q.get('from')==='editor'){ const h=await edDB.get('kv','toModel'); if(h?.front){ asMain({id:uid(),front:h.front,back:h.back||null,name:h.name||'My design',pid:h.pid||null}); await edDB.put('kv',null,'toModel'); } history.replaceState(null,'','model.html'); }
+  if(q.get('pid')){ await window.SPOOL_AUTH?.ready; const piece=await pieceFromProject(q.get('pid')); if(piece) asMain(piece); else toast('Could not open that project'); history.replaceState(null,'','model.html'); }
   if(q.get('shoot')){ const s=await modelDB.get('shoots',q.get('shoot')); if(s) openShoot(s); }
-  if(S.main&&!q.get('shoot')) S.cat=S.main;
-  renderAll(); renderResult(); renderMine();
+  $('#note').value=S.note; renderAll(); renderResult(); renderMine();
 })();
 </script>
 </body>
