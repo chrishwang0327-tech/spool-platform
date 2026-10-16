@@ -873,7 +873,10 @@ const invCache={};
 async function aiText(task,images,extra={}){ const tk=await window.SPOOL_AUTH?.token?.();
   const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({task,prompt:task,...extra,images:images.map(u=>({dataUrl:u}))})});
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||task+' failed'); return d; }
+let artOK=null;   // the Worker's self-check says whether it knows "inventory"/"verify" (an older Worker would treat them as a paid design call)
+async function workerHasArt(){ if(artOK===null){ try{ const r=await fetch(AI_ENDPOINT,{method:'GET'}); artOK=(await r.json()).artwork===true; }catch(e){ artOK=false; } } return artOK; }
 async function artInventory(){ const u=state.refs['graphic-front']; if(!u||state.front.graphicUse!=='full') return null;
+  if(!(await workerHasArt())){ console.warn('Worker has no artwork check yet — paste the latest spool-ai-worker.js into Cloudflare'); return null; }
   const k=refSig(u); if(invCache[k]) return invCache[k];
   setSpinPhase('Listing every artwork on your reference');
   try{ const d=await Promise.race([aiText('inventory',[await shrink(u,1024)]),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),25000))]);

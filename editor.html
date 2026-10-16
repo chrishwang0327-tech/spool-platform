@@ -46,6 +46,11 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100v
 .bar .sp{flex:1}
 .hint{font-size:12px;color:var(--muted)}
 .stagewrap{display:flex;justify-content:center}
+.stagewrap.zoomed{display:block;overflow:auto;border-radius:18px;margin:0 auto;overscroll-behavior:contain}
+.stagewrap.zoomed .stage{max-width:none;border-radius:0}
+.stagewrap.zoomed .stage:not(.draw){cursor:grab}.stagewrap.zoomed .stage.panning{cursor:grabbing}
+.zoom{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;background:#fff;overflow:hidden}
+.zoom button{padding:5px 11px;font-size:14px;font-weight:600;line-height:1}.zoom button:hover{background:var(--y2)}.zoom #zPct{font-size:12px;min-width:52px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .stage{position:relative;width:100%;max-width:min(720px,calc(100vh - 210px));aspect-ratio:1;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px -30px rgba(32,29,24,.35);user-select:none;touch-action:none}
 .stage.draw{cursor:crosshair}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -67,6 +72,29 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100v
 .empty h2{font-size:22px}
 .empty p{color:var(--muted);max-width:360px}
 .card.inl{margin:2px 0 6px;border:1.5px solid var(--ink);box-shadow:0 6px 18px -10px rgba(32,29,24,.35)}
+.spool-art{width:min(320px,80%);height:auto;margin-bottom:18px}
+.spool-rot{transform-origin:110px 100px;animation:spoolTurn 1.6s linear infinite}
+.wind{animation:windDrift 1.6s linear infinite}
+.thread{stroke-dasharray:6 6;animation:threadRun .6s linear infinite}
+.stitch{animation:stitchRun 1.2s linear infinite}
+.needle{animation:needleUp .6s ease-in-out infinite}
+@keyframes spoolTurn{50%{transform:scaleX(.92)}}
+@keyframes windDrift{to{transform:translateY(12px)}}
+@keyframes threadRun{to{stroke-dashoffset:-12}}
+@keyframes stitchRun{to{stroke-dashoffset:-42}}
+@keyframes needleUp{50%{transform:translateY(-14px)}}
+.spin-k{font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;opacity:.65}
+.spin-h{font-size:clamp(26px,3vw,36px);font-weight:600;letter-spacing:-.03em;text-transform:uppercase;line-height:1;margin:8px 0 12px}
+.spin-step{font-size:15px;min-height:22px}
+.spin-bar{width:min(280px,80%);height:4px;border-radius:99px;background:rgba(32,29,24,.15);margin:18px auto 10px;overflow:hidden}
+.spin-bar i{display:block;height:100%;width:0;background:var(--ink);border-radius:99px;transition:width 1s linear}
+.spin-t{font-size:12px;opacity:.7}
+.busy.ldr{background:var(--y,#FEE32B);border-radius:20px;gap:0;color:#201D18}
+.ldr .steps{list-style:none;margin:4px 0 0;display:flex;flex-direction:column;gap:7px;font-size:15px;text-align:left}
+.ldr .steps li{display:flex;gap:10px;align-items:center}.ldr .steps i{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:700;flex:none}
+.ldr .steps .ok i{background:#201D18;color:#FEE32B}.ldr .steps .ok i::before{content:'✓'}.ldr .steps .now{font-weight:600}.ldr .steps .now i{border:2px solid #201D18;border-top-color:transparent;animation:ldrR 1s linear infinite}
+.ldr .steps .wait{opacity:.45}.ldr .steps .wait i{border:2px solid rgba(32,29,24,.3)}
+@keyframes ldrR{to{transform:rotate(360deg)}}
 .busy{position:absolute;inset:0;background:rgba(253,253,249,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:20;text-align:center;padding:20px}
 .busy b{font-size:17px}
 .spinner{width:30px;height:30px;border-radius:50%;border:3px solid var(--line2);border-top-color:var(--ink);animation:sp 1s linear infinite}
@@ -194,6 +222,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
     <div class="bar">
       <div class="seg" id="sideSeg"><button class="on" data-v="front">Front</button><button data-v="back">Back</button></div>
       <button class="btn sm" id="hideBtn" title="Show the design without boxes">Hide boxes</button>
+      <span class="zoom" title="Zoom (pinch, or Ctrl + scroll)"><button type="button" id="zOut" aria-label="Zoom out">−</button><button type="button" id="zPct" title="Fit to screen">100%</button><button type="button" id="zIn" aria-label="Zoom in">+</button></span>
       <button class="btn sm" id="undoBtn" title="Undo (Cmd/Ctrl + Z)" aria-label="Undo">↶</button>
       <button class="btn sm" id="redoBtn" title="Redo (Cmd/Ctrl + Shift + Z)" aria-label="Redo">↷</button>
       <span class="sp"></span>
@@ -677,8 +706,25 @@ function boxDown(e,p,resize){
   const up=()=>{ cleanup(); if(moved&&art&&p.layer){ const G=garmSync(S()); if(G&&!onGarment(G,p.b)){ p.b=pullIn(G,p.b); toast('Artwork has to stay on the garment'); } } if(moved) save(); render(); };
   addEventListener('pointermove',mv); addEventListener('pointerup',up);
 }
+/* ---------- zoom: the stage grows inside a scrolling frame; boxes are in %, so they follow ---------- */
+let zoom=1; const ZMAX=3, wrapEl=stage.parentElement;
+function setZoom(z,cx,cy){ z=Math.round(Math.max(1,Math.min(ZMAX,z))*100)/100; const old=zoom; if(z===old) return;
+  const base=wrapEl.classList.contains('zoomed')?stage.offsetWidth/old:stage.offsetWidth;
+  const r=wrapEl.getBoundingClientRect(); cx=cx??r.width/2; cy=cy??r.height/2;
+  const fx=(wrapEl.scrollLeft+cx)/(base*old), fy=(wrapEl.scrollTop+cy)/(base*old); zoom=z;
+  if(z===1){ wrapEl.classList.remove('zoomed'); wrapEl.style.width=wrapEl.style.height=''; stage.style.width=''; }
+  else { wrapEl.classList.add('zoomed'); wrapEl.style.width=wrapEl.style.height=base+'px'; stage.style.width=base*z+'px'; wrapEl.scrollLeft=fx*base*z-cx; wrapEl.scrollTop=fy*base*z-cy; }
+  $('#zPct').textContent=Math.round(z*100)+'%'; }
+$('#zIn').onclick=()=>setZoom(zoom+.5); $('#zOut').onclick=()=>setZoom(zoom-.5); $('#zPct').onclick=()=>setZoom(1);
+wrapEl.addEventListener('wheel',e=>{ if(!e.ctrlKey||!P) return; e.preventDefault(); const r=wrapEl.getBoundingClientRect(); setZoom(zoom*Math.max(.8,Math.min(1.25,Math.exp(-e.deltaY*.004))),e.clientX-r.left,e.clientY-r.top); },{passive:false});
+addEventListener('resize',()=>{ if(zoom>1){ const z=zoom; zoom=1; wrapEl.classList.remove('zoomed'); wrapEl.style.width=wrapEl.style.height=''; stage.style.width=''; setZoom(z); } });
 stage.addEventListener('pointerdown',e=>{
   if(!P||!S().base) return;
+  if(tool!=='draw'&&zoom>1&&e.target===cv){ // drag the empty image to move around; a tap still deselects
+    const x0=e.clientX, y0=e.clientY, sl=wrapEl.scrollLeft, st=wrapEl.scrollTop; let moved=false; stage.classList.add('panning');
+    const mv=ev=>{ const dx=ev.clientX-x0, dy=ev.clientY-y0; if(Math.abs(dx)+Math.abs(dy)>4) moved=true; wrapEl.scrollLeft=sl-dx; wrapEl.scrollTop=st-dy; };
+    const up=()=>{ removeEventListener('pointermove',mv); removeEventListener('pointerup',up); stage.classList.remove('panning'); if(!moved&&sel){ sel=null; render(); } };
+    addEventListener('pointermove',mv); addEventListener('pointerup',up); return; }
   if(tool!=='draw'){ if(e.target===cv&&sel){ sel=null; render(); } return; }
   e.preventDefault(); const [sx,sy]=toU(e); const d=document.createElement('div'); d.className='drawing'; stage.appendChild(d);
   const rect=(x,y)=>[Math.min(sx,x),Math.min(sy,y),Math.abs(x-sx),Math.abs(y-sy)];
@@ -703,10 +749,36 @@ document.addEventListener('keydown',e=>{ if(['INPUT','TEXTAREA'].includes(docume
 
 /* ================= busy ================= */
 let busyEl=null;
-function busy(on,t,s){ if(busyEl){busyEl.remove();busyEl=null;} if(!on) return;
+let ldrT=null;
+function busy(on,t,s){ clearInterval(ldrT); if(busyEl){busyEl.remove();busyEl=null;} if(!on) return;
   busyEl=document.createElement('div'); busyEl.className='busy'; busyEl.innerHTML=`<div class="spinner"></div><b>${esc(t)}</b><div class="hint">${esc(s||(MOCK?'Preview mode: simulated AI':'About 15–40 seconds'))}</div>`; stage.appendChild(busyEl);
   $$('aside button, .bar button').forEach(b=>b.dataset.busy=on?'1':''); }
 const isBusy=()=>!!busyEl;
+// the yellow SPOOL loader with steps (opening a design): L.go(i) marks steps before i done and i in progress
+const OPEN_STEPS=['Loading front and back','Getting your project','Setting the chest line and shoulders','Ready to edit'];
+function loader(steps=OPEN_STEPS,title='Opening your design'){ busy(false);
+  const el=document.createElement('div'); el.className='busy ldr'; el.setAttribute('role','status');
+  el.innerHTML=`<svg class="spool-art" viewBox="0 0 320 200" aria-hidden="true">
+        <g class="spool-rot">
+          <rect x="70" y="40" width="80" height="12" rx="6" fill="#201D18"/>
+          <rect x="70" y="148" width="80" height="12" rx="6" fill="#201D18"/>
+          <rect x="82" y="52" width="56" height="96" fill="#FDFDF9"/>
+          <g stroke="#201D18" stroke-width="3" class="wind">
+            <line x1="82" y1="62" x2="138" y2="70"/><line x1="82" y1="74" x2="138" y2="82"/><line x1="82" y1="86" x2="138" y2="94"/>
+            <line x1="82" y1="98" x2="138" y2="106"/><line x1="82" y1="110" x2="138" y2="118"/><line x1="82" y1="122" x2="138" y2="130"/><line x1="82" y1="134" x2="138" y2="142"/>
+          </g>
+        </g>
+        <path class="thread" d="M138 96 C 180 96, 190 150, 230 150 L 300 150" fill="none" stroke="#201D18" stroke-width="3"/>
+        <path class="stitch" d="M150 178 L 304 178" fill="none" stroke="#201D18" stroke-width="4" stroke-dasharray="12 9"/>
+        <g class="needle"><line x1="300" y1="118" x2="300" y2="178" stroke="#201D18" stroke-width="3"/><circle cx="300" cy="124" r="3" fill="#FDFDF9" stroke="#201D18" stroke-width="2"/></g>
+      </svg><div class="spin-k">SPOOL is working</div><div class="spin-h">${esc(title)}</div>
+    <ul class="steps">${steps.map(x=>`<li class="wait"><i></i>${esc(x)}</li>`).join('')}</ul><div class="spin-bar"><i></i></div><div class="spin-t"><span>0:00</span> · usually under 5 seconds</div>`;
+  stage.appendChild(el); busyEl=el; $$('aside button, .bar button').forEach(b=>b.dataset.busy='1');
+  const t0=Date.now(), lis=[...el.querySelectorAll('.steps li')], bar=el.querySelector('.spin-bar i'), tm=el.querySelector('.spin-t span');
+  ldrT=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); tm.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); },1000);
+  const L={ go(i){ if(busyEl!==el) return; lis.forEach((li,n)=>li.className=n<i?'ok':n===i?'now':'wait'); bar.style.width=Math.round((i+.5)/lis.length*100)+'%'; },
+    end(){ if(busyEl!==el) return; L.go(lis.length); bar.style.width='100%'; setTimeout(()=>{ if(busyEl===el) busy(false); },250); } };
+  L.go(0); return L; }
 
 /* ================= pixel ops ================= */
 // square crop around a box, in pixels
@@ -1326,7 +1398,7 @@ function upgrade(p){ // older editor projects → v3
   ['front','back'].forEach(sd=>{ const o=p.sides?.[sd]; const src=o?.original||o?.base||null; q.sides[sd].original=src; q.sides[sd].base=src; });
   return q;
 }
-async function openProject(p){ let wasPending=false; if(p&&p.pending){ wasPending=true; busy(true,'Opening your design','Loading front and back'); try{ p=await completeProject(p.pending,{id:p.id,created:p.created,name:p.name}); } finally{ busy(false); } }
+async function openProject(p,L){ let wasPending=false; if(p&&p.pending){ wasPending=true; const own=!L; L=L||loader(); L.go(2); try{ p=await completeProject(p.pending,{id:p.id,created:p.created,name:p.name}); } finally{ if(own) L.end(); } }
   viewOrig=false; compare=false; undoStack={front:[],back:[]}; redoStack={front:[],back:[]}; P=upgrade(p); P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); P.labels=Object.assign(blankLabels(),P.labels||{}); if(!P.trims?.items){ if(kitP) await Promise.race([kitP,wait(1500)]); P.trims=initTrims(P); } for(const it of TRIM_ITEMS) if(!P.trims.items[it.k]) P.trims.items[it.k]=stdTrim(it.k,P.body); P.style=Object.assign(blankStyle(),P.style||{}); if(!P.style.no){ const d=new Date(P.created||Date.now()); P.style.no='SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(P.id).slice(-3).toUpperCase(); } if(!P.style.category) P.style.category=GARMENT_NAME[P.body]||'Top'; ['front','back'].forEach(sd=>{ renumber(P.sides[sd]); const sc=P.sides[sd]; if(sc.clean&&!sc.cleanOf) sc.cleanOf=baseKey(sc); }); for(const sd of ['front','back']){ const sc=P.sides[sd]; if(sc.base&&sc.calAuto&&sc.calV!==2&&(P.body==='hoodie'||P.body==='zip')) await autoCal(sc,P.body); } for(const sd of ['front','back']){ const sc=P.sides[sd]; const dc=defCal(); if(sc.base&&!sc.calAuto&&!sc.calSet&&sc.cal&&sc.cal.x1===dc.x1&&sc.cal.x2===dc.x2&&sc.cal.y===dc.y&&sc.cal.hps===dc.hps) await autoCal(sc,P.body); } side=P.sides.front.base||!P.sides.back.base?'front':'back'; sel=null; tool=null;
   $('#pname').value=P.name; dirty=false; setSave(window.SPOOL_AUTH?.user?'cloud':'local'); render(); updChg(); recut(); if(wasPending) save(); checkBodyLater(); }
 async function recut(){ const pp=P; let n=0; for(const sd of ['front','back']){ const s=pp.sides[sd]; if(!cleanReady(s)) continue; await garmentOf(s); let M=null;
@@ -1395,13 +1467,14 @@ async function completeProject(h,meta={}){ // studio handoff → editor project
 }
 async function fromStudio(){
   const h=await studioDB.get('kv','handoff'); if(!h||!h.ai) return false;
-  busy(true,'Opening your design','Loading front and back');
+  const L=loader();
   try{
+    L.go(1);
     if(h.pid){ let ex=await edDB.get('projects',h.pid); const A=window.SPOOL_AUTH;
       if(!ex&&A?.user){ try{ ex=await within(A.cloud.load(h.pid),5000); }catch(e){ console.warn(e); } }
-      if(ex){ await studioDB.put('kv',null,'handoff'); busy(false); await openProject(ex); window.SPOOL_TRACK?.('editor_open'); toast('Opened your project — edits are saved to it'); return true; } }
-    const p=await completeProject(h,{id:h.pid});
-    await studioDB.put('kv',null,'handoff'); busy(false); await openProject(p); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
+      if(ex){ await studioDB.put('kv',null,'handoff'); L.go(2); await openProject(ex,L); L.end(); window.SPOOL_TRACK?.('editor_open'); toast('Opened your project — edits are saved to it'); return true; } }
+    L.go(2); const p=await completeProject(h,{id:h.pid});
+    await studioDB.put('kv',null,'handoff'); await openProject(p,L); L.end(); save(); window.SPOOL_TRACK?.('editor_open'); toast('Design opened. Drag “＋ Select area” over a graphic to spec it.');
   } finally { busy(false); }
   return true;
 }
