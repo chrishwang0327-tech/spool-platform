@@ -111,7 +111,7 @@
   function renderChips(){ chips.forEach(el=>{
     if(!user){ el.innerHTML=`<button type="button" class="sa-chip out">Sign in</button>`; el.firstChild.onclick=()=>modal(); return; }
     const em=user.email||''; el.innerHTML=`<button type="button" class="sa-chip" aria-haspopup="menu"><span class="sa-av">${(em[0]||'?').toUpperCase()}</span>Account</button>
-      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><button type="button" role="menuitem" class="sa-plan" data-plan>Plan: Free <i>· Upgrade</i></button><a href="editor.html#projects" role="menuitem">My projects</a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
+      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><button type="button" role="menuitem" class="sa-plan" data-plan>Plan: Free <i>· Upgrade</i></button><a href="editor.html#projects" role="menuitem">My projects</a><a href="model.html" role="menuitem">Model photos</a><a href="linesheet.html" role="menuitem">Line sheet</a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
     const btn=el.querySelector('.sa-chip'), menu=el.querySelector('.sa-menu'); el.style.position='relative';
     btn.onclick=e=>{ e.stopPropagation(); menu.classList.toggle('open'); if(menu.classList.contains('open')){ menu.style.left=''; menu.style.right=''; const r=menu.getBoundingClientRect(); if(r.left<8){ menu.style.right='auto'; menu.style.left='0'; } else if(r.right>innerWidth-8){ menu.style.left='auto'; menu.style.right='0'; } } };
     document.addEventListener('click',()=>menu.classList.remove('open'));

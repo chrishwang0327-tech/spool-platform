@@ -6,6 +6,8 @@ Static site for spoolnyc.com, published with GitHub Pages (`CNAME`). No build st
 - `index.html` — landing page
 - `studio.html` — Design Studio (AI designs from references)
 - `editor.html` — design editor, projects, tech pack and production files
+- `model.html` — Model Photos: the garment on one of 6 fixed SPOOL models, front / side / back in one AI image, with Fix it (circle + note)
+- `linesheet.html` — Line Sheet: styles from My projects / model photos → A4 landscape pages → print to PDF
 - `techpack.html` — tech pack preparation
 - `admin.html` — SPOOL team dashboard (needs `is_admin`)
 - `privacy.html`, `terms.html`

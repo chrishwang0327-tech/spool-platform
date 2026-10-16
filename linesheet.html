@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Line Sheet — SPOOL</title>
+<link rel="icon" href="assets/spool-logo-1.png">
+<meta name="description" content="Put your styles on one page for buyers and download it as a PDF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FDFDF9;--ink:#201D18;--muted:#7a7566;--line:#201D1814;--soft:#F3F1E8;--accent:#877928;--y:#FEE32B;--y2:#FBEF9C}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+button,input{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}a{color:inherit}
+.hidden{display:none!important}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;position:sticky;top:0;z-index:8;background:rgba(253,253,249,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header>*{flex:1}.back{font-size:13px;font-weight:500;text-decoration:none;opacity:.7}.back:hover{opacity:1}
+.brand{flex:0 0 auto;text-align:center;text-decoration:none}.brand img{height:22px;display:block;margin:0 auto}.brand span{display:block;font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-top:6px}
+.hdr-cta{display:flex;justify-content:flex-end}
+main{max-width:1440px;margin:0 auto;padding:24px 32px 60px;display:grid;grid-template-columns:420px minmax(0,1fr);gap:24px;align-items:start}
+h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-transform:uppercase;line-height:1}
+.lead{color:var(--muted);margin:6px 0 16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.card h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h3 button{letter-spacing:0;text-transform:none;font-weight:600;text-decoration:underline;font-size:12.5px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{grid-template-columns:1fr 1fr 1fr}
+.f{display:block;min-width:0}.f span{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+.f input{width:100%;border:1px solid transparent;background:var(--soft);border-radius:10px;padding:8px 10px;font-size:13px;outline:none}
+.f input:focus{background:#fff;border-color:var(--ink);box-shadow:0 0 0 3px var(--y2)}
+.seg{display:inline-flex;background:var(--soft);border-radius:99px;padding:3px;margin-top:10px;flex-wrap:wrap}
+.seg button{padding:4px 11px;border-radius:99px;font-size:12px;color:var(--muted)}.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.logo{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12.5px}
+.logo .lg{width:90px;height:34px;border:1.5px dashed #c9c3ad;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:11px;color:var(--muted);cursor:pointer;background:#fff}
+.logo .lg img{max-width:100%;max-height:100%;object-fit:contain}
+.logo button{text-decoration:underline;font-size:12px;color:var(--muted)}
+.style{border-top:1px solid var(--line)}
+.style:first-child{border-top:0}
+.sh2{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:8px 0;cursor:pointer}
+.sh2 .th{width:52px;height:52px;border-radius:10px;background:var(--soft);overflow:hidden}.sh2 .th img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.sh2 b{font-size:13px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sh2 small{color:var(--muted);font-size:11.5px}
+.mv{display:flex;gap:2px}.mv button{width:26px;height:26px;border-radius:50%;font-size:12px;color:var(--muted)}.mv button:hover{background:var(--soft);color:var(--ink)}
+.style.open .sh2{background:var(--y2);margin:0 -16px;padding:8px 16px}
+.edit{padding:10px 0 12px}
+.sizes{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}.sizes button{border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:12px;background:#fff}.sizes button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.imgpick{display:flex;gap:8px;margin-top:10px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.imgpick .pi{width:44px;height:44px;border-radius:8px;overflow:hidden;border:2px solid transparent;background:var(--soft);cursor:pointer;position:relative}
+.imgpick .pi.on{border-color:var(--ink)}.imgpick .pi img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.imgpick .pi span{position:absolute;left:2px;bottom:2px;background:#fff;border-radius:99px;font-size:7.5px;font-weight:600;padding:0 4px;text-transform:uppercase}
+.rm{font-size:12px;text-decoration:underline;color:#a3341d;margin-top:10px}
+.add{width:100%;border:1.5px dashed #c9c3ad;border-radius:14px;padding:12px;font-weight:600;margin-top:8px}.add:hover{background:var(--y2)}
+.empty-s{font-size:13px;color:var(--muted);padding:6px 0 4px}
+.go{width:100%;background:var(--y);border-radius:99px;padding:16px;font-weight:600;letter-spacing:.16em;font-size:14px;box-shadow:0 8px 24px rgba(254,227,43,.35);transition:.15s}.go:hover{background:var(--ink);color:var(--y)}.go:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center}
+.sec{display:flex;gap:8px;margin-top:8px}.sec button,.sec a{flex:1;border:1px solid var(--line);background:#fff;border-radius:99px;padding:10px;font-size:13px;font-weight:500;text-align:center;text-decoration:none}.sec button:hover,.sec a:hover{background:var(--y2)}
+/* preview + print pages (sizes in container units so screen and paper match) */
+.pv{position:sticky;top:96px}
+.pvbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--muted)}
+.pvbar b{font-size:13px;letter-spacing:.18em;color:var(--ink);font-weight:600}
+#pages{display:flex;flex-direction:column;gap:16px}
+.sheet{container-type:inline-size;background:#fff;aspect-ratio:297/210;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.05),0 24px 60px -30px rgba(32,29,24,.35);border:1px solid var(--line);overflow:hidden}
+.pg{width:100%;height:100%;padding:3.2cqw 3.6cqw;display:flex;flex-direction:column}
+.shd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.2cqw solid var(--ink);padding-bottom:1.2cqw;gap:2cqw}
+.shd .bn{font-size:2.6cqw;font-weight:700;letter-spacing:.5cqw;line-height:1}.shd .bn img{height:3.4cqw;display:block}
+.shd .ss{font-size:1.05cqw;color:var(--muted);text-align:right;line-height:1.35}.shd .ss b{color:var(--ink);font-size:1.35cqw;font-weight:600}
+.items{display:grid;gap:2cqw;margin-top:2cqw;flex:1;min-height:0}
+.it{display:flex;flex-direction:column;min-width:0;min-height:0}
+.it .im{flex:1;min-height:0;background:#F6F4EE;border-radius:.4cqw;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.it .im img{width:100%;height:100%;object-fit:cover;object-position:center top}.it .im img.prod{object-fit:contain;object-position:center}
+.it .im img.inset{position:absolute;right:.5cqw;bottom:.5cqw;width:28%;height:auto;aspect-ratio:1;background:#fff;border-radius:.3cqw;box-shadow:0 .1cqw .4cqw rgba(0,0,0,.15);object-fit:contain;padding:.2cqw}
+.it .info{height:var(--info,10.5cqw);overflow:hidden;flex:none}
+.it .no{font-size:.95cqw;color:var(--muted);margin-top:.8cqw;letter-spacing:.1cqw;min-height:1.2cqw}
+.it .nm{font-size:1.25cqw;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .cl{font-size:.95cqw;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:.3cqw}
+.it table{font-size:.95cqw;border-collapse:collapse;width:100%}.it td{padding:.05cqw 0}.it td:last-child{text-align:right;font-weight:600}
+.sf{display:flex;justify-content:space-between;font-size:.9cqw;color:var(--muted);border-top:.1cqw solid #e8e4d8;padding-top:1cqw;margin-top:1.6cqw}
+.blank{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:1.6cqw;text-align:center;padding:4cqw}
+/* modal */
+.modal{position:fixed;inset:0;z-index:40;background:rgba(32,29,24,.5);display:flex;align-items:center;justify-content:center;padding:20px}
+.mbox{background:var(--bg);border-radius:22px;width:min(760px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+.mhead{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 10px}.mhead h2{font-size:20px;font-weight:600}
+.mtabs{display:flex;gap:6px;padding:0 20px 10px;flex-wrap:wrap}.mtabs button{border:1px solid var(--line);border-radius:99px;padding:6px 13px;font-size:12.5px;background:#fff}.mtabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.mlist{overflow:auto;padding:0 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pick{background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden;text-align:left;position:relative}
+.pick:hover{border-color:var(--ink)}.pick.added{opacity:.45}
+.pick img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center top;display:block;background:var(--soft)}
+.pick div{padding:7px 9px}.pick b{font-size:12.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pick small{color:var(--muted);font-size:11px}
+.pick .tagm{position:absolute;top:6px;left:6px;background:var(--y);border-radius:99px;font-size:10px;font-weight:600;padding:1px 7px}
+.mempty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:24px;text-align:center;border:1.5px dashed var(--line);border-radius:14px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:500}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#FDFDF9;padding:10px 18px;border-radius:99px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media (max-width:980px){header{padding:14px 16px}main{grid-template-columns:1fr;padding:16px 16px 48px}.pv{position:static;order:-1}}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  html,body{background:#fff}
+  header,main>section:first-child,.pvbar,.toast,.modal{display:none!important}
+  main{display:block;padding:0;max-width:none}.pv{position:static}
+  #pages{gap:0;display:block}
+  .sheet{width:297mm;height:210mm;aspect-ratio:auto;border:0;border-radius:0;box-shadow:none;page-break-after:always;break-after:page}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="auth.js?v=20261016e"></script>
+</head>
+<body>
+<header>
+  <a class="back" href="editor.html#projects">← My projects</a>
+  <a class="brand" href="index.html"><img src="assets/spool-logo-1.png" alt="SPOOL"><span>Line Sheet</span></a>
+  <div class="hdr-cta" id="acct"></div>
+</header>
+<main>
+  <section>
+    <h1>Line sheet.</h1>
+    <p class="lead">Your styles on one page for buyers. Download it as a PDF.</p>
+    <div class="card"><h3>Sheet <button type="button" id="newSheet">New sheet</button></h3>
+      <div class="row"><label class="f"><span>Brand</span><input data-k="brand" placeholder="Your brand"></label><label class="f"><span>Season</span><input data-k="season" placeholder="e.g. Fall / Winter 2027"></label></div>
+      <div class="row" style="margin-top:8px"><label class="f"><span>Contact</span><input data-k="contact" placeholder="sales@yourbrand.com"></label><label class="f"><span>Delivery window</span><input data-k="delivery" placeholder="e.g. Jan 15 – Feb 28"></label></div>
+      <label class="f" style="margin-top:8px"><span>Terms (bottom of each page)</span><input data-k="terms"></label>
+      <div class="logo"><div class="lg" id="logoBox" title="Add your logo">+ Logo</div><button type="button" class="hidden" id="logoRm">Remove logo</button><input type="file" accept="image/*" id="logoFile" hidden></div>
+      <div><div class="seg" id="photoSeg"><button data-v="model">Model photos</button><button data-v="product">Product photos</button><button data-v="both">Both</button></div></div>
+      <div><div class="seg" id="perSeg"><button data-v="4">4 per page</button><button data-v="6">6 per page</button><button data-v="8">8 per page</button></div></div>
+    </div>
+    <div class="card"><h3 id="stylesH">Styles <button type="button" id="addTop">+ Add</button></h3>
+      <div id="styles"></div>
+      <button class="add" id="addBtn">+ Add from My projects or model photos</button>
+    </div>
+    <button class="go" id="pdf">DOWNLOAD PDF</button>
+    <div class="hint">Opens the print window — choose <b>Save as PDF</b>. Set layout to landscape if asked.</div>
+    <div class="sec"><a href="model.html">Make model photos</a><a href="studio.html">Design Studio</a></div>
+  </section>
+  <section class="pv">
+    <div class="pvbar"><b>PREVIEW</b><span id="pvInfo">A4 landscape</span></div>
+    <div id="pages"></div>
+  </section>
+</main>
+
+<div class="modal hidden" id="modal"><div class="mbox">
+  <div class="mhead"><h2>Add styles</h2><button class="btn" id="mClose">Done</button></div>
+  <div class="mtabs" id="mTabs"><button data-t="projects" class="on">My projects</button><button data-t="models">Model photos</button><button data-t="upload">Upload a photo</button></div>
+  <div class="mlist" id="mList"></div>
+</div></div>
+<input type="file" accept="image/*" id="upFile" hidden><input type="file" accept="image/*" id="swapFile" hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   SPOOL Line Sheet — styles from My projects / model photos → A4 landscape pages → print to PDF
+   ============================================================ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const toast=(m,ms)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms||2600)};
+const IDB=(name,up)=>{let p;const open=()=>p||(p=(async()=>{ const sc=window.SPOOL_AUTH?await window.SPOOL_AUTH.scope():'guest'; return await new Promise((res,rej)=>{if(!window.indexedDB) return rej('no idb'); const r=indexedDB.open(name+'-'+sc,1);r.onupgradeneeded=()=>up(r.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); })());
+  const tx=async(st,mode,fn)=>{try{const db=await open();return await new Promise((res,rej)=>{const t=db.transaction(st,mode);const o=fn(t.objectStore(st));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error);});}catch(e){console.warn(e);return null;}};
+  return{get:(st,key)=>tx(st,'readonly',s=>s.get(key)),put:(st,v,key)=>tx(st,'readwrite',s=>key===undefined?s.put(v):s.put(v,key)),all:st=>tx(st,'readonly',s=>s.getAll())};};
+const sheetDB=IDB('spool-linesheet',db=>{db.createObjectStore('kv');});
+const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'});db.createObjectStore('kv');});
+const modelDB=IDB('spool-models',db=>{db.createObjectStore('shoots',{keyPath:'id'});db.createObjectStore('kv');});
+const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=src;});
+async function shrink(src,max=1000,q=.88){ if(!src) return null; try{ const i=await loadImg(src); const s=Math.min(1,max/Math.max(i.width,i.height)); const c=document.createElement('canvas'); c.width=Math.round(i.width*s); c.height=Math.round(i.height*s); const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); return c.toDataURL('image/jpeg',q); }catch(e){ return null; } }
+const readFile=f=>new Promise((res,rej)=>{ if(!f||!f.type.startsWith('image/')) return rej(new Error('Please use an image file')); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); });
+
+const SIZES=['XS','S','M','L','XL','2XL','3XL'];
+const blankSheet=()=>({brand:'',season:'',contact:'',delivery:'',terms:'Prices in USD · FOB · Net 30',logo:null,photo:'model',per:4,styles:[]});
+let SH=blankSheet(), openId=null;
+const newStyle=o=>({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),pid:null,shootId:null,name:'Style',no:'',whl:'',msrp:'',moq:'',fabric:'',colors:'',sizes:['S','M','L','XL'],modelImg:null,productImg:null,...o});
+let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>sheetDB.put('kv',SH,'sheet'),120); }
+
+/* ---------- sheet fields ---------- */
+$$('[data-k]').forEach(i=>i.addEventListener('input',()=>{ SH[i.dataset.k]=i.value; save(); renderPages(); }));
+function segs(){ $$('#photoSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===SH.photo)); $$('#perSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===SH.per)); }
+$('#photoSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; SH.photo=b.dataset.v; segs(); save(); renderPages(); renderStyles(); };
+$('#perSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; SH.per=+b.dataset.v; segs(); save(); renderPages(); };
+function renderLogo(){ $('#logoBox').innerHTML=SH.logo?`<img src="${SH.logo}" alt="Logo">`:'+ Logo'; $('#logoRm').classList.toggle('hidden',!SH.logo); }
+$('#logoBox').onclick=()=>$('#logoFile').click();
+$('#logoFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ SH.logo=await readFile(f); renderLogo(); save(); renderPages(); }catch(er){ toast(er.message); } };
+$('#logoRm').onclick=()=>{ SH.logo=null; renderLogo(); save(); renderPages(); };
+$('#newSheet').onclick=()=>{ if(SH.styles.length&&!confirm('Start a new, empty line sheet?')) return; const keep={brand:SH.brand,contact:SH.contact,logo:SH.logo,terms:SH.terms}; SH={...blankSheet(),...keep}; openId=null; fill(); };
+function fill(){ $$('[data-k]').forEach(i=>i.value=SH[i.dataset.k]||''); segs(); renderLogo(); renderStyles(); renderPages(); save(); }
+
+/* ---------- styles list ---------- */
+const sizeRange=a=>{ const s=SIZES.filter(x=>a.includes(x)); if(!s.length) return ''; const i0=SIZES.indexOf(s[0]), i1=SIZES.indexOf(s[s.length-1]); return s.length===i1-i0+1&&s.length>1?`${s[0]}–${s[s.length-1]}`:s.join(', '); };
+const money=v=>{ v=String(v||'').trim(); if(!v) return ''; return /^[\d.,]+$/.test(v)?'$'+v:v; };
+const imgOf=st=>SH.photo==='product'?(st.productImg||st.modelImg):(st.modelImg||st.productImg);
+function renderStyles(){ const box=$('#styles'); $('#stylesH').firstChild.textContent=`Styles · ${SH.styles.length} `;
+  box.innerHTML=SH.styles.length?'':'<div class="empty-s">No styles yet. Add designs from My projects, or model photos.</div>';
+  SH.styles.forEach((st,i)=>{ const d=document.createElement('div'); d.className='style'+(openId===st.id?' open':'');
+    d.innerHTML=`<div class="sh2"><div class="th">${imgOf(st)?`<img src="${imgOf(st)}" alt="">`:''}</div><div><b>${esc(st.name||'Style')}</b><small>${esc([st.no,[money(st.whl),money(st.msrp)].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')||'Tap to add details')}</small></div>
+      <div class="mv"><button type="button" data-up title="Move up" aria-label="Move up">↑</button><button type="button" data-dn title="Move down" aria-label="Move down">↓</button></div></div>`;
+    if(openId===st.id){ const e=document.createElement('div'); e.className='edit';
+      e.innerHTML=`<label class="f"><span>Name</span><input data-s="name"></label>
+        <div class="row row3" style="margin-top:8px"><label class="f"><span>Style #</span><input data-s="no" placeholder="e.g. NB-2701"></label><label class="f"><span>Wholesale</span><input data-s="whl" placeholder="18.00"></label><label class="f"><span>MSRP</span><input data-s="msrp" placeholder="45.00"></label></div>
+        <div class="row row3" style="margin-top:8px"><label class="f"><span>MOQ</span><input data-s="moq" placeholder="24"></label><label class="f"><span>Fabric</span><input data-s="fabric" placeholder="240gsm cotton"></label><label class="f"><span>Colors</span><input data-s="colors" placeholder="Washed black, Navy"></label></div>
+        <div class="sizes">${SIZES.map(z=>`<button type="button" data-z="${z}" class="${st.sizes.includes(z)?'on':''}">${z}</button>`).join('')}</div>
+        <div class="imgpick">${st.modelImg?`<div class="pi${imgOf(st)===st.modelImg?' on':''}" title="Model photo"><img src="${st.modelImg}" alt=""><span>model</span></div>`:''}${st.productImg?`<div class="pi${imgOf(st)===st.productImg?' on':''}" title="Product photo"><img src="${st.productImg}" alt=""><span>product</span></div>`:''}
+          <button type="button" class="btn" data-swap>Change photo</button>${st.modelImg?'':`<a class="btn" style="text-decoration:none" href="${st.pid?'model.html?pid='+encodeURIComponent(st.pid):'model.html'}">Make model photo</a>`}</div>
+        <button type="button" class="rm" data-rm>Remove from sheet</button>`;
+      e.querySelectorAll('[data-s]').forEach(inp=>{ inp.value=st[inp.dataset.s]||''; inp.addEventListener('input',()=>{ st[inp.dataset.s]=inp.value; save(); renderPages(); const h=d.querySelector('.sh2'); h.querySelector('b').textContent=st.name||'Style'; h.querySelector('small').textContent=[st.no,[money(st.whl),money(st.msrp)].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')||'Tap to add details'; }); });
+      e.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{ const z=b.dataset.z; st.sizes=st.sizes.includes(z)?st.sizes.filter(x=>x!==z):[...st.sizes,z]; b.classList.toggle('on'); save(); renderPages(); });
+      e.querySelector('[data-rm]').onclick=()=>{ SH.styles.splice(i,1); openId=null; save(); renderStyles(); renderPages(); };
+      e.querySelector('[data-swap]').onclick=()=>{ swapFor=st; $('#swapFile').click(); };
+      d.appendChild(e); }
+    d.querySelector('.sh2').onclick=ev=>{ if(ev.target.closest('[data-up]')) return move(i,-1); if(ev.target.closest('[data-dn]')) return move(i,1); openId=openId===st.id?null:st.id; renderStyles(); };
+    box.appendChild(d); }); }
+function move(i,d){ const j=i+d; if(j<0||j>=SH.styles.length) return; [SH.styles[i],SH.styles[j]]=[SH.styles[j],SH.styles[i]]; save(); renderStyles(); renderPages(); }
+let swapFor=null;
+$('#swapFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(!swapFor) return; try{ const d=await shrink(await readFile(f),1000); if(SH.photo==='product') swapFor.productImg=d; else swapFor.modelImg=d; save(); renderStyles(); renderPages(); }catch(er){ toast(er.message); } };
+
+/* ---------- preview / print pages ---------- */
+function renderPages(){ const per=SH.per, n=Math.max(1,Math.ceil(SH.styles.length/per)), cols=per===4?4:per===6?3:4, rows=per===4?1:2, out=[];
+  for(let p=0;p<n;p++){ const items=SH.styles.slice(p*per,p*per+per);
+    const head=`<div class="shd"><div class="bn">${SH.logo?`<img src="${SH.logo}" alt="">`:esc(SH.brand||'YOUR BRAND').toUpperCase()}</div><div class="ss"><b>${esc(SH.season||'Season')}</b><br>${esc([SH.delivery&&'Delivery '+SH.delivery,SH.contact].filter(Boolean).join(' · '))}</div></div>`;
+    const body=items.length?`<div class="items" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));--info:${rows>1?'11.5cqw':'12.5cqw'}">${items.map(st=>{ const main=imgOf(st), prodMain=main&&main===st.productImg&&main!==st.modelImg;
+      const rowsT=[['Sizes',sizeRange(st.sizes)],['Wholesale',money(st.whl)],['MSRP',money(st.msrp)],['MOQ',st.moq],['Fabric',st.fabric]].filter(r=>r[1]);
+      return `<div class="it"><div class="im">${main?`<img class="${prodMain?'prod':''}" src="${main}" alt="">`:''}${SH.photo==='both'&&st.modelImg&&st.productImg?`<img class="inset" src="${st.productImg}" alt="">`:''}</div>
+        <div class="info"><div class="no">${esc(st.no||'')}</div><div class="nm">${esc(st.name||'Style')}</div>${st.colors?`<div class="cl">${esc(st.colors)}</div>`:''}
+        <table>${rowsT.map(r=>`<tr><td>${r[0]}</td><td>${esc(r[1])}</td></tr>`).join('')}</table></div></div>`; }).join('')}</div>`
+      :'<div class="blank">Add styles on the left — they appear here.</div>';
+    out.push(`<div class="sheet"><div class="pg">${head}${body}<div class="sf"><span>${esc(SH.terms||'')}</span><span>Made with SPOOL · page ${p+1} / ${n}</span></div></div></div>`); }
+  $('#pages').innerHTML=out.join(''); $('#pvInfo').textContent=`A4 landscape · ${per} styles per page · ${n} page${n>1?'s':''}`; }
+$('#pdf').onclick=()=>{ if(!SH.styles.length) return toast('Add at least one style first'); const t=document.title; document.title=[SH.brand,SH.season,'Line Sheet'].filter(Boolean).join(' — ');
+  window.SPOOL_TRACK?.('linesheet_pdf',{styles:SH.styles.length,per:SH.per,photo:SH.photo}); setTimeout(()=>{ window.print(); document.title=t; },50); };
+
+/* ---------- add from My projects / model photos / upload ---------- */
+const projImg=p=>p?.sides?.front?.base||p?.sides?.front?.original||p?.pending?.ai?.front||null;
+async function latestShoot(pid){ const all=(await modelDB.all('shoots'))||[]; return all.filter(s=>s.pid&&s.pid===pid).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created))[0]||null; }
+const shootFront=s=>s?(s.versions[s.cur||0]||s.versions[0]).front:null;
+async function fullProject(id){ let p=await edDB.get('projects',id); if((!p||(!projImg(p)))&&window.SPOOL_AUTH?.user){ try{ p=await window.SPOOL_AUTH.cloud.load(id)||p; }catch(e){} } return p; }
+async function addProject(id){ if(SH.styles.some(s=>s.pid===id)) return toast('Already on the sheet');
+  const p=await fullProject(id); if(!p) return toast('Could not open this project');
+  const s=await latestShoot(id), B=p.bodySpec||{}, Y=p.style||{};
+  SH.styles.push(newStyle({pid:id,shootId:s?.id||null,name:p.name||'Style',no:Y.no||'',fabric:[B.fabric,B.gsm&&B.gsm+(/gsm/i.test(B.gsm)?'':'gsm')].filter(Boolean).join(', '),colors:B.color||'',productImg:await shrink(projImg(p)),modelImg:await shrink(shootFront(s))}));
+  save(); renderStyles(); renderPages(); toast('Added: '+(p.name||'style')); }
+async function addShoot(id){ const s=await modelDB.get('shoots',id); if(!s) return toast('Model photo not found');
+  const same=SH.styles.find(x=>x.shootId===id||(s.pid&&x.pid===s.pid));
+  if(same){ same.modelImg=await shrink(shootFront(s)); same.shootId=id; save(); renderStyles(); renderPages(); return toast('Model photo updated on the sheet'); }
+  if(s.pid) return addProject(s.pid);
+  SH.styles.push(newStyle({shootId:id,name:s.name||'Style',modelImg:await shrink(shootFront(s)),productImg:await shrink(s.garmentFront||s.garment)}));
+  save(); renderStyles(); renderPages(); toast('Added'); }
+let mTab='projects';
+async function renderModal(){ $$('#mTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===mTab)); const L=$('#mList'); L.innerHTML='<div class="mempty">Loading…</div>';
+  if(mTab==='upload'){ L.innerHTML='<div class="mempty"><button class="btn" id="upBtn">Choose a photo</button><br><br>A product photo of a style that isn’t in My projects.</div>'; $('#upBtn').onclick=()=>$('#upFile').click(); return; }
+  if(mTab==='models'){ const all=((await modelDB.all('shoots'))||[]).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created));
+    L.innerHTML=all.length?'':'<div class="mempty">No model photos yet. <a href="model.html">Make one →</a></div>';
+    all.forEach(s=>{ const b=document.createElement('button'); const on=SH.styles.some(x=>x.shootId===s.id); b.className='pick'+(on?' added':''); b.innerHTML=`<img src="${shootFront(s)}" alt=""><div><b>${esc(s.name)}</b><small>${on?'On the sheet':new Date(s.created).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div>`; b.onclick=async()=>{ await addShoot(s.id); renderModal(); }; L.appendChild(b); }); return; }
+  const local=((await edDB.all('projects'))||[]); let cloud=[]; if(window.SPOOL_AUTH?.user){ try{ cloud=await window.SPOOL_AUTH.cloud.list(); }catch(e){} }
+  const map=new Map(); local.forEach(p=>map.set(p.id,{id:p.id,name:p.name,thumb:p.thumb||null,updated:p.updated||0}));
+  cloud.forEach(c=>{ if(!map.has(c.id)) map.set(c.id,{id:c.id,name:c.name,thumb:c.thumb,updated:Date.parse(c.updated_at)||0}); });
+  const list=[...map.values()].sort((a,b)=>b.updated-a.updated), shots=(await modelDB.all('shoots'))||[];
+  L.innerHTML=list.length?'':'<div class="mempty">No projects yet. Make a design in the <a href="studio.html">Design Studio</a> and save it.</div>';
+  list.forEach(p=>{ const b=document.createElement('button'), on=SH.styles.some(x=>x.pid===p.id), hasM=shots.some(s=>s.pid===p.id); b.className='pick'+(on?' added':'');
+    b.innerHTML=`<img src="${p.thumb||''}" alt="">${hasM?'<span class="tagm">Model photo</span>':''}<div><b>${esc(p.name||'Untitled design')}</b><small>${on?'On the sheet':new Date(p.updated).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div>`;
+    b.onclick=async()=>{ b.disabled=true; await addProject(p.id); renderModal(); }; L.appendChild(b); }); }
+const openModal=()=>{ $('#modal').classList.remove('hidden'); renderModal(); };
+$('#addBtn').onclick=openModal; $('#addTop').onclick=openModal; $('#mClose').onclick=()=>$('#modal').classList.add('hidden');
+$('#modal').addEventListener('click',e=>{ if(e.target.id==='modal') $('#modal').classList.add('hidden'); });
+$('#mTabs').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; mTab=b.dataset.t; renderModal(); };
+$('#upFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ const d=await shrink(await readFile(f),1000); SH.styles.push(newStyle({name:'New style',productImg:d})); openId=SH.styles[SH.styles.length-1].id; save(); renderStyles(); renderPages(); $('#modal').classList.add('hidden'); }catch(er){ toast(er.message); } };
+
+/* ---------- start ---------- */
+window.SPOOL_AUTH?.mount($('#acct'));
+(async()=>{ const s=await sheetDB.get('kv','sheet'); if(s) SH={...blankSheet(),...s};
+  fill(); const q=new URLSearchParams(location.search);
+  if(q.get('add')){ history.replaceState(null,'','linesheet.html'); await addShoot(q.get('add')); }
+  if(q.get('project')){ history.replaceState(null,'','linesheet.html'); await addProject(q.get('project')); }
+})();
+</script>
+</body>
+</html>

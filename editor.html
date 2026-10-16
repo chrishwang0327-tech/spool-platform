@@ -169,7 +169,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261016d"></script>
+<script src="auth.js?v=20261016e"></script>
 <script src="sample.js?v=20261016c"></script>
 </head>
 <body>
@@ -181,6 +181,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
     <span id="chgBadge" title="You changed this design after sending a sample request. Send a new request or email info@spoolnyc.com so the factory has the latest." style="display:none;font-size:11px;background:#fff3cd;color:#8a5a00;border:1px solid #f0d58a;border-radius:99px;padding:3px 9px;white-space:nowrap">Changed since sample request</span><button class="savechip hidden" id="saveChip" type="button" title="Click to save now"></button>
     <div class="seg hidden" id="verSeg" title="Switch between your design and the original AI design"><button class="on" data-v="cur">Current</button><button data-v="orig">Original</button></div>
     <a class="btn sm" id="studioBtn" href="studio.html" title="Go to the Design Studio">Design Studio</a>
+    <a class="btn sm" id="modelBtn" href="model.html" title="Put this design on a model: front, side and back photos">Model photo</a>
     <button class="btn sm" id="projBtn">My projects</button>
     <span id="acct"></span>
   </div>
@@ -250,7 +251,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 </main>
 
 <div class="modal hidden" id="projModal"><div class="sheet">
-  <div class="row" style="justify-content:space-between"><h2>My projects</h2><button class="btn sm" data-close>Close</button></div>
+  <div class="row" style="justify-content:space-between"><h2>My projects</h2><div class="row" style="gap:6px"><a class="btn sm" href="linesheet.html">Make a line sheet →</a><button class="btn sm" data-close>Close</button></div></div>
   <div class="projs" id="projs"></div>
 </div></div>
 
@@ -866,6 +867,14 @@ $('#studioBtn')?.addEventListener('click',async e=>{ if(!P||!P.studio) return; e
   for(const r of (P.refs||[])) if(r&&r.src&&r.side&&['body','wash','trim'].includes(r.kind)&&!refs[r.kind+'-'+r.side]) refs[r.kind+'-'+r.side]=r.src;
   const {art,...set}=P.studio; const f=P.sides.front.original, b=P.sides.back.original;
   await studioDB.put('kv',{...set,refs,variations:(f||b)?[{front:f||null,back:b||null,provider:P.provider||'',pid:P.id}]:[],active:0,view:'front'},'reopen'); location.href='studio.html?from=editor'; });
+
+/* ---------- to Model Photos with this design (front / back as currently edited) ---------- */
+$('#modelBtn')?.addEventListener('click',async e=>{ if(!P) return; e.preventDefault();
+  try{ await flushSave?.(); }catch(_){}
+  busy(true,'Opening Model Photos','Preparing front and back');
+  try{ const f=P.sides.front.base?await finalURL(P.sides.front):null, b=P.sides.back.base?await finalURL(P.sides.back):null;
+    await edDB.put('kv',{pid:P.id,name:P.name,front:f,back:b},'toModel'); location.href='model.html?from=editor'; }
+  catch(er){ busy(false); toast('Could not open Model Photos: '+er.message); } });
 
 /* ---------- AI flat sketches (construction reference) ---------- */
 async function aiFlat(src){
