@@ -103,7 +103,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261016e"></script>
+<script src="auth.js?v=20261016f"></script>
 </head>
 <body>
 <header>
@@ -120,7 +120,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
       <div class="row" style="margin-top:8px"><label class="f"><span>Contact</span><input data-k="contact" placeholder="sales@yourbrand.com"></label><label class="f"><span>Delivery window</span><input data-k="delivery" placeholder="e.g. Jan 15 – Feb 28"></label></div>
       <label class="f" style="margin-top:8px"><span>Terms (bottom of each page)</span><input data-k="terms"></label>
       <div class="logo"><div class="lg" id="logoBox" title="Add your logo">+ Logo</div><button type="button" class="hidden" id="logoRm">Remove logo</button><input type="file" accept="image/*" id="logoFile" hidden></div>
-      <div><div class="seg" id="photoSeg"><button data-v="model">Model photos</button><button data-v="product">Product photos</button><button data-v="both">Both</button></div></div>
+      <div><div class="seg" id="photoSeg"><button data-v="product">Product photos</button><button data-v="model">Model photos</button><button data-v="both">Both</button></div></div>
       <div><div class="seg" id="perSeg"><button data-v="4">4 per page</button><button data-v="6">6 per page</button><button data-v="8">8 per page</button></div></div>
     </div>
     <div class="card"><h3 id="stylesH">Styles <button type="button" id="addTop">+ Add</button></h3>
@@ -129,7 +129,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
     </div>
     <button class="go" id="pdf">DOWNLOAD PDF</button>
     <div class="hint">Opens the print window — choose <b>Save as PDF</b>. Set layout to landscape if asked.</div>
-    <div class="sec"><a href="model.html">Make model photos</a><a href="studio.html">Design Studio</a></div>
+    <div class="sec"><a href="model.html">Add model photos (optional)</a><a href="studio.html">Design Studio</a></div>
   </section>
   <section class="pv">
     <div class="pvbar"><b>PREVIEW</b><span id="pvInfo">A4 landscape</span></div>
@@ -163,7 +163,7 @@ async function shrink(src,max=1000,q=.88){ if(!src) return null; try{ const i=aw
 const readFile=f=>new Promise((res,rej)=>{ if(!f||!f.type.startsWith('image/')) return rej(new Error('Please use an image file')); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); });
 
 const SIZES=['XS','S','M','L','XL','2XL','3XL'];
-const blankSheet=()=>({brand:'',season:'',contact:'',delivery:'',terms:'Prices in USD · FOB · Net 30',logo:null,photo:'model',per:4,styles:[]});
+const blankSheet=()=>({brand:'',season:'',contact:'',delivery:'',terms:'Prices in USD · FOB · Net 30',logo:null,photo:'product',per:4,styles:[]});
 let SH=blankSheet(), openId=null;
 const newStyle=o=>({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),pid:null,shootId:null,name:'Style',no:'',whl:'',msrp:'',moq:'',fabric:'',colors:'',sizes:['S','M','L','XL'],modelImg:null,productImg:null,...o});
 let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>sheetDB.put('kv',SH,'sheet'),120); }
