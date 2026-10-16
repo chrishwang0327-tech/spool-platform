@@ -5,6 +5,7 @@
  *  task "design"  (default): body.n images (1–4, default 2), split evenly between OpenAI and
  *                  Gemini when both keys exist. body.quality = "low" | "medium" | "high" (OpenAI).
  *                  body.wide = true → landscape 3:2. body.provider = "openai" | "gemini" forces one model.
+ *                  body.calls = 1–3 usage rows this call counts as (default 1).
  *  task "extract": 1 image — the print graphic alone, transparent background when supported.
  *  task "sample":  { id } of a row in Supabase "sample_requests" (saved by the site) → emails it to
  *                  SAMPLE_TO with the design images attached, plus a short confirmation to the account email.
@@ -150,8 +151,11 @@ export default {
     if (body.task === 'quota') { if (!who) return json({ error: 'Sign in' }, 401); return json(await quotaInfo(env, token, true)); }
     if (who && body.task !== 'detect') {
       // the front call of a Create (n=2, no provider) reserves the whole Create (3 calls)
-      const need = (!body.task || body.task === 'design') && !body.provider && (parseInt(body.n, 10) || 2) >= 2 ? 3 : 1;
-      const q = await useQuota(env, token, body.task === 'extract' ? 'extract' : 'design', need);
+      // body.calls (1–3) = how many usage rows this call counts as. "Keep it" sends 2 on its front call,
+      // so front + back = 3 rows = 1 design, like a Create. It can only add usage, never remove it.
+      const calls = Math.max(1, Math.min(3, parseInt(body.calls, 10) || 1));
+      const need = Math.max(calls, (!body.task || body.task === 'design') && !body.provider && (parseInt(body.n, 10) || 2) >= 2 ? 3 : 1);
+      const q = await useQuota(env, token, body.task === 'extract' ? 'extract' : 'design', need, calls);
       if (!q.ok) return json({ error: q.error, code: q.code, limit: q.limit, used: q.used }, 429);
       quota = q.info || null;
     }
@@ -331,11 +335,11 @@ async function dayCap(env, token, h, kind, freeCap, proCap, message, code) {
 // usage rows are written with the Worker's secret key (accounts can only read their own rows);
 // without SUPABASE_SECRET_KEY it falls back to the account's token, as before
 const secretHeaders = k => k.startsWith('eyJ') ? { apikey: k, Authorization: `Bearer ${k}` } : { apikey: k };
-function logUse(env, token, kind) {
+function logUse(env, token, kind, count = 1) {
   const k = (env.SUPABASE_SECRET_KEY || '').trim(), uid = uidOf(token);
   const h = k && uid ? secretHeaders(k) : { apikey: SB_KEY, Authorization: `Bearer ${token}` };
   const row = k && uid ? { kind, user_id: uid } : { kind };
-  return fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) })
+  return fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(count > 1 ? Array(count).fill(row) : row) })
     .then(async r => { if (!r.ok) console.error('usage row not saved', kind, r.status, (await r.text()).slice(0, 200)); })
     .catch(e => console.error('usage row not saved', kind, String(e)));
 }
@@ -363,7 +367,7 @@ async function quotaInfo(env, token, withPlan) {
   if (withPlan && !info.admin) { try { info.pro = (await planOf(env, emailOf(token))).pro; } catch {} }
   return info;
 }
-async function useQuota(env, token, kind, need) {
+async function useQuota(env, token, kind, need, rows = 1) {
   const daily = Math.max(1, parseInt(env.DAILY_LIMIT || '30', 10) || 30);
   try {
     const info = await quotaInfo(env, token);
@@ -379,8 +383,8 @@ async function useQuota(env, token, kind, need) {
       if (info.todayCalls >= dailyMax)
         return { ok: false, code: 'daily_limit', limit: dailyMax, used: info.todayCalls, error: `You've reached today's limit. It resets at midnight UTC.` };
     }
-    await logUse(env, token, kind);
-    info.usedCalls += 1; info.designsLeft = info.pro ? null : Math.max(0, Math.floor((info.limitCalls - info.usedCalls) / 3));
+    await logUse(env, token, kind, rows);
+    info.usedCalls += rows; info.designsLeft = info.pro ? null : Math.max(0, Math.floor((info.limitCalls - info.usedCalls) / 3));
     return { ok: true, info };
   } catch { return QUOTA_DOWN; }
 }
