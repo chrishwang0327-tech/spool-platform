@@ -320,7 +320,7 @@ async function buildJob(){ const mp=mainPhoto(), others=S.photos.filter(p=>p!==m
   if(views.includes('back')&&mp.back) add(await shrink(mp.back,1024),'is the same main piece from the back: show this back design in the BACK view.');
   if(!mine){ const r=await refFor(S.model); if(r) add(r,'is the MODEL: use this exact person — same face, skin tone, hair and body.'); }
   if(others.length&&imgs.length<MAX_REFS-(S.ref&&!mine?1:0)) add(await board(others.map(p=>p.front)),`shows the REST OF THE OUTFIT${others.length>1?' — several pieces side by side':''}. The model also wears ${others.length>1?'every piece shown':'this piece'}, exactly as shown — same type, color, fabric and every detail. Copy only the clothes and accessories; ignore any person, face or background in it.`);
-  L.push('Dress the model the way these pieces are normally worn together: outerwear worn open over the top, layers in the usual order. The main piece must stay clearly visible.');
+  L.push('Dress the model the way these pieces are normally worn together, layers in the usual order. Outerwear over the main piece is worn wide open and pushed back off the chest, so the main piece\'s front artwork and text are fully visible and readable — never cover it.');
   L.push('Anything the references do not show (for example pants or shoes when only a top is given): simple plain pieces that go with the main piece — no prints, no logos.');
   if(!mine){ const M=MODELS.find(m=>m.id===S.model); L.push(`Model: ${M.desc}.`);
     if(S.ref) add(await shrink(S.ref,1024),'is a MOOD reference: copy its pose, framing, camera angle, lighting and background — NOT the person. Never copy that face, body, hair or clothes.');
