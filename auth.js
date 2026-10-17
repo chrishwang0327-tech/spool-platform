@@ -34,6 +34,7 @@
   .sa-menu a:hover,.sa-menu button:hover{background:#FBEF9C}.sa-menu .sa-plan{font-weight:600}.sa-menu .sa-plan i{font-style:normal;font-weight:400;color:#7a7566}.sa-menu a i{font-style:normal;font-weight:400;color:#7a7566}
   .sa-pw ul{list-style:none;padding:0;margin:4px 0 14px;display:grid;gap:8px;font-size:14.5px}.sa-pw li{display:flex;gap:10px;align-items:flex-start}.sa-pw li:before{content:"✓";font-weight:700;background:#FEE32B;border-radius:50%;width:20px;height:20px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px}
   .sa-price{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:2px 0 2px}.sa-price span{font-size:14px;font-weight:500;color:#7a7566}
+  .sa-offer{border:1.5px solid #e6e1d2;border-radius:16px;padding:14px 16px;margin-top:10px}.sa-offer h3{margin:0;font-size:15px;display:flex;justify-content:space-between;gap:8px}.sa-offer h3 b{font-size:20px}.sa-offer p{margin:4px 0 10px;font-size:13px;color:#7a7566}.sa-cost{font-size:12px;color:#7a7566;margin-top:10px;line-height:1.5}.sa-bal{font-size:14px;margin:0 0 4px}
   .sa-btn.dark{background:#201D18;color:#FEE32B}.sa-btn.dark:hover{background:#FEE32B;color:#201D18}.sa-link{display:block;width:100%;margin-top:10px;border:0;background:none;font:inherit;font-size:14px;color:#201D18;text-decoration:underline;cursor:pointer}
   .sa-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#201D18;color:#FDFDF9;padding:12px 18px;border-radius:99px;font:500 14px Outfit,system-ui,sans-serif;z-index:300;box-shadow:0 14px 40px -16px rgba(0,0,0,.5);max-width:calc(100% - 32px)}.sa-menu small{display:block;padding:6px 12px 8px;color:#7a7566;border-bottom:1px solid #201D1414;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis}`;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
@@ -111,13 +112,15 @@
   function renderChips(){ chips.forEach(el=>{
     if(!user){ el.innerHTML=`<button type="button" class="sa-chip out">Sign in</button>`; el.firstChild.onclick=()=>modal(); return; }
     const em=user.email||''; el.innerHTML=`<button type="button" class="sa-chip" aria-haspopup="menu"><span class="sa-av">${(em[0]||'?').toUpperCase()}</span>Account</button>
-      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><button type="button" role="menuitem" class="sa-plan" data-plan>Plan: Free <i>· Upgrade</i></button><a href="editor.html#projects" role="menuitem">My projects</a><a href="linesheet.html" role="menuitem">Line sheet</a><a href="model.html" role="menuitem">Model photos <i>· add-on</i></a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
+      <div class="sa-menu" role="menu"><small>${em.replace(/</g,'&lt;')}</small><button type="button" role="menuitem" class="sa-plan" data-cr>Credits <i>· Add more</i></button><button type="button" role="menuitem" class="sa-plan" data-plan>Plan: Free <i>· See plans</i></button><a href="editor.html#projects" role="menuitem">My projects</a><a href="linesheet.html" role="menuitem">Line sheet</a><a href="model.html" role="menuitem">Model photos <i>· add-on</i></a><a href="studio.html" role="menuitem">Design Studio</a><button type="button" role="menuitem" data-out>Sign out</button></div>`;
     const btn=el.querySelector('.sa-chip'), menu=el.querySelector('.sa-menu'); el.style.position='relative';
     btn.onclick=e=>{ e.stopPropagation(); menu.classList.toggle('open'); if(menu.classList.contains('open')){ menu.style.left=''; menu.style.right=''; const r=menu.getBoundingClientRect(); if(r.left<8){ menu.style.right='auto'; menu.style.left='0'; } else if(r.right>innerWidth-8){ menu.style.left='auto'; menu.style.right='0'; } } };
     document.addEventListener('click',()=>menu.classList.remove('open'));
     el.querySelector('[data-out]').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     const pb=el.querySelector('[data-plan]'); pb.onclick=()=>{ menu.classList.remove('open'); upgrade(); };
-    plan().then(p=>{ if(p&&p.pro){ pb.innerHTML='SPOOL Studio <i>· Manage billing</i>'; pb.onclick=()=>{ menu.classList.remove('open'); manage(); }; } });
+    const cb=el.querySelector('[data-cr]'); cb.onclick=()=>{ menu.classList.remove('open'); upgrade(); };
+    plan().then(p=>{ if(p&&p.pro){ pb.innerHTML='SPOOL Studio <i>· Manage billing</i>'; pb.onclick=()=>{ menu.classList.remove('open'); manage(); }; }
+      const c=p&&p.credits; if(c) cb.innerHTML=c.admin?'Credits: unlimited <i>· admin</i>':`${c.left} credit${c.left===1?'':'s'} <i>· Add more</i>`; });
   }); }
 
   /* ---------- cloud projects (table "projects" + private bucket "projects") ---------- */
@@ -179,30 +182,41 @@
   function closePw(){ if(!pw) return; pw.classList.remove('open'); chat(true); }
   async function upgrade(reason,opts){
     opts=opts||{};
-    if(!(await ready)&&!user){ const u=await modal('Sign in first, then upgrade to SPOOL Studio.'); if(!u) return; }
-    const p=await plan(); if(p.pro){ toast('You’re already on SPOOL Studio.'); return; }
+    if(!(await ready)&&!user){ const u=await modal('Sign in first, then add credits.'); if(!u) return; }
+    const p=await plan(true), c=p.credits||{}, tc=c.topupCredits||100, tp=c.topupPrice||15;
     if(!pw){ pw=document.createElement('div'); pw.className='sa-back'; pw.setAttribute('role','dialog'); pw.setAttribute('aria-modal','true'); pw.setAttribute('aria-labelledby','saPwH'); document.body.appendChild(pw);
       pw.addEventListener('click',e=>{ if(e.target===pw) closePw(); }); document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&pw.classList.contains('open')) closePw(); }); }
     pw.innerHTML=`<div class="sa-card sa-pw"><button type="button" class="sa-x" aria-label="Close">✕</button>
-      <h2 id="saPwH">Upgrade to SPOOL Studio</h2><p id="saPwWhy"></p>
-      <div class="sa-price">${PRICE_TXT}<span> / month · cancel anytime</span></div>
-      <ul><li>Unlimited designs in the Design Studio (up to 10 a day)</li><li>Unlimited tech pack PDFs</li><li>Production files — vector SVG artwork at print size</li><li>Images without the SPOOL watermark</li></ul>
-      <button type="button" class="sa-btn dark" id="saPwGo">Upgrade — ${PRICE_TXT}/month</button>
-      ${opts.sample?'<button type="button" class="sa-link" id="saPwSample">Or request a sample of this design instead</button>':''}
-      <div class="sa-err" id="saPwErr" role="alert"></div><div class="sa-small">Secure checkout by Stripe. Manage or cancel anytime from your account menu.</div></div>`;
-    pw.querySelector('#saPwWhy').textContent=reason||'Keep designing without limits and get factory-ready files.';
+      <h2 id="saPwH">${p.pro?'Add credits':'Get more credits'}</h2><p id="saPwWhy"></p>
+      ${c.left!=null&&!c.admin?`<p class="sa-bal">You have <b>${c.left}</b> credit${c.left===1?'':'s'}${p.pro&&c.renews?` · ${c.planTotal} more on ${new Date(c.renews).toLocaleDateString([], {month:'short',day:'numeric'})}`:''}.</p>`:''}
+      ${p.pro?'':`<div class="sa-offer"><h3>SPOOL Studio <b>${PRICE_TXT}<span style="font-size:13px;font-weight:500;color:#7a7566"> / month</span></b></h3>
+        <p>${c.planTotal||200} credits every month · production files (vector SVG at print size) · no watermark · cancel anytime</p>
+        <button type="button" class="sa-btn dark" id="saPwGo">Subscribe — ${PRICE_TXT}/month</button></div>`}
+      <div class="sa-offer"><h3>${tc} credits <b>$${tp}</b></h3><p>One-time. Credits don't expire.</p>
+        <button type="button" class="sa-btn${p.pro?' dark':''}" id="saPwTop">Buy ${tc} credits — $${tp}</button></div>
+      ${opts.sample?`<button type="button" class="sa-link" id="saPwSample">Or request a sample of this design — get ${c.sampleBonus||50} credits</button>`:''}
+      <div class="sa-cost">1 credit = 1 AI image. A design (front + back) is 2 · another option 2 · a model photo 1 · a tech pack ${c.techpackCredits||3}. Line sheets, editing, auto-detect and downloads are free.${opts.sample?'':` Each sample request you send gets ${c.sampleBonus||50} credits.`}</div>
+      <div class="sa-err" id="saPwErr" role="alert"></div><div class="sa-small">Secure checkout by Stripe.</div></div>`;
+    pw.querySelector('#saPwWhy').textContent=reason||'Credits pay for the AI images. Everything else is free.';
     pw.querySelector('.sa-x').onclick=closePw;
-    const go=pw.querySelector('#saPwGo'); go.onclick=async()=>{ go.disabled=true; go.textContent='Opening secure checkout…'; track('checkout_start');
-      try{ const j=await call('checkout'); location.href=j.url; }catch(e){ go.disabled=false; go.textContent=`Upgrade — ${PRICE_TXT}/month`; pw.querySelector('#saPwErr').textContent=e.message; } };
+    const err=pw.querySelector('#saPwErr');
+    const go=pw.querySelector('#saPwGo'); if(go) go.onclick=async()=>{ go.disabled=true; go.textContent='Opening secure checkout…'; track('checkout_start');
+      try{ const j=await call('checkout'); location.href=j.url; }catch(e){ go.disabled=false; go.textContent=`Subscribe — ${PRICE_TXT}/month`; err.textContent=e.message; } };
+    const top=pw.querySelector('#saPwTop'); top.onclick=async()=>{ top.disabled=true; top.textContent='Opening secure checkout…'; track('topup_start');
+      try{ const j=await call('topup',{back:location.pathname.split('/').pop()||'studio.html'}); location.href=j.url; }catch(e){ top.disabled=false; top.textContent=`Buy ${tc} credits — $${tp}`; err.textContent=e.message; } };
     const sm=pw.querySelector('#saPwSample'); if(sm) sm.onclick=()=>{ closePw(); opts.sample(); };
     track('paywall_view',{reason:opts.why||null});
-    pw.classList.add('open'); chat(false); setTimeout(()=>go.focus(),50);
+    pw.classList.add('open'); chat(false); setTimeout(()=>(go||top).focus(),50);
   }
+  // back from buying credits
+  (function(){ const q=new URLSearchParams(location.search); if(q.get('credits')!=='added') return; q.delete('credits'); history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);
+    ready.then(async()=>{ const before=(await plan()).credits?.left; let p; for(let i=0;i<6;i++){ p=await plan(true); if(p.credits&&p.credits.left!==before) break; await new Promise(r=>setTimeout(r,2500)); }
+      track('topup_done'); toast(p&&p.credits?`Credits added — you have ${p.credits.left}.`:'Payment received. Your credits will show in a minute.',6000); renderChips(); subs.forEach(f=>{try{f(user)}catch(e){}}); }); })();
   // back from Stripe Checkout
   (function(){ const q=new URLSearchParams(location.search); if(!q.has('upgraded')&&!q.has('upgrade')) return;
     const ok=q.has('upgraded'); q.delete('upgraded'); q.delete('upgrade'); history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);
     if(!ok) return; ready.then(async()=>{ let p={pro:false}; for(let i=0;i<6&&!p.pro;i++){ p=await plan(true); if(!p.pro) await new Promise(r=>setTimeout(r,2500)); }
-      if(p.pro){ track('upgraded'); toast('Welcome to SPOOL Studio — unlimited designs (up to 10 a day) and tech packs are on.',6000); renderChips(); subs.forEach(f=>{try{f(user)}catch(e){}}); }
+      if(p.pro){ track('upgraded'); toast(`Welcome to SPOOL Studio — ${p.credits?.planTotal||200} credits a month are on.`,6000); renderChips(); subs.forEach(f=>{try{f(user)}catch(e){}}); }
       else toast('Payment received. Your plan will switch on in a minute — refresh the page if it doesn’t.',7000); }); })();
 
   window.SPOOL_AUTH={
@@ -214,7 +228,7 @@
     scope(){ return ready.then(u=>u?u.id:'guest'); },
     async token(){ if(!sb) return ''; const {data}=await sb.auth.getSession(); return data.session?.access_token||''; },
     mount(el){ if(!el) return; chips.push(el); ready.then(renderChips); renderChips(); },
-    plan, upgrade, manage, call, toast,
+    plan, upgrade, manage, call, toast, credits:force=>plan(force).then(p=>p.credits||null),
     signIn:modal
   };
 })();

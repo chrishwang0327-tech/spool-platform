@@ -17,11 +17,15 @@
  *  task "clean":    1 image → the same garment with every print removed (blank body). Used by the editor to
  *                  move / resize artwork. Fixed prompt, low quality, not counted in the free designs
  *                  (own daily cap: CLEAN_FREE_DAILY default 10, CLEAN_DAILY for Studio default 20).
- *  task "techpack": { project } → { ok } if this account may download a tech pack PDF
- *                  (Studio, admin, or within 1 free + 1 per sample request), else { ok:false, code }.
+ *  task "techpack": { project } → { ok } and charges TECHPACK_CREDITS the first time a project's tech pack is made.
+ *  task "topup":    → { url } Stripe Checkout for TOPUP_CREDITS credits (one-time payment).
+ *  task "quota":    → credit balance { plan, pool, left, pro, … }.
  *
- * Limits: each account gets FREE_DESIGNS free Creates in total (+ extra_designs from the Supabase "credits" table),
- *         and at most DAILY_LIMIT AI calls per day. One Create = 3 calls. Admins (Supabase "admins") are unlimited.
+ * Credits: 1 credit = 1 AI image (2 for a 2K image); a tech pack = TECHPACK_CREDITS. Text tasks are free.
+ *   Free accounts start with FREE_CREDITS; SPOOL Studio adds PRO_CREDITS each billing period (used first, no rollover);
+ *   top-ups, sample-request bonuses (SAMPLE_BONUS, at most SAMPLE_BONUS_MONTHLY a month) and "credits" table grants
+ *   (extra_designs x 2) don't expire. At most DAILY_CREDITS a day. Admins (Supabase "admins") are not charged.
+ *   Needs the SQL in supabase/migrations/20261018090000_credits.sql.
  *
  * Secrets (set in Cloudflare → Worker → Settings → Variables and Secrets):
  *   OPENAI_API_KEY   your OpenAI API key (platform.openai.com)
@@ -35,12 +39,13 @@
  *   GEMINI_MODEL     default "gemini-3.1-flash-image"
  *   OPENAI_QUALITY   default "medium"  (low | medium | high)
  *   ALLOWED_ORIGINS  default "https://spoolnyc.com,https://www.spoolnyc.com"
- *   FREE_DESIGNS     default "5"   (free Creates per account, lifetime)
- *   DAILY_LIMIT      default "30"  (AI calls per user per day; 3 calls = 1 Create)
+ *   FREE_CREDITS     default "10"   PRO_CREDITS default "200" (per billing period)
+ *   TOPUP_CREDITS    default "100"  TOPUP_CENTS default "1500" ($15)
+ *   SAMPLE_BONUS     default "50"   SAMPLE_BONUS_MONTHLY default "2"
+ *   TECHPACK_CREDITS default "3"    DAILY_CREDITS default "60"
  *   SAMPLE_TO        default "chris@noboundaryapparel.com"
  *   MAIL_FROM        default "SPOOL <noreply@spoolnyc.com>"
  *   STRIPE_PRICE     SPOOL Studio monthly price id (default = the sandbox price below)
- *   FREE_TECHPACKS   default "1"  (tech pack PDFs per free account; designs with a sample request are always allowed)
  *   SITE_URL         default "https://spoolnyc.com"
  */
 
@@ -72,7 +77,7 @@ export default {
           supabase = !r.ok ? `error ${r.status}` : rows.length ? 'ok' : 'not a secret key'; }
         catch { supabase = 'error'; }
       }
-      return json({ ok: true, artwork: true, detect2: true, hires: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
+      return json({ ok: true, artwork: true, detect2: true, hires: true, credits: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
     }
     if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
     if (!okOrigin) return json({ error: 'Origin not allowed' }, 403);
@@ -98,16 +103,17 @@ export default {
     }
 
     // SPOOL Studio billing (Stripe) + tech pack allowance
-    if (['plan', 'checkout', 'portal', 'techpack'].includes(body.task)) {
+    if (['plan', 'checkout', 'portal', 'techpack', 'topup'].includes(body.task)) {
       const uid = who || await checkUser(token);
       if (!uid) return json({ error: 'Sign in first' }, 401);
       const email = emailOf(token);
       try {
         if (body.task === 'plan') {
-          const [pl, tp] = await Promise.all([planOf(env, email, body.fresh === true), techpackInfo(env, token)]);
-          return json({ ...pl, techpacks: tp });
+          const [pl, tp, cr] = await Promise.all([planOf(env, email, body.fresh === true), techpackInfo(env, token), creditInfo(env, token, body.fresh === true).catch(() => null)]);
+          return json({ ...pl, techpacks: tp, credits: cr });
         }
         if (body.task === 'checkout') return json(await checkout(env, uid, email));
+        if (body.task === 'topup') return json(await topupCheckout(env, uid, email, String(body.back || '')));
         if (body.task === 'portal') return json(await portal(env, email));
         return json(await techpackCheck(env, token, email, String(body.project || '').slice(0, 64)));
       } catch (e) { return json({ error: String(e?.message || e).slice(0, 300) }, 502); }
@@ -149,16 +155,17 @@ export default {
 
     // daily limit per user (detect is text-only and cheap → not counted)
     let quota = null;
-    if (body.task === 'quota') { if (!who) return json({ error: 'Sign in' }, 401); return json(await quotaInfo(env, token, true)); }
-    if (who && body.task !== 'detect') {
-      // the front call of a Create (n=2, no provider) reserves the whole Create (3 calls)
-      // body.calls (1–3) = how many usage rows this call counts as. "Keep it" sends 2 on its front call,
-      // so front + back = 3 rows = 1 design, like a Create. It can only add usage, never remove it.
-      const calls = Math.max(1, Math.min(3, parseInt(body.calls, 10) || 1));
-      const need = Math.max(calls, (!body.task || body.task === 'design') && !body.provider && (parseInt(body.n, 10) || 2) >= 2 ? 3 : 1);
-      const q = await useQuota(env, token, body.task === 'extract' ? 'extract' : 'design', need, calls);
-      if (!q.ok) return json({ error: q.error, code: q.code, limit: q.limit, used: q.used }, 429);
-      quota = q.info || null;
+    if (body.task === 'quota') { if (!who) return json({ error: 'Sign in' }, 401); const c = await creditInfo(env, token).catch(() => null); return c ? json(c) : json({ error: 'Credits unavailable' }, 503); }
+    // credits: 1 per AI image (2 for a 2K image); text tasks (detect, inventory, verify) are free
+    let charged = null;
+    // the studio's automatic "add the missing artwork" fix is on us — a few a day, no credits
+    const freeFix = body.purpose === 'fix' && (!body.task || body.task === 'design') && who;
+    if (freeFix) { const capErr = await dayCap(env, token, { apikey: SB_KEY, Authorization: `Bearer ${token}` }, 'fix', 6, 12, "Today's artwork checks are used up.", 'fix_limit'); if (capErr) return json(capErr, 429); await logUse(env, token, 'fix'); }
+    if (who && !freeFix && (!body.task || body.task === 'design' || body.task === 'extract')) {
+      const need = Math.max(1, Math.min(4, parseInt(body.n, 10) || 1)) * (body.size === '2K' ? 2 : 1);
+      const q = await spendCredits(env, token, body.task === 'extract' ? 'extract' : 'design', need);
+      if (!q.ok) return json({ error: q.error, code: q.code, need: q.need, left: q.left }, q.code === 'quota_unavailable' ? 503 : 429);
+      quota = q.info || null; charged = q.rows;
     }
     const prompt = String(body.prompt || '').slice(0, 4000);
     const images = (Array.isArray(body.images) ? body.images : [])
@@ -215,7 +222,7 @@ export default {
       if (r.status === 'fulfilled') out.push(...r.value);
       else errors.push(String(r.reason?.message || r.reason).slice(0, 300));
     }
-    if (!out.length) return json({ error: 'Generation failed', errors }, 502);
+    if (!out.length) { if (charged) await refundCredits(env, token, charged); return json({ error: 'Generation failed', errors }, 502); }
     return json({ images: out, errors, quota });
   }
 };
@@ -408,45 +415,87 @@ async function sbCount(url, h) {
   if (!r.ok) return null;
   return parseInt((r.headers.get('Content-Range') || '').split('/')[1], 10) || 0;
 }
-async function quotaInfo(env, token, withPlan) {
-  const h = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
-  const per = 3, free = Math.max(0, parseInt(env.FREE_DESIGNS || '5', 10));
-  const day = new Date(); day.setUTCHours(0, 0, 0, 0);
-  const [adm, total, today, cr] = await Promise.all([
-    fetch(`${SB_URL}/rest/v1/rpc/is_admin`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: '{}' }).then(r => r.ok ? r.json() : false).catch(() => false),
-    sbCount(`${SB_URL}/rest/v1/generations?select=id&kind=in.(design,extract)`, h),
-    sbCount(`${SB_URL}/rest/v1/generations?select=id&kind=in.(design,extract)&created_at=gte.${encodeURIComponent(day.toISOString())}`, h),
-    fetch(`${SB_URL}/rest/v1/credits?select=email,extra_designs`, { headers: h }).then(r => r.ok ? r.json() : []).catch(() => [])
+const QUOTA_DOWN = { ok: false, code: 'quota_unavailable', error: "We couldn't check your credits just now. Please try again in a minute." };
+
+/* ---------- credits ----------
+   1 credit = 1 AI image. Balance = monthly SPOOL Studio credits (reset each billing period) + credits that don't
+   expire (free start credits, top-ups bought in Stripe, sample-request bonuses, extra grants in the "credits" table).
+   Usage rows in "generations" carry credits + src ('plan' | 'pool' | 'admin'); rows from before credits are converted. */
+const envNum = (v, d) => { const n = parseInt(v ?? '', 10); return Number.isFinite(n) && n >= 0 ? n : d; };
+const CREDITS = env => ({ free: envNum(env.FREE_CREDITS, 10), pro: envNum(env.PRO_CREDITS, 200), topup: envNum(env.TOPUP_CREDITS, 100),
+  topupCents: envNum(env.TOPUP_CENTS, 1500), sample: envNum(env.SAMPLE_BONUS, 50), sampleCap: envNum(env.SAMPLE_BONUS_MONTHLY, 2),
+  daily: envNum(env.DAILY_CREDITS, 60), techpack: envNum(env.TECHPACK_CREDITS, 3) });
+async function creditInfo(env, token, fresh) {
+  const uid = uidOf(token), email = emailOf(token), k = (env.SUPABASE_SECRET_KEY || '').trim(), C = CREDITS(env);
+  if (!uid || !k) throw new Error('Credits need SUPABASE_SECRET_KEY on the Worker');
+  const hu = { apikey: SB_KEY, Authorization: `Bearer ${token}` };
+  const [adm, plan, cr, topups] = await Promise.all([
+    fetch(`${SB_URL}/rest/v1/rpc/is_admin`, { method: 'POST', headers: { ...hu, 'Content-Type': 'application/json' }, body: '{}' }).then(r => r.ok ? r.json() : false).catch(() => false),
+    planOf(env, email, fresh).catch(() => ({ pro: false })),
+    fetch(`${SB_URL}/rest/v1/credits?select=email,extra_designs`, { headers: hu }).then(r => r.ok ? r.json() : []).catch(() => []),
+    topupsOf(env, email, fresh).catch(() => 0)
   ]);
-  const me = emailOf(token);
-  const extra = (Array.isArray(cr) ? cr : []).filter(x => me && String(x.email || '').toLowerCase() === me).reduce((m, x) => Math.max(m, x.extra_designs || 0), 0);
-  const limitCalls = (free + extra) * per;
-  const info = { admin: adm === true, usedCalls: total, todayCalls: today, limitCalls, designsLeft: total === null ? null : Math.max(0, Math.floor((limitCalls - total) / per)), freeDesigns: free + extra, pro: false };
-  if (withPlan && !info.admin) { try { info.pro = (await planOf(env, emailOf(token))).pro; } catch {} }
-  return info;
+  const since = plan.pro && plan.start ? plan.start : '1970-01-01T00:00:00Z';
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/credit_usage`, { method: 'POST', headers: { ...secretHeaders(k), 'Content-Type': 'application/json' }, body: JSON.stringify({ p_uid: uid, p_since: since, p_sample_cap: C.sampleCap }) });
+  if (!r.ok) throw new Error(`credit_usage ${r.status}: ${(await r.text()).slice(0, 160)}`);
+  const u = await r.json();
+  const extra = (Array.isArray(cr) ? cr : []).filter(x => email && String(x.email || '').toLowerCase() === email).reduce((m, x) => Math.max(m, x.extra_designs || 0), 0) * 2;
+  const legacy = Math.ceil((u.legacy || 0) * 2 / 3);                       // 3 old usage rows = 1 old design = 2 credits
+  const poolIn = C.free + extra + topups * C.topup + (u.samples || 0) * C.sample;
+  const pool = Math.max(0, poolIn - (u.pool || 0) - legacy), planLeft = plan.pro ? Math.max(0, C.pro - (u.plan || 0)) : 0;
+  return { admin: adm === true, pro: !!plan.pro, renews: plan.renews || null, plan: planLeft, planTotal: plan.pro ? C.pro : 0, pool, left: planLeft + pool,
+    today: u.today || 0, daily: C.daily, topupCredits: C.topup, topupPrice: C.topupCents / 100, sampleBonus: C.sample, techpackCredits: C.techpack };
 }
-async function useQuota(env, token, kind, need, rows = 1) {
-  const daily = Math.max(1, parseInt(env.DAILY_LIMIT || '30', 10) || 30);
-  try {
-    const info = await quotaInfo(env, token);
-    if (info.usedCalls === null || info.todayCalls === null) return QUOTA_DOWN; // can't count → don't run paid AI calls
-    if (!info.admin) {
-      // over the free designs → only SPOOL Studio subscribers keep going (Stripe is checked only here, not on every call)
-      if (info.usedCalls + need > info.limitCalls) {
-        let pro = false; try { pro = (await planOf(env, emailOf(token))).pro; } catch {}
-        if (!pro) return { ok: false, code: 'free_limit', limit: info.freeDesigns, used: info.usedCalls, error: `You've used your ${info.freeDesigns} free designs. Upgrade to SPOOL Studio for unlimited designs, or request a sample of a design you like.` };
-        info.pro = true;
-      }
-      const dailyMax = info.pro ? Math.max(daily, parseInt(env.PRO_DAILY_LIMIT || '30', 10) || 30) : daily;
-      if (info.todayCalls >= dailyMax)
-        return { ok: false, code: 'daily_limit', limit: dailyMax, used: info.todayCalls, error: `You've reached today's limit. It resets at midnight UTC.` };
-    }
-    await logUse(env, token, kind, rows);
-    info.usedCalls += rows; info.designsLeft = info.pro ? null : Math.max(0, Math.floor((info.limitCalls - info.usedCalls) / 3));
-    return { ok: true, info };
-  } catch { return QUOTA_DOWN; }
+async function spendCredits(env, token, kind, need) {
+  let c; try { c = await creditInfo(env, token); } catch (e) { console.error('credits', String(e)); return QUOTA_DOWN; }
+  const uid = uidOf(token);
+  if (c.admin) { const rows = [{ kind, user_id: uid, credits: need, src: 'admin' }]; await logRows(env, rows); return { ok: true, info: c, rows: [] }; }
+  if (c.today + need > c.daily) return { ok: false, code: 'daily_limit', need, left: c.left, error: `You've used today's ${c.daily} credits. It resets at midnight UTC.` };
+  if (c.left < need) return { ok: false, code: 'no_credits', need, left: c.left,
+    error: c.left ? `This needs ${need} credits — you have ${c.left}.` : `You're out of credits. Add more, or request a sample to get ${c.sampleBonus} credits.` };
+  const fromPlan = Math.min(need, c.plan), rows = [];
+  if (fromPlan) rows.push({ kind, user_id: uid, credits: fromPlan, src: 'plan' });
+  if (need - fromPlan) rows.push({ kind, user_id: uid, credits: need - fromPlan, src: 'pool' });
+  if (!(await logRows(env, rows))) return QUOTA_DOWN;
+  c.plan -= fromPlan; c.pool -= need - fromPlan; c.left -= need; c.today += need;
+  return { ok: true, info: c, rows };
 }
-const QUOTA_DOWN = { ok: false, code: 'quota_unavailable', error: "We couldn't check your design limit just now. Please try again in a minute." };
+// the AI failed: give the credits back (a negative row on the same source)
+async function refundCredits(env, token, rows) { if (rows?.length) await logRows(env, rows.map(r => ({ ...r, kind: r.kind + ':refund', credits: -r.credits }))); }
+async function logRows(env, rows) {
+  const k = (env.SUPABASE_SECRET_KEY || '').trim(); if (!k || !rows.length) return false;
+  try { const r = await fetch(`${SB_URL}/rest/v1/generations`, { method: 'POST', headers: { ...secretHeaders(k), 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(rows) });
+    if (!r.ok) console.error('usage rows not saved', r.status, (await r.text()).slice(0, 200)); return r.ok; }
+  catch (e) { console.error('usage rows not saved', String(e)); return false; }
+}
+// credits bought: paid Stripe Checkout sessions with metadata spool_credits (no webhook needed)
+const topupCache = new Map();
+async function topupsOf(env, email, fresh) {
+  if (!email || !env.STRIPE_SECRET_KEY) return 0;
+  const hit = topupCache.get(email); if (!fresh && hit && hit.until > Date.now()) return hit.v;
+  const c = await findCustomer(env, email); let v = 0;
+  if (c) { const s = await stripe(env, 'GET', 'checkout/sessions', { customer: c.id, limit: '100' });
+    v = (s.data || []).filter(x => x.payment_status === 'paid' && x.metadata?.spool_credits).length; }
+  if (topupCache.size > 1000) topupCache.clear();
+  topupCache.set(email, { v, until: Date.now() + 60 * 1000 });
+  return v;
+}
+async function topupCheckout(env, uid, email, back) {
+  if (!email) throw new Error('Your account has no email');
+  const site = (env.SITE_URL || 'https://spoolnyc.com').replace(/\/$/, ''), C = CREDITS(env);
+  const page = /^[a-z]+(\.html)?$/.test(back) ? back : 'studio.html';
+  let c = await findCustomer(env, email);
+  if (!c) c = await stripe(env, 'POST', 'customers', { email, 'metadata[spool_uid]': uid });
+  const s = await stripe(env, 'POST', 'checkout/sessions', {
+    mode: 'payment', customer: c.id, client_reference_id: uid, 'metadata[spool_credits]': String(C.topup), 'metadata[spool_uid]': uid,
+    'line_items[0][price_data][currency]': 'usd', 'line_items[0][price_data][unit_amount]': String(C.topupCents),
+    'line_items[0][price_data][product_data][name]': `${C.topup} SPOOL credits`, 'line_items[0][price_data][product_data][description]': '1 credit = 1 AI image. Credits don\'t expire.',
+    'line_items[0][quantity]': '1',
+    success_url: `${site}/${page}?credits=added`, cancel_url: `${site}/${page}`
+  });
+  topupCache.delete(email);
+  return { url: s.url };
+}
 
 /* ---------- SPOOL Studio subscription (Stripe) ----------
    No webhooks / no extra tables: the Stripe customer is found by the account's email, and the
@@ -479,7 +528,8 @@ async function planOf(env, email, fresh) {
     const live = (subs.data || []).find(x => ['active', 'trialing', 'past_due'].includes(x.status));
     if (live) {
       const end = live.current_period_end || live.items?.data?.[0]?.current_period_end || null;
-      v = { pro: true, status: live.status, renews: end ? new Date(end * 1000).toISOString() : null,
+      const start = live.current_period_start || live.items?.data?.[0]?.current_period_start || null;
+      v = { pro: true, status: live.status, renews: end ? new Date(end * 1000).toISOString() : null, start: start ? new Date(start * 1000).toISOString() : null,
             cancelAt: live.cancel_at_period_end && end ? new Date(end * 1000).toISOString() : (live.cancel_at ? new Date(live.cancel_at * 1000).toISOString() : null) };
     }
   }
@@ -530,11 +580,10 @@ async function techpackCheck(env, token, email, project) {
   if (!project) return { ok: false, code: 'bad_request', error: 'Missing project' };
   const t = await techpackInfo(env, token);
   let pro = false; try { pro = (await planOf(env, email)).pro; } catch {}
-  const allowed = t.admin || pro || t.projects.includes(project) || t.used < t.free;
-  if (!allowed) return { ok: false, code: 'techpack_limit', error: `You've used your free tech pack. Upgrade to SPOOL Studio for unlimited tech packs, or request a sample of this design (each sample request adds one).` };
-  if (!t.projects.includes(project))
-    await logUse(env, token, 'tp:' + project);
-  return { ok: true, pro, via: t.admin ? 'admin' : pro ? 'studio' : 'free' };
+  if (t.projects.includes(project)) return { ok: true, pro, via: 'again' };   // a project's tech pack is paid once; reopening is free
+  const q = await spendCredits(env, token, 'tp:' + project, CREDITS(env).techpack);
+  if (!q.ok) return { ok: false, code: q.code === 'no_credits' ? 'techpack_limit' : q.code, need: q.need, left: q.left, error: q.code === 'no_credits' ? `A tech pack needs ${q.need} credits — you have ${q.left}. Add credits, or request a sample of this design to get ${CREDITS(env).sample}.` : q.error };
+  return { ok: true, pro, via: t.admin ? 'admin' : 'credits', credits: q.info };
 }
 
 /* ---------- sample request email (Resend) ---------- */

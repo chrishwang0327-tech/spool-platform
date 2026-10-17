@@ -204,7 +204,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261017b"></script>
+<script src="auth.js?v=20261018a"></script>
 <script src="sample.js?v=20261016c"></script>
 </head>
 <body>
@@ -280,7 +280,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
         <button class="btn" id="prodBtn" title="Vector SVG artwork at print size (SPOOL Studio)">Production files</button>
         <button class="btn dark" id="sampleBtn">Request sample →</button>
       </div>
-      <div class="note" id="planNote">Free plan: your first tech pack is free. Production files come with SPOOL Studio or with your sample.</div>
+      <div class="note" id="planNote">Tech pack: 3 credits the first time, free after. Production files come with SPOOL Studio or with your sample.</div>
     </div>
   </aside>
 </main>
@@ -1244,12 +1244,13 @@ async function artDetail(full,s,p){ // artwork crop with red dimension lines
   x.save(); x.translate(pad+dw+58,pad+dh/2); x.rotate(-Math.PI/2); x.fillText(`${f1(hI)} in`,0,0); x.restore();
   return c.toDataURL('image/jpeg',.9);
 }
-/* plan gate: free = 1 tech pack (+1 per sample request); SPOOL Studio = unlimited (checked by the Worker) */
+/* tech pack gate: the Worker charges credits the first time a project gets a tech pack (reopening is free) */
 const upsell=(why,code)=>window.SPOOL_AUTH?.upgrade(why,{why:code,sample:()=>$('#sampleBtn').click()});
 async function techpackAllowed(){
   const A=window.SPOOL_AUTH; if(!A) return true;
   try{ const j=await A.call('techpack',{project:P.id}); if(j.ok) return true;
-    if(j.code==='techpack_limit'){ upsell(j.error,'techpack'); return false; } return true; }
+    if(['techpack_limit','no_credits','daily_limit'].includes(j.code)){ if(j.code==='daily_limit') toast(j.error); else upsell(j.error,'techpack'); return false; }
+    if(j.via==='credits'){ toast(`Tech pack made — ${j.credits?.left??''} credits left. Opening it again is free.`); planNote(true); } return true; }
   catch(e){ console.warn('techpack check',e); return true; } // never block on a network hiccup
 }
 $('#prodBtn').onclick=async()=>{
@@ -1264,10 +1265,10 @@ $('#prodBtn').onclick=async()=>{
   catch(e){ toast('Production files failed: '+e.message); }
   busy(false);
 };
-window.SPOOL_AUTH?.ready.then(async u=>{ if(!u) return; const pl=await window.SPOOL_AUTH.plan(); const n=$('#planNote'); if(!n) return;
-  if(pl.pro) n.textContent='SPOOL Studio: unlimited tech packs and production files.';
-  else if(pl.techpacks&&!pl.techpacks.admin) n.textContent=`Free plan: ${pl.techpacks.left} tech pack${pl.techpacks.left===1?'':'s'} left. Production files come with SPOOL Studio or with your sample.`;
-  else if(pl.techpacks?.admin) n.textContent='Admin: unlimited tech packs and production files.'; });
+// what a tech pack costs here: free when this project already has one, else credits
+async function planNote(fresh){ const A=window.SPOOL_AUTH, n=$('#planNote'); if(!A?.user||!n) return; const pl=await A.plan(fresh), c=pl.credits||{}, done=P&&(pl.techpacks?.projects||[]).includes(P.id);
+  n.textContent=c.admin?'Admin: tech packs and production files are free.':`${done?'This tech pack is paid — open it any time.':`Tech pack: ${c.techpackCredits||3} credits the first time.`} You have ${c.left??'—'} credit${c.left===1?'':'s'}.${pl.pro?' Production files are included in SPOOL Studio.':' Production files come with SPOOL Studio or your sample.'}`; }
+window.SPOOL_AUTH?.ready.then(u=>{ if(u) planNote(); });
 $('#tpBtn').onclick=async()=>{
   const A=window.SPOOL_AUTH; if(A&&!A.user){ await A.requireLogin('Sign in to download your tech pack.'); if(!A.user) return; }
   const w=window.open('','_blank'); if(!w) return toast('Allow pop-ups to open the tech pack');
