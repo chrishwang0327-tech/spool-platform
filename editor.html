@@ -1314,17 +1314,13 @@ $('#prodBtn').onclick=async()=>{
 async function planNote(fresh){ const A=window.SPOOL_AUTH, n=$('#planNote'); if(!A?.user||!n) return; const pl=await A.plan(fresh), c=pl.credits||{}, done=P&&(pl.techpacks?.projects||[]).includes(P.id);
   n.textContent=c.admin?'Admin: tech packs and production files are free.':`${done?'This tech pack is paid — open it any time.':`Tech pack: ${c.techpackCredits||3} credits the first time.`} You have ${c.left??'—'} credit${c.left===1?'':'s'}.${pl.pro?' Production files are included in SPOOL Studio.':' Production files come with SPOOL Studio or your sample.'}`; }
 window.SPOOL_AUTH?.ready.then(u=>{ if(u) planNote(); });
-$('#tpBtn').onclick=async()=>{
-  const A=window.SPOOL_AUTH; if(A&&!A.user){ await A.requireLogin('Sign in to download your tech pack.'); if(!A.user) return; }
-  const w=window.open('','_blank'); if(!w) return toast('Allow pop-ups to open the tech pack');
-  w.document.write('<p style="font-family:sans-serif;padding:20px">Building tech pack…</p>');
-  if(!(await techpackAllowed())){ w.close(); return; }
-  window.SPOOL_TRACK?.('techpack');
+// the open project's tech pack: { style, body (its pages), tot, title } — one tech pack or many in one document
+async function buildTechPack(say,opt={}){
   const sp=P.spec||{}, f=sp.front||{}, bk=sp.back||{}, B=Object.assign(blankBody(),P.bodySpec||{}), Lb=Object.assign(blankLabels(),P.labels||{}), St=Object.assign(blankStyle(),P.style||{});
   const sides=['front','back'].filter(sd=>P.sides[sd].base);
   const fulls={}, bodyRGB={}, ann={};
   for(const sd of sides){ const s=P.sides[sd]; const c=canvas(PX); c.getContext('2d').drawImage(await img(await finalURL(s)),0,0,PX,PX); fulls[sd]=c; bodyRGB[sd]=bodyColorOf(c,s); ann[sd]=await annotated(s,sd); }
-  const flatsOK={}; { const need=sides.filter(sd=>!flatReady(sd)); if(need.length){ try{ w.document.body.innerHTML='<p style="font-family:sans-serif;padding:20px">Drawing flat sketches… this takes about 30 seconds the first time.</p>'; }catch(_){}
+  const flatsOK={}; { const need=sides.filter(sd=>!flatReady(sd)); if(need.length){ try{ say('Drawing flat sketches… this takes about 30 seconds the first time.'); }catch(_){}
     await Promise.race([Promise.all(need.map(sd=>ensureFlat(sd))),wait(100000)]); } sides.forEach(sd=>flatsOK[sd]=flatReady(sd)); }
   const today=new Date().toLocaleDateString('en-US');
   const head=[['STYLE NO.',St.no],['SEASON',St.season||'—'],['STYLE NAME',P.name],['BRAND',St.brand||'—'],['DESIGNER',St.designer||P.email||'—']];
@@ -1342,7 +1338,7 @@ $('#tpBtn').onclick=async()=>{
     <div class="bottom"><div><h4>COLORWAY</h4>${colorway}</div><div><h4>FABRIC</h4><p>${esc(fabric)}</p><h4>WASH</h4><p>${esc([washOf('front')&&'Front: '+washOf('front'),washOf('back')&&'Back: '+washOf('back')].filter(Boolean).join(' / ')||'—')}</p></div></div>`);
   // colorways: main + each recolor, 3 to a page
   const cws=P.colorways||[];
-  if(cws.length){ const mainInk=sw.filter(o=>o.label.startsWith('ART')).map(o=>o.h).slice(0,3).join(', '), shot=sd=>fulls[sd]?fulls[sd].toDataURL('image/jpeg',.85):null;
+  if(cws.length&&opt.colorways!==false){ const mainInk=sw.filter(o=>o.label.startsWith('ART')).map(o=>o.h).slice(0,3).join(', '), shot=sd=>fulls[sd]?fulls[sd].toDataURL('image/jpeg',.85):null;
     const rowsC=[{name:B.color||'Main color',main:true,hex:hex(bodyRGB[sides[0]]),pms:B.pantone,ink:'As designed'+(mainInk?` (${mainInk})`:''),f:shot('front'),b:shot('back')},
       ...cws.map(c=>({name:c.name,hex:c.hex||'',pms:c.pantone,ink:cwInk(c)+(c.ink==='keep'&&mainInk?` (${mainInk})`:''),f:c.front,b:c.back}))];
     for(let i=0;i<rowsC.length;i+=3) pages.push(`<div class="phead"><h1>COLORWAYS <small style="font-size:10px;font-weight:400;letter-spacing:.04em;color:#555">${rowsC.length} colorways · same construction, artwork placement and sizes as the main sample</small></h1></div>
@@ -1405,7 +1401,7 @@ $('#tpBtn').onclick=async()=>{
       <h4>APPROVAL</h4><div class="sign"><div>Designer</div><div>Factory</div><div>Date</div></div>
       <p class="m">Sizes and colors are estimated from the design image and confirmed on the first sample. Flat sketches are AI-drawn references; the factory builds from the photo and this spec.</p></div></div>`);
   const tot=pages.length, label=i=>i===0?'OVERVIEW':((pages[i].match(/<h1>([^<]+)/)||[])[1]||'ARTWORK').replace(/&amp;/g,'&').replace(/ DETAIL\s*$/,'').trim();   // each page's own title
-  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tech pack — ${esc(St.no)} ${esc(P.name)}</title><style>
+  const style=`
   @page{size:11in 8.5in;margin:0}
   *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#e9e7e1;font-family:Helvetica,Arial,sans-serif;color:#111;font-size:11px}
   .page{width:11in;height:8.5in;background:#fff;margin:18px auto;padding:.35in .4in .5in;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.15);page-break-after:always}
@@ -1455,10 +1451,41 @@ $('#tpBtn').onclick=async()=>{
   .m{color:#666;font-size:9.5px}small{color:#555}
   .bar{position:sticky;top:0;background:#111;color:#fff;padding:10px;text-align:center;z-index:5}.bar button{padding:8px 18px;border-radius:99px;border:0;background:#FEE32B;font-weight:700;cursor:pointer;margin-left:10px}
   @media print{body{background:#fff}.page{margin:0;box-shadow:none}.bar{display:none}}
-  </style></head><body><div class="bar">${tot} pages · Letter landscape <button onclick="print()">Save as PDF / Print</button></div>
-  ${pages.map((pg,i)=>`<div class="page"><div class="frame">${pg}</div><div class="strip"><b>SPOOL</b><span>${esc(St.no)} · ${esc(P.name)}</span><span>${label(i)}</span><span>${i+1} / ${tot}</span></div></div>`).join('')}</body></html>`;
-  w.document.open(); w.document.write(html); w.document.close();
+`;
+  const body=pages.map((pg,i)=>`<div class="page"><div class="frame">${pg}</div><div class="strip"><b>SPOOL</b><span>${esc(St.no)} · ${esc(P.name)}</span><span>${label(i)}</span><span>${i+1} / ${tot}</span></div></div>`).join('');
+  return {style,body,tot,title:`${St.no} ${P.name}`};
+}
+const tpDoc=(t,title,note)=>`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${t.style}</style></head><body><div class="bar">${note?esc(note)+' · ':''}${t.tot} pages · Letter landscape <button onclick="print()">Save as PDF / Print</button></div>${t.body}</body></html>`;
+$('#tpBtn').onclick=async()=>{
+  const A=window.SPOOL_AUTH; if(A&&!A.user){ await A.requireLogin('Sign in to download your tech pack.'); if(!A.user) return; }
+  const w=window.open('','_blank'); if(!w) return toast('Allow pop-ups to open the tech pack');
+  w.document.write('<p style="font-family:sans-serif;padding:20px">Building tech pack…</p>');
+  if(!(await techpackAllowed())){ w.close(); return; }
+  window.SPOOL_TRACK?.('techpack');
+  const t=await buildTechPack(m=>{ try{ w.document.body.innerHTML=`<p style="font-family:sans-serif;padding:20px">${m}</p>`; }catch(_){} });
+  w.document.open(); w.document.write(tpDoc(t,`Tech pack — ${t.title}`)); w.document.close();
 };
+/* tech packs for a whole line sheet (linesheet.html opens editor.html?batch=techpacks in a new tab):
+   each project is opened here, its artwork auto-detected if none is marked, charged once (reopening is free),
+   and all packs end up in this tab as one document to save as PDF */
+async function runTechpackBatch(){ const job=await edDB.get('kv','tpBatch'); if(!job?.ids?.length) return false; await edDB.put('kv',null,'tpBatch');
+  const A=window.SPOOL_AUTH; if(A){ await A.ready; if(!A.user){ await A.requireLogin('Sign in to make your tech packs.'); if(!A.user) return true; } }
+  const out=[], skipped=[]; let style='';
+  for(let i=0;i<job.ids.length;i++){ const id=job.ids[i], tag=`${i+1} of ${job.ids.length}`;
+    busy(true,`Tech pack ${tag}`,'Opening the project');
+    try{ let p=await edDB.get('projects',id); if(A?.user){ const c=await within(A.cloud.load(id),10000); if(c&&(!p||(c.updated||0)>=(p.updated||0))){ p=c; await edDB.put('projects',p); } }
+      if(!p){ skipped.push(id); continue; }
+      await openProject(p); busy(true,`Tech pack ${tag} · ${P.name}`,'Getting the artwork');
+      if(!['front','back'].some(sd=>P.sides[sd].parts.some(q=>kindOf(q)==='graphic'))) for(const sd of ['front','back']) if(P.sides[sd].base){ try{ await detectSide(P.sides[sd]); }catch(e){ console.warn('detect',e); } }
+      if(!(await techpackAllowed())){ skipped.push(P.name); break; }   // out of credits: stop here, keep what's made
+      busy(true,`Tech pack ${tag} · ${P.name}`,'Building the pages');
+      const t=await buildTechPack(m=>busy(true,`Tech pack ${tag} · ${P.name}`,m),{colorways:job.colorways!==false}); style=style||t.style; out.push(t); await flushSave();
+    }catch(e){ console.error(e); skipped.push(id); } }
+  busy(false); window.SPOOL_TRACK?.('techpack_batch',{made:out.length,asked:job.ids.length});
+  if(!out.length){ toast('No tech packs were made'+(skipped.length?' — check your credits':'')); return true; }
+  const all={style,body:out.map(t=>t.body).join(''),tot:out.reduce((m,t)=>m+t.tot,0)};
+  const note=`${out.length} tech pack${out.length>1?'s':''}${skipped.length?` · ${skipped.length} skipped`:''}`;
+  document.open(); document.write(tpDoc(all,`Tech packs — ${job.title||'line sheet'}`,note)); document.close(); return true; }
 
 $('#sampleBtn').onclick=async()=>{
   const sides=['front','back'].filter(sd=>P.sides[sd].base); if(!sides.length) return toast('Add a design first');
@@ -1614,6 +1641,7 @@ window.SPOOL_AUTH?.onChange(u=>{ loadKit(); if(u&&P) cloudSave(); });
 (async()=>{
   if(MOCK) $('#mockbar').classList.remove('hidden');
   loadKit(); const q=new URLSearchParams(location.search); let opened=false;
+  if(q.get('batch')==='techpacks'&&await runTechpackBatch()) return;
   if(q.get('from')==='studio') opened=await fromStudio();
   if(!opened){ const last=await edDB.get('kv','last'); if(last){ const p=await edDB.get('projects',last); if(p){ await openProject(p); opened=true; } } }
   if(!opened) render();

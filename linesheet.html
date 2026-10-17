@@ -107,6 +107,17 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 /* modal */
 .modal{position:fixed;inset:0;z-index:40;background:rgba(32,29,24,.5);display:flex;align-items:center;justify-content:center;padding:20px}
 .mbox{background:var(--bg);border-radius:22px;width:min(760px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+.batch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.batch button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:10px;font-size:13px;font-weight:600}.batch button:hover{background:var(--y2)}
+.bbox{width:min(880px,100%)}.bbody{overflow:auto;padding:0 20px 20px}.bsub{font-size:13px;color:var(--muted);margin-bottom:10px}
+.bopts{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12px;margin:8px 0 10px}.bopts b{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.bopts button{border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:#fff;font-size:12px}.bopts button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.brow{display:grid;grid-template-columns:22px 54px 14px 54px minmax(0,1fr) 120px 120px 26px;gap:8px;align-items:center;border:1.5px solid var(--line);border-radius:14px;padding:7px 9px;background:#fff;margin-bottom:7px}
+.brow img{width:54px;height:54px;object-fit:contain;background:var(--soft);border-radius:8px}.brow .ph{width:54px;height:54px;border-radius:8px;border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center}
+.brow select{width:100%;border:1px solid var(--line);border-radius:99px;padding:5px 8px;font:inherit;font-size:12px;background:#fff}.brow .nm{display:flex;flex-direction:column;gap:3px;min-width:0}.brow .nm select{border-radius:8px}
+.brow .k{font-weight:700;color:var(--muted)}.brow .x{border:0;background:none;color:var(--muted);font-size:14px}
+.trow{grid-template-columns:22px 54px minmax(0,1fr) 130px}.st{font-size:11px;border-radius:99px;padding:2px 9px;font-weight:600;text-align:center}.st.ok{background:#E3F1E6;color:#2F7A47}.st.new{background:#FBEF9C}.st.off{background:var(--soft);color:var(--muted)}
+.bfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding-top:12px;margin-top:6px;font-size:13px;color:#4a473e}.bfoot b{color:var(--ink)}
+.bgo{background:var(--y);border-radius:99px;padding:12px 22px;font-weight:600;letter-spacing:.06em;font-size:13px}.bgo:disabled{opacity:.5}
 .mhead{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 10px}.mhead h2{font-size:20px;font-weight:600}
 .mtabs{display:flex;gap:6px;padding:0 20px 10px;flex-wrap:wrap}.mtabs button{border:1px solid var(--line);border-radius:99px;padding:6px 13px;font-size:12.5px;background:#fff}.mtabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .mlist{overflow:auto;padding:0 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -158,6 +169,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
     <div class="card"><h3 id="stylesH">Styles <button type="button" id="addTop">+ Add</button></h3>
       <div id="styles"></div>
       <button class="add" id="addBtn">+ Add from My projects or model photos</button>
+      <div class="batch"><button type="button" id="looksBtn">Make model looks</button><button type="button" id="tpsBtn">Make tech packs</button></div>
     </div>
     <button class="go" id="pdf">DOWNLOAD PDF</button>
     <button class="add" id="csv" style="margin-top:8px">Download for Excel (.csv)</button>
@@ -170,6 +182,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
   </section>
 </main>
 
+<div class="modal hidden" id="bModal"><div class="mbox bbox"><div class="mhead"><h2 id="bTitle"></h2><button class="btn" id="bClose">Close</button></div><div id="bBody" class="bbody"></div></div></div>
 <div class="modal hidden" id="modal"><div class="mbox">
   <div class="mhead"><h2>Add styles</h2><button class="btn" id="mClose">Done</button></div>
   <div class="mtabs" id="mTabs"><button data-t="projects" class="on">My projects</button><button data-t="models">Model photos</button><button data-t="upload">Upload a photo</button></div>
@@ -355,6 +368,62 @@ $('#csv').onclick=()=>{ if(!SH.styles.length) return toast('Add at least one sty
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download=[SH.brand,SH.season,'line sheet'].filter(Boolean).join(' - ')+'.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   window.SPOOL_TRACK?.('linesheet_csv',{styles:SH.styles.length}); };
 
+/* ---------- many at once: model looks (model page) and tech packs (editor), from the styles on this sheet ---------- */
+const LOOK_MODELS=[['marcus','Marcus'],['ava','Ava'],['jae','Jae'],['chloe','Chloe'],['leo','Leo'],['mina','Mina'],['ethan','Ethan'],['sofia','Sofia']];
+const LOOK_BGS=[['grey','Studio grey'],['street','City street'],['cream','Cream'],['white','White'],['loft','Loft'],['black','Black']];
+let LB=null;
+const bModal=(title,html)=>{ $('#bTitle').textContent=title; $('#bBody').innerHTML=html; $('#bModal').classList.remove('hidden'); };
+$('#bClose').onclick=()=>$('#bModal').classList.add('hidden');
+$('#bModal').addEventListener('click',e=>{ if(e.target.id==='bModal') $('#bModal').classList.add('hidden'); });
+const projStyles=t=>SH.styles.filter(st=>st.pid&&(!t||st.type===t));
+function openLooks(){ const tops=projStyles('tops'), bots=projStyles('bottoms');
+  if(!tops.length&&!bots.length) return toast('Add styles from My projects first');
+  if(!LB){ const n=Math.max(tops.length,bots.length); LB={same:false,back:true,note:'',looks:[]};
+    for(let i=0;i<n;i++) LB.looks.push({top:tops[i]?.pid||null,bottom:bots[i]?.pid||null,model:LOOK_MODELS[i%LOOK_MODELS.length][0],bg:LOOK_BGS[i%3][0]}); }
+  renderLooks(); }
+function renderLooks(){ const all=projStyles(), byPid=pid=>SH.styles.find(s=>s.pid===pid), tops=projStyles('tops'), bots=projStyles('bottoms');
+  const opt=(list,val,none)=>`<option value="">${none}</option>`+list.map(s=>`<option value="${s.pid}"${s.pid===val?' selected':''}>${esc(s.no||'')} ${esc(s.name)}</option>`).join('');
+  const pic=pid=>{ const s=byPid(pid); return s?.productImg?`<img src="${s.productImg}" alt="">`:'<span class="ph">none</span>'; };
+  const n=LB.looks.filter(l=>l.top||l.bottom).length;
+  bModal('Make model looks',`<div class="bsub">We paired your tops and bottoms in order. Change any piece, model or background, then make them all at once. They go on this sheet as look pages.</div>
+    <div class="bopts"><b>Models</b><button type="button" data-o="same" class="${LB.same?'on':''}">Same model for all</button><button type="button" data-o="mix" class="${LB.same?'':'on'}">Mix models</button>
+      <b>Views</b><button type="button" data-o="back" class="${LB.back?'on':''}">Front + back</button><button type="button" data-o="front" class="${LB.back?'':'on'}">Front only</button></div>
+    ${LB.looks.map((l,i)=>`<div class="brow"><span class="k">${i+1}</span>${pic(l.top)}<span>+</span>${pic(l.bottom)}<div class="nm"><select data-l="${i}" data-f="top">${opt(tops.length?tops:all,l.top,'No top')}</select><select data-l="${i}" data-f="bottom">${opt(bots.length?bots:all,l.bottom,'No bottom — plain pants')}</select></div>
+      <select data-l="${i}" data-f="model">${LOOK_MODELS.map(([v,t])=>`<option value="${v}"${v===l.model?' selected':''}>${t}</option>`).join('')}</select>
+      <select data-l="${i}" data-f="bg">${LOOK_BGS.map(([v,t])=>`<option value="${v}"${v===l.bg?' selected':''}>${t}</option>`).join('')}</select><button type="button" class="x" data-rm="${i}" title="Remove this look">✕</button></div>`).join('')}
+    <button type="button" class="add" id="lAdd">＋ Add a look</button>
+    <label class="f" style="margin-top:10px"><span>For every look (optional)</span><input id="lNote" value="${esc(LB.note)}" placeholder="e.g. white sneakers, black beanie, hands in pockets"></label>
+    <div class="bfoot"><span><b>${n} look${n===1?'':'s'}</b> · ${LB.back?'front + back':'front'} · <b>${n} credit${n===1?'':'s'}</b> · about ${Math.max(1,Math.round(n*12/60))} min</span><button type="button" class="bgo" id="lGo"${n?'':' disabled'}>MAKE ${n} LOOK${n===1?'':'S'}</button></div>`);
+  $$('#bBody [data-o]').forEach(b=>b.onclick=()=>{ const o=b.dataset.o; if(o==='same'||o==='mix'){ LB.same=o==='same'; LB.looks.forEach((l,i)=>l.model=LB.same?LB.looks[0].model:LOOK_MODELS[i%LOOK_MODELS.length][0]); } else LB.back=o==='back'; renderLooks(); });
+  $$('#bBody select[data-l]').forEach(sel=>sel.onchange=()=>{ const l=LB.looks[+sel.dataset.l]; l[sel.dataset.f]=sel.value||null; if(sel.dataset.f==='model'&&LB.same) LB.looks.forEach(x=>x.model=sel.value); renderLooks(); });
+  $$('#bBody [data-rm]').forEach(b=>b.onclick=()=>{ LB.looks.splice(+b.dataset.rm,1); renderLooks(); });
+  $('#lAdd').onclick=()=>{ LB.looks.push({top:null,bottom:null,model:LB.same?(LB.looks[0]?.model||'marcus'):LOOK_MODELS[LB.looks.length%8][0],bg:'grey'}); renderLooks(); };
+  $('#lNote').oninput=e=>LB.note=e.target.value;
+  $('#lGo').onclick=async()=>{ const looks=LB.looks.filter(l=>l.top||l.bottom); if(!looks.length) return;
+    if(!(await enough(looks.length))) return;
+    await modelDB.put('kv',{looks,note:LB.note,back:LB.back},'lookBatch'); window.SPOOL_TRACK?.('look_batch_start',{n:looks.length}); location.href='model.html?batch=looks'; }; }
+// enough credits for the whole batch? (admins always are)
+async function enough(need){ const A=window.SPOOL_AUTH; if(!A) return true; const u=await A.requireLogin('Sign in to make looks and tech packs.'); if(!u) return false;
+  const c=await A.credits(true).catch(()=>null); if(!c||c.admin||c.left>=need) return true;
+  A.upgrade(`This needs ${need} credits — you have ${c.left}.`,{why:'batch'}); return false; }
+async function openTechpacks(){ const L=projStyles(); if(!L.length) return toast('Add styles from My projects first');
+  bModal('Tech packs for this line sheet','<div class="bsub">Checking which styles already have a tech pack…</div>');
+  const pl=await window.SPOOL_AUTH?.plan(true).catch(()=>({}))||{}, paid=new Set(pl.techpacks?.projects||[]), c=pl.credits||{}, per=c.techpackCredits||3;
+  const pick=new Set(L.map(s=>s.pid)); let withCw=true;
+  const draw=()=>{ const sel=L.filter(s=>pick.has(s.pid)), fresh=sel.filter(s=>!paid.has(s.pid)).length, cost=c.admin?0:fresh*per;
+    $('#bBody').innerHTML=`<div class="bsub">One document with every tech pack, made in a new tab — keep it open until it's done (about 30 seconds each). Styles that already have a tech pack are free; artwork is auto-detected where none is marked.</div>
+      ${L.map(s=>`<label class="brow trow"><input type="checkbox" data-p="${s.pid}"${pick.has(s.pid)?' checked':''}>${s.productImg?`<img src="${s.productImg}" alt="">`:'<span class="ph"></span>'}<span><b>${esc(s.no||'')} · ${esc(s.name)}</b>${(s.colorways||[]).length?`<br><small>${s.colorways.length} colorways</small>`:''}</span><span class="st ${!pick.has(s.pid)?'off':paid.has(s.pid)||c.admin?'ok':'new'}">${!pick.has(s.pid)?'Skipped':paid.has(s.pid)?'Made — free':c.admin?'Admin — free':per+' credits'}</span></label>`).join('')}
+      <div class="bopts"><b>Include</b><button type="button" id="tCw" class="${withCw?'on':''}">Colorway pages</button></div>
+      <div class="bfoot"><span><b>${sel.length} tech pack${sel.length===1?'':'s'}</b>${fresh&&!c.admin?` · ${fresh} new = <b>${cost} credits</b>`:' · no credits needed'} · about ${Math.max(1,Math.round(sel.length*30/60))} min</span><button type="button" class="bgo" id="tGo"${sel.length?'':' disabled'}>MAKE ${sel.length} TECH PACK${sel.length===1?'':'S'}</button></div>`;
+    $$('#bBody [data-p]').forEach(cb=>cb.onchange=()=>{ if(cb.checked) pick.add(cb.dataset.p); else pick.delete(cb.dataset.p); draw(); });
+    $('#tCw').onclick=()=>{ withCw=!withCw; draw(); };
+    $('#tGo').onclick=async()=>{ const w=window.open('about:blank','_blank'); if(!w) return toast('Allow pop-ups to make the tech packs');   // opened right in the click
+      if(!(await enough(cost))){ w.close(); return; }
+      await edDB.put('kv',{ids:sel.map(s=>s.pid),colorways:withCw,title:[SH.brand,SH.season].filter(Boolean).join(' ')},'tpBatch');
+      w.location.href='editor.html?batch=techpacks'; $('#bModal').classList.add('hidden'); window.SPOOL_TRACK?.('techpack_batch_start',{n:sel.length}); }; };
+  draw(); }
+$('#looksBtn').onclick=openLooks; $('#tpsBtn').onclick=openTechpacks;
+
 /* ---------- add from My projects / model photos / upload ---------- */
 const projImg=p=>p?.sides?.front?.base||p?.sides?.front?.original||p?.pending?.ai?.front||null;
 const projBack=p=>p?.sides?.back?.base||p?.sides?.back?.original||p?.pending?.ai?.back||null;
@@ -434,6 +503,7 @@ window.SPOOL_AUTH?.mount($('#acct'));
   if(s){ SH={...blankSheet(),...s}; SH.packs=SH.packs||[]; SH.styles=SH.styles.map(st=>({type:'tops',inseams:[],custom:'',packs:[],productBack:null,...st})); SH.looks=SH.looks||[]; if(SH.per!==4) SH.per=6; }
   fill(); const q=new URLSearchParams(location.search);
   if(q.get('add')){ history.replaceState(null,'','linesheet.html'); await addShoot(q.get('add')); }
+  if(q.get('looks')){ history.replaceState(null,'','linesheet.html'); const ids=q.get('looks').split(',').filter(Boolean); for(const id of ids) await addShoot(id); LB=null; if(ids.length) toast(`${ids.length} look${ids.length>1?'s':''} added to the sheet`); }
   if(q.get('project')){ history.replaceState(null,'','linesheet.html'); await addProject(q.get('project')); }
   refreshStyles();
 })();
