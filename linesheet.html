@@ -24,6 +24,10 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
 .card h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card h3 button{letter-spacing:0;text-transform:none;font-weight:600;text-decoration:underline;font-size:12.5px}
+/* long left column: Sheet and Prepacks fold to one line once filled in */
+.card h3 .tg{cursor:pointer;display:flex;align-items:baseline;gap:10px;min-width:0;flex:1}.card h3 .tg::before{content:'−';width:12px;color:var(--muted);font-weight:400}.card.fold h3 .tg::before{content:'+'}
+.card h3 .sum{letter-spacing:0;text-transform:none;font-weight:400;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}.card.fold h3 .sum{display:block}
+.card.fold{padding-bottom:6px}.card.fold>:not(h3):not(.keep){display:none!important}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{grid-template-columns:1fr 1fr 1fr}
 .f{display:block;min-width:0}.f span{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
 .f input{width:100%;border:1px solid transparent;background:var(--soft);border-radius:10px;padding:8px 10px;font-size:13px;outline:none}
@@ -138,15 +142,15 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
   <section>
     <h1>Line sheet.</h1>
     <p class="lead">Your styles on one page for buyers. Download it as a PDF.</p>
-    <div class="card"><h3>Sheet <button type="button" id="newSheet">New sheet</button></h3>
+    <div class="card" id="sheetCard"><h3><span class="tg" role="button" tabindex="0">Sheet <span class="sum" id="sheetSum"></span></span><button type="button" id="newSheet">New sheet</button></h3>
       <div class="row"><label class="f"><span>Brand</span><input data-k="brand" placeholder="Your brand"></label><label class="f"><span>Season</span><input data-k="season" placeholder="e.g. Fall / Winter 2027"></label></div>
       <div class="row" style="margin-top:8px"><label class="f"><span>Contact</span><input data-k="contact" placeholder="sales@yourbrand.com"></label><label class="f"><span>Delivery window</span><input data-k="delivery" placeholder="e.g. Jan 15 – Feb 28"></label></div>
       <label class="f" style="margin-top:8px"><span>Terms (bottom of each page)</span><input data-k="terms"></label>
       <div class="logo"><div class="lg" id="logoBox" title="Add your logo">+ Logo</div><button type="button" class="hidden" id="logoRm">Remove logo</button><input type="file" accept="image/*" id="logoFile" hidden></div>
-      <div><div class="seg" id="photoSeg"><button data-v="product">Product photos</button><button data-v="model">Model photos</button><button data-v="both">Both</button></div></div>
-      <div><div class="seg" id="perSeg"><button data-v="4">4 per page</button><button data-v="6">6 per page</button></div></div>
+      <div class="keep"><div class="seg" id="photoSeg"><button data-v="product">Product photos</button><button data-v="model">Model photos</button><button data-v="both">Both</button></div></div>
+      <div class="keep"><div class="seg" id="perSeg"><button data-v="4">4 per page</button><button data-v="6">6 per page</button></div></div>
     </div>
-    <div class="card"><h3>Prepacks <button type="button" id="addPack">+ New prepack</button></h3>
+    <div class="card" id="packCard"><h3><span class="tg" role="button" tabindex="0">Prepacks <span class="sum" id="packSum"></span></span><button type="button" id="addPack">+ New prepack</button></h3>
       <div class="packs" id="packs"></div>
     </div>
     <div class="card"><h3 id="stylesH">Styles <button type="button" id="addTop">+ Add</button></h3>
@@ -232,7 +236,10 @@ $('#logoBox').onclick=()=>$('#logoFile').click();
 $('#logoFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; try{ SH.logo=await readFile(f); renderLogo(); save(); renderPages(); }catch(er){ toast(er.message); } };
 $('#logoRm').onclick=()=>{ SH.logo=null; renderLogo(); save(); renderPages(); };
 $('#newSheet').onclick=()=>{ if(SH.styles.length&&!confirm('Start a new, empty line sheet?')) return; const keep={brand:SH.brand,contact:SH.contact,logo:SH.logo,terms:SH.terms,packs:SH.packs}; SH={...blankSheet(),...keep}; openId=null; fill(); };
-function fill(){ $$('[data-k]').forEach(i=>i.value=SH[i.dataset.k]||''); segs(); renderLogo(); renderPacks(); renderStyles(); renderPages(); save(); }
+function fill(){ $$('[data-k]').forEach(i=>i.value=SH[i.dataset.k]||''); segs(); renderLogo(); renderPacks(); renderStyles(); renderPages(); save();
+  $('#sheetCard').classList.toggle('fold',!!(SH.brand&&SH.styles.length)); $('#packCard').classList.toggle('fold',SH.packs.length>0&&SH.styles.length>0); sums(); }
+function sums(){ $('#sheetSum').textContent=[SH.brand,SH.season].filter(Boolean).join(' · '); $('#packSum').textContent=SH.packs.map(p=>`${p.name} ${packPcs(p)} pcs`).join(' · ')||'none yet'; }
+$$('.card h3 .tg').forEach(t=>{ const go=()=>{ t.closest('.card').classList.toggle('fold'); sums(); }; t.onclick=go; t.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
 
 /* ---------- prepacks: made once, picked per style ---------- */
 function renderPacks(){ const box=$('#packs');
@@ -247,7 +254,7 @@ function renderPacks(){ const box=$('#packs');
       undoToast(`Deleted prepack ${pk.name}${used?` (on ${used} style${used>1?'s':''})`:''}`,()=>{ SH.packs.splice(i,0,pk); save(); renderPacks(); renderStyles(); renderPages(); }); };
     box.appendChild(d); }); }
 function newPack(type,from){ const pk={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:nextPackName(),type:type||'tops',qty:{}}; (from||DEF_SIZES[pk.type]).forEach(z=>pk.qty[z]=1); SH.packs.push(pk); save(); renderPacks(); return pk; }
-$('#addPack').onclick=()=>{ newPack('tops'); toast('Prepack added — set the quantity per size'); };
+$('#addPack').onclick=()=>{ $('#packCard').classList.remove('fold'); newPack('tops'); toast('Prepack added — set the quantity per size'); };
 function undoToast(msg,undo){ const t=$('#toast'); t.innerHTML=`${esc(msg)}<u role="button" tabindex="0">Undo</u>`; t.classList.add('show','act'); clearTimeout(t._t);
   t.querySelector('u').onclick=()=>{ undo(); t.classList.remove('show','act'); }; t._t=setTimeout(()=>t.classList.remove('show','act'),6000); }
 function removeStyle(id){ const i=SH.styles.findIndex(x=>x.id===id); if(i<0) return; const [st]=SH.styles.splice(i,1); if(openId===id) openId=null; save(); renderStyles(); renderPages();
