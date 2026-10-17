@@ -75,18 +75,27 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 .shd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.2cqw solid var(--ink);padding-bottom:1.2cqw;gap:2cqw}
 .shd .bn{font-size:2.6cqw;font-weight:700;letter-spacing:.5cqw;line-height:1}.shd .bn img{height:3.4cqw;display:block}
 .shd .ss{font-size:1.05cqw;color:var(--muted);text-align:right;line-height:1.35}.shd .ss b{color:var(--ink);font-size:1.35cqw;font-weight:600}
-.items{display:grid;gap:2cqw;margin-top:2cqw;flex:1;min-height:0}
-.it{display:flex;flex-direction:column;min-width:0;min-height:0}
-.it .im{flex:1;min-height:0;background:#F6F4EE;border-radius:.4cqw;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
-.it .im img{width:100%;height:100%;object-fit:cover;object-position:center top}.it .im img.prod{object-fit:contain;object-position:center}
-.it .im .rmx{position:absolute;top:.6cqw;right:.6cqw;width:2.4cqw;height:2.4cqw;min-width:24px;min-height:24px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:max(1cqw,11px);display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.12)}.it .im .rmx:hover{background:var(--ink);color:#fff}
-.it .pkr{font-size:.85cqw;background:#FBEF9C;border-radius:.3cqw;padding:.2cqw .5cqw;margin-top:.3cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.it .pkr b{font-weight:700;margin-right:.4cqw}
-.it .im img.inset{position:absolute;right:.5cqw;bottom:.5cqw;width:28%;height:auto;aspect-ratio:1;background:#fff;border-radius:.3cqw;box-shadow:0 .1cqw .4cqw rgba(0,0,0,.15);object-fit:contain;padding:.2cqw}
-.it .info{height:var(--info,10.5cqw);overflow:hidden;flex:none}
-.it .no{font-size:.95cqw;color:var(--muted);margin-top:.8cqw;letter-spacing:.1cqw;min-height:1.2cqw}
-.it .nm{font-size:1.25cqw;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.it .cl{font-size:.95cqw;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:.3cqw}
-.it table{font-size:.95cqw;border-collapse:collapse;width:100%}.it td{padding:.05cqw 0}.it td:last-child{text-align:right;font-weight:600}
+/* product page: style number first, front + back flats on white, one info line, prepack table at the foot */
+.items{display:grid;gap:1.7cqw 2.4cqw;margin-top:1.7cqw;flex:1;min-height:0}
+.it{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.it .no{font-size:1.55cqw;font-weight:700;letter-spacing:.08cqw;line-height:1.15;min-height:1.8cqw;font-variant-numeric:tabular-nums;padding-right:2.6cqw}
+.it .nm{font-size:1.08cqw;font-weight:500;color:#4a473e;line-height:1.3;margin-top:.1cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .pr{display:flex;gap:1cqw;font-size:.94cqw;color:#4a473e;margin-top:.15cqw;white-space:nowrap;overflow:hidden}.it .pr b{color:var(--ink);font-weight:600}
+.it .fl{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:.7cqw;margin-top:.7cqw}.it .fl.one{grid-template-columns:1fr}
+.it .fl img{width:100%;height:100%;min-height:0;object-fit:contain}
+.it .mt{display:flex;justify-content:space-between;gap:.7cqw;font-size:.88cqw;color:var(--muted);margin-top:.4cqw;white-space:nowrap}.it .mt span{overflow:hidden;text-overflow:ellipsis}
+.it .mt i{font-style:normal;background:#FBEF9C;color:var(--ink);padding:0 .4cqw;border-radius:.2cqw;font-weight:600}
+.rmx{position:absolute;top:0;right:0;width:2.2cqw;height:2.2cqw;min-width:24px;min-height:24px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:max(.9cqw,11px);display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.12)}.rmx:hover{background:var(--ink);color:#fff}
+.pks{display:flex;align-items:center;gap:1.35cqw;margin-top:1cqw;justify-content:flex-end}
+.pks .pl{font-size:.88cqw;letter-spacing:.12cqw;text-transform:uppercase;color:var(--muted);margin-right:auto}
+.pkt{border-collapse:collapse;font-size:.84cqw;text-align:center}
+.pkt th,.pkt td{padding:.13cqw .54cqw;background:#F1EFE8;border:.1cqw solid #fff}.pkt th{font-weight:600}.pkt td{font-variant-numeric:tabular-nums}
+.pkt .pn{background:#FBEF9C;font-size:1.35cqw;line-height:1;padding:0 .8cqw}.pkt .pn small{display:block;font-size:.68cqw;font-weight:500;color:var(--muted)}
+/* look page: the pieces on the left, the model front + back on the right */
+.look{flex:1;min-height:0;display:grid;grid-template-columns:38% minmax(0,1fr);gap:2.4cqw;margin-top:1.7cqw;position:relative}
+.look .pcs{display:grid;gap:1.7cqw;min-height:0}
+.look .mdl{display:grid;grid-template-columns:1fr 1fr;gap:1.35cqw;min-height:0}.look .mdl.one{grid-template-columns:1fr}
+.look .mdl img{width:100%;height:100%;min-height:0;object-fit:cover;object-position:center top;background:var(--soft)}
 .sf{display:flex;justify-content:space-between;font-size:.9cqw;color:var(--muted);border-top:.1cqw solid #e8e4d8;padding-top:1cqw;margin-top:1.6cqw}
 .blank{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:1.6cqw;text-align:center;padding:4cqw}
 /* modal */
@@ -117,7 +126,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261016f"></script>
+<script src="auth.js?v=20261017a"></script>
 </head>
 <body>
 <header>
@@ -135,7 +144,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
       <label class="f" style="margin-top:8px"><span>Terms (bottom of each page)</span><input data-k="terms"></label>
       <div class="logo"><div class="lg" id="logoBox" title="Add your logo">+ Logo</div><button type="button" class="hidden" id="logoRm">Remove logo</button><input type="file" accept="image/*" id="logoFile" hidden></div>
       <div><div class="seg" id="photoSeg"><button data-v="product">Product photos</button><button data-v="model">Model photos</button><button data-v="both">Both</button></div></div>
-      <div><div class="seg" id="perSeg"><button data-v="4">4 per page</button><button data-v="6">6 per page</button><button data-v="8">8 per page</button></div></div>
+      <div><div class="seg" id="perSeg"><button data-v="4">4 per page</button><button data-v="6">6 per page</button></div></div>
     </div>
     <div class="card"><h3>Prepacks <button type="button" id="addPack">+ New prepack</button></h3>
       <div class="packs" id="packs"></div>
@@ -177,6 +186,24 @@ const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'
 const modelDB=IDB('spool-models',db=>{db.createObjectStore('shoots',{keyPath:'id'});db.createObjectStore('kv');});
 const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=src;});
 async function shrink(src,max=1000,q=.88){ if(!src) return null; try{ const i=await loadImg(src); const s=Math.min(1,max/Math.max(i.width,i.height)); const c=document.createElement('canvas'); c.width=Math.round(i.width*s); c.height=Math.round(i.height*s); const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height); return c.toDataURL('image/jpeg',q); }catch(e){ return null; } }
+// studio images sit on a flat light-grey backdrop: flood-fill it away from the edges (neutral, near-backdrop pixels only),
+// trim to the garment and put it on white. Busy photos (uneven border) are left as they are.
+async function cutout(src,max=1000){ if(!src) return null; try{ const i=await loadImg(src); const k=Math.min(1,1024/Math.max(i.width,i.height)), w=Math.round(i.width*k), h=Math.round(i.height*k);
+  const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.drawImage(i,0,0,w,h); const d=x.getImageData(0,0,w,h), p=d.data;
+  const ring=[]; for(let a=0;a<w;a+=3) ring.push(w+a,(h-2)*w+a); for(let b=0;b<h;b+=3) ring.push(b*w+1,b*w+w-2);
+  const ch=[0,1,2].map(o=>ring.map(j=>p[j*4+o]).sort((m,n)=>m-n)), R=ch[0][ch[0].length>>1], G=ch[1][ch[1].length>>1], B=ch[2][ch[2].length>>1];
+  const near=ring.filter(j=>Math.hypot(p[j*4]-R,p[j*4+1]-G,p[j*4+2]-B)<20).length/ring.length;
+  if(near<.85||R+G+B<600) return shrink(src,max);   // not a plain light backdrop
+  const TOL=22, SOFT=14, dist=j=>{ const r=p[j*4],g=p[j*4+1],b=p[j*4+2]; return Math.hypot(r-R,g-G,b-B)+Math.max(0,Math.max(r,g,b)-Math.min(r,g,b)-8)*3; };
+  const A=new Uint8Array(w*h).fill(255), seen=new Uint8Array(w*h), st=[]; const push=j=>{ if(!seen[j]){ seen[j]=1; st.push(j); } };
+  for(let a=0;a<w;a++){ push(a); push((h-1)*w+a); } for(let b=0;b<h;b++){ push(b*w); push(b*w+w-1); }
+  while(st.length){ const j=st.pop(), dd=dist(j); if(dd>TOL+SOFT) continue; A[j]=dd<=TOL?0:Math.round(255*(dd-TOL)/SOFT); if(dd>TOL) continue;
+    const xx=j%w; if(xx>0) push(j-1); if(xx<w-1) push(j+1); if(j>=w) push(j-w); if(j<w*(h-1)) push(j+w); }
+  let x0=w,y0=h,x1=-1,y1=-1; for(let j=0;j<w*h;j++){ p[j*4+3]=A[j]; if(A[j]>40){ const xx=j%w, yy=(j/w)|0; if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(yy<y0)y0=yy; if(yy>y1)y1=yy; } }
+  if(x1<x0) return shrink(src,max); x.putImageData(d,0,0);
+  const bw=x1-x0+1, bh=y1-y0+1, pad=Math.round(Math.max(bw,bh)*.03), s2=Math.min(1,max/(Math.max(bw,bh)+pad*2));
+  const o=document.createElement('canvas'); o.width=Math.round((bw+pad*2)*s2); o.height=Math.round((bh+pad*2)*s2); const ox=o.getContext('2d'); ox.fillStyle='#fff'; ox.fillRect(0,0,o.width,o.height);
+  ox.drawImage(c,x0,y0,bw,bh,pad*s2,pad*s2,bw*s2,bh*s2); return o.toDataURL('image/jpeg',.9); }catch(e){ return shrink(src,max); } }
 const readFile=f=>new Promise((res,rej)=>{ if(!f||!f.type.startsWith('image/')) return rej(new Error('Please use an image file')); const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); });
 
 // size types: each style picks one; prepacks belong to a type
@@ -184,9 +211,9 @@ const SCALE={tops:['XS','S','M','L','XL','2XL','3XL'],bottoms:['26','28','29','3
 const TYPES=[['tops','Tops'],['bottoms','Bottoms'],['shoes','Shoes'],['one','One size'],['custom','Custom']];
 const INSEAMS=['28','30','32','34','36'];
 const DEF_SIZES={tops:['S','M','L','XL'],bottoms:['30','32','34','36','38'],shoes:['8','9','10','11','12'],one:['OS'],custom:[]};
-const blankSheet=()=>({brand:'',season:'',contact:'',delivery:'',terms:'Prices in USD · FOB · Net 30',logo:null,photo:'product',per:4,styles:[],packs:[]});
+const blankSheet=()=>({brand:'',season:'',contact:'',delivery:'',terms:'Prices in USD · FOB · Net 30',logo:null,photo:'product',per:6,styles:[],packs:[],looks:[]});
 let SH=blankSheet(), openId=null;
-const newStyle=o=>({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),pid:null,shootId:null,name:'Style',no:'',whl:'',msrp:'',moq:'',fabric:'',colors:'',type:'tops',sizes:['S','M','L','XL'],inseams:[],custom:'',packs:[],modelImg:null,productImg:null,...o});
+const newStyle=o=>({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),pid:null,shootId:null,name:'Style',no:'',whl:'',msrp:'',moq:'',fabric:'',colors:'',type:'tops',sizes:['S','M','L','XL'],inseams:[],custom:'',packs:[],modelImg:null,productImg:null,productBack:null,cut:0,...o});
 const styleSizes=st=>st.type==='custom'?String(st.custom||'').split(/[,/]+/).map(x=>x.trim()).filter(Boolean):(SCALE[st.type]||SCALE.tops).filter(z=>st.sizes.includes(z));
 const packSizes=pk=>pk.type==='custom'?Object.keys(pk.qty||{}):SCALE[pk.type]||SCALE.tops;
 const packPcs=pk=>Object.values(pk.qty||{}).reduce((a,b)=>a+(+b||0),0);
@@ -230,7 +257,7 @@ function removeStyle(id){ const i=SH.styles.findIndex(x=>x.id===id); if(i<0) ret
 // half sizes / odd waists only count toward a range when they're picked
 const sizeRange=st=>{ const s=styleSizes(st); if(!s.length) return ''; if(st.type==='custom'||st.type==='one') return s.join(', '); const L=SCALE[st.type].filter(z=>s.includes(z)||(st.type==='bottoms'?+z%2===0:st.type==='shoes'?!z.includes('.5'):true)), i0=L.indexOf(s[0]), i1=L.indexOf(s[s.length-1]); return s.length===i1-i0+1&&s.length>1?`${s[0]}–${s[s.length-1]}`:s.join(', '); };
 const money=v=>{ v=String(v||'').trim(); if(!v) return ''; return /^[\d.,]+$/.test(v)?'$'+v:v; };
-const imgOf=st=>SH.photo==='product'?(st.productImg||st.modelImg):(st.modelImg||st.productImg);
+const imgOf=st=>st.productImg||st.modelImg;
 function renderStyles(){ const box=$('#styles'); $('#stylesH').firstChild.textContent=`Styles · ${SH.styles.length} `;
   box.innerHTML=SH.styles.length?'':'<div class="empty-s">No styles yet. Add designs from My projects, or model photos.</div>';
   SH.styles.forEach((st,i)=>{ const d=document.createElement('div'); d.className='style'+(openId===st.id?' open':'');
@@ -245,38 +272,56 @@ function renderStyles(){ const box=$('#styles'); $('#stylesH').firstChild.textCo
         ${st.type==='bottoms'?`<div class="slbl">Inseam</div><div class="sizes">${INSEAMS.map(z=>`<button type="button" data-in="${z}" class="${st.inseams.includes(z)?'on':''}">${z}</button>`).join('')}</div>`:''}
         ${st.type==='one'||st.type==='custom'?'':`<div class="slbl">Prepacks</div><div class="pkpick">${SH.packs.filter(p=>p.type===st.type).map(p=>`<label class="${st.packs.includes(p.id)?'on':''}"><input type="checkbox" data-pk="${p.id}"${st.packs.includes(p.id)?' checked':''}><b>${esc(p.name)}</b><span>${esc(packTxt(p))||'no sizes yet'} · ${packPcs(p)} pcs${num(st.whl)&&packPcs(p)?` · $${(num(st.whl)*packPcs(p)).toFixed(2)}/pack`:''}</span></label>`).join('')||`<div class="empty-s" style="padding:0">No ${st.type} prepacks yet.</div>`}</div>
           <button type="button" class="lnk" data-newpk>+ New ${st.type} prepack from these sizes</button>`}
-        <div class="imgpick">${st.modelImg?`<div class="pi${imgOf(st)===st.modelImg?' on':''}" title="Model photo"><img src="${st.modelImg}" alt=""><span>model</span></div>`:''}${st.productImg?`<div class="pi${imgOf(st)===st.productImg?' on':''}" title="Product photo"><img src="${st.productImg}" alt=""><span>product</span></div>`:''}
-          <button type="button" class="btn" data-swap>Change photo</button>${st.modelImg?'':`<a class="btn" style="text-decoration:none" href="${st.pid?'model.html?pid='+encodeURIComponent(st.pid):'model.html'}">Make model photo</a>`}</div>
+        <div class="imgpick">${st.productImg?`<div class="pi" title="Front"><img src="${st.productImg}" alt=""><span>front</span></div>`:''}${st.productBack?`<div class="pi" title="Back"><img src="${st.productBack}" alt=""><span>back</span></div>`:''}
+          <button type="button" class="btn" data-swap="front">Change front</button><button type="button" class="btn" data-swap="back">${st.productBack?'Change back':'Add back'}</button><a class="btn" style="text-decoration:none" href="${st.pid?'model.html?pid='+encodeURIComponent(st.pid):'model.html'}">Make model photo</a></div>
         <button type="button" class="rm" data-rm>Remove from sheet</button>`;
-      e.querySelectorAll('[data-s]').forEach(inp=>{ inp.value=st[inp.dataset.s]||''; inp.addEventListener('input',()=>{ st[inp.dataset.s]=inp.value; save(); renderPages(); const h=d.querySelector('.sh2'); h.querySelector('b').textContent=st.name||'Style'; h.querySelector('small').textContent=[st.no,[money(st.whl),money(st.msrp)].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')||'Tap to add details'; }); });
+      e.querySelectorAll('[data-s]').forEach(inp=>{ inp.value=st[inp.dataset.s]||''; inp.addEventListener('input',()=>{ st[inp.dataset.s]=inp.value; save(); renderPages(); if(inp.dataset.s==='no') pushNo(st); const h=d.querySelector('.sh2'); h.querySelector('b').textContent=st.name||'Style'; h.querySelector('small').textContent=[st.no,[money(st.whl),money(st.msrp)].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')||'Tap to add details'; }); if(inp.dataset.s==='no') inp.addEventListener('change',()=>pushNo(st,true)); });
       e.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{ const z=b.dataset.z; st.sizes=st.sizes.includes(z)?st.sizes.filter(x=>x!==z):[...st.sizes,z]; b.classList.toggle('on'); save(); renderPages(); });
       e.querySelectorAll('[data-in]').forEach(b=>b.onclick=()=>{ const z=b.dataset.in; st.inseams=st.inseams.includes(z)?st.inseams.filter(x=>x!==z):[...st.inseams,z]; b.classList.toggle('on'); save(); renderPages(); });
       e.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{ if(st.type===b.dataset.ty) return; st.type=b.dataset.ty; st.sizes=[...DEF_SIZES[st.type]]; st.packs=[]; if(st.type!=='bottoms') st.inseams=[]; else if(!st.inseams.length) st.inseams=['32']; save(); renderStyles(); renderPages(); });
       e.querySelectorAll('[data-pk]').forEach(c=>c.onchange=()=>{ const id=c.dataset.pk; st.packs=c.checked?[...st.packs,id]:st.packs.filter(x=>x!==id); save(); renderStyles(); renderPages(); });
       e.querySelector('[data-newpk]')?.addEventListener('click',()=>{ const pk=newPack(st.type,styleSizes(st)); st.packs.push(pk.id); save(); renderStyles(); renderPages(); toast(`Prepack ${pk.name} made with 1 of each size — change the numbers under Prepacks`); });
       e.querySelector('[data-rm]').onclick=()=>removeStyle(st.id);
-      e.querySelector('[data-swap]').onclick=()=>{ swapFor=st; $('#swapFile').click(); };
+      e.querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>{ swapFor=st; swapSide=b.dataset.swap; $('#swapFile').click(); });
       d.appendChild(e); }
     d.querySelector('.sh2').onclick=ev=>{ if(ev.target.closest('[data-up]')) return move(i,-1); if(ev.target.closest('[data-dn]')) return move(i,1); openId=openId===st.id?null:st.id; renderStyles(); };
     box.appendChild(d); }); }
 function move(i,d){ const j=i+d; if(j<0||j>=SH.styles.length) return; [SH.styles[i],SH.styles[j]]=[SH.styles[j],SH.styles[i]]; save(); renderStyles(); renderPages(); }
-let swapFor=null;
-$('#swapFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(!swapFor) return; try{ const d=await shrink(await readFile(f),1000); if(SH.photo==='product') swapFor.productImg=d; else swapFor.modelImg=d; save(); renderStyles(); renderPages(); }catch(er){ toast(er.message); } };
+let swapFor=null, swapSide='front';
+$('#swapFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(!swapFor) return; try{ const d=await cutout(await readFile(f)); if(swapSide==='back') swapFor.productBack=d; else swapFor.productImg=d; save(); renderStyles(); renderPages(); }catch(er){ toast(er.message); } };
 
 /* ---------- preview / print pages ---------- */
-function renderPages(){ const per=SH.per, n=Math.max(1,Math.ceil(SH.styles.length/per)), cols=per===4?4:per===6?3:4, rows=per===4?1:2, out=[];
-  for(let p=0;p<n;p++){ const items=SH.styles.slice(p*per,p*per+per);
-    const head=`<div class="shd"><div class="bn">${SH.logo?`<img src="${SH.logo}" alt="">`:esc(SH.brand||'YOUR BRAND').toUpperCase()}</div><div class="ss"><b>${esc(SH.season||'Season')}</b><br>${esc([SH.delivery&&'Delivery '+SH.delivery,SH.contact].filter(Boolean).join(' · '))}</div></div>`;
-    const extra=Math.max(0,...items.map(st=>st.packs.filter(id=>SH.packs.some(p=>p.id===id)).length+(st.type==='bottoms'&&st.inseams.length?1:0)))*1.55;
-    const body=items.length?`<div class="items" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));--info:${(rows>1?11.5:12.5)+extra}cqw">${items.map(st=>{ const main=imgOf(st), prodMain=main&&main===st.productImg&&main!==st.modelImg;
-      const rowsT=[[st.type==='bottoms'?'Waist':'Sizes',sizeRange(st)],[st.inseams.length>1?'Inseams':'Inseam',st.type==='bottoms'?st.inseams.slice().sort((a,b)=>a-b).join(' / '):''],['Wholesale',money(st.whl)],['MSRP',money(st.msrp)],['MOQ',st.moq],['Fabric',st.fabric]].filter(r=>r[1]);
-      const pks=st.packs.map(id=>SH.packs.find(p=>p.id===id)).filter(Boolean), w=num(st.whl);
-      return `<div class="it"><div class="im"><button type="button" class="rmx" data-rmx="${st.id}" title="Remove from sheet" aria-label="Remove from sheet">✕</button>${main?`<img class="${prodMain?'prod':''}" src="${main}" alt="">`:''}${SH.photo==='both'&&st.modelImg&&st.productImg?`<img class="inset" src="${st.productImg}" alt="">`:''}</div>
-        <div class="info"><div class="no">${esc(st.no||'')}</div><div class="nm">${esc(st.name||'Style')}</div>${st.colors?`<div class="cl">${esc(st.colors)}</div>`:''}
-        <table>${rowsT.map(r=>`<tr><td>${r[0]}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>${pks.map(p=>`<div class="pkr"><b>${esc(p.name)}</b>${esc(packTxt(p))} = ${packPcs(p)} pcs${w&&packPcs(p)?' · $'+(w*packPcs(p)).toFixed(2):''}</div>`).join('')}</div></div>`; }).join('')}</div>`
-      :'<div class="blank">Add styles on the left — they appear here.</div>';
-    out.push(`<div class="sheet"><div class="pg">${head}${body}<div class="sf"><span>${esc(SH.terms||'')}</span><span>Made with SPOOL · page ${p+1} / ${n}</span></div></div></div>`); }
-  $('#pages').innerHTML=out.join(''); $$('[data-rmx]').forEach(b=>b.onclick=()=>removeStyle(b.dataset.rmx)); $('#pvInfo').textContent=`A4 landscape · ${per} styles per page · ${n} page${n>1?'s':''}`; }
+const styleOfPid=pid=>pid?SH.styles.find(x=>x.pid===pid):null;
+const lookStyles=lk=>(lk.pids||[]).map(styleOfPid).concat((lk.sids||[]).map(id=>SH.styles.find(x=>x.id===id))).filter((x,i,a)=>x&&a.indexOf(x)===i);
+function packTable(pks){ if(!pks.length) return '';
+  return `<div class="pks"><span class="pl">Prepacks</span>${pks.map(p=>{ const z=packSizes(p).filter(k=>+p.qty[k]>0||p.type!=='custom'&&(DEF_SIZES[p.type]||[]).includes(k));
+    return `<table class="pkt"><tr><th rowspan="2" class="pn">${esc(p.name)}<small>${esc((TYPES.find(t=>t[0]===p.type)||[])[1]||'')}</small></th>${z.map(k=>`<th>${esc(k)}</th>`).join('')}<th>TTL</th></tr><tr>${z.map(k=>`<td>${+p.qty[k]||0}</td>`).join('')}<td><b>${packPcs(p)}</b> pcs</td></tr></table>`; }).join('')}</div>`; }
+const packsOf=list=>SH.packs.filter(p=>list.some(st=>st.packs.includes(p.id)));
+function styleCell(st,rm){ const pks=st.packs.map(id=>SH.packs.find(p=>p.id===id)).filter(Boolean), f=st.productImg||st.modelImg, b=st.productImg?st.productBack:null;
+  const sz=[sizeRange(st),st.type==='bottoms'&&st.inseams.length?'Inseam '+st.inseams.slice().sort((a,b)=>a-b).join(' / '):'',st.moq&&'MOQ '+st.moq].filter(Boolean).join(' · ');
+  return `<div class="it">${rm?`<button type="button" class="rmx" data-rmx="${st.id}" title="Remove from sheet" aria-label="Remove from sheet">✕</button>`:''}
+    <div class="no">${esc(st.no||'')}</div><div class="nm">${esc(st.name||'Style')}</div>
+    <div class="pr">${st.whl?`<span>Wholesale <b>${esc(money(st.whl))}</b></span>`:''}${st.msrp?`<span>MSRP <b>${esc(money(st.msrp))}</b></span>`:''}${st.fabric?`<span>${esc(st.fabric)}</span>`:''}</div>
+    <div class="fl${b?'':' one'}">${f?`<img src="${f}" alt="">`:''}${b?`<img src="${b}" alt="">`:''}</div>
+    <div class="mt"><span>${esc(st.colors||'')}</span><span>${esc(sz)}${pks.length?`${sz?' · ':''}<i>Pack ${pks.map(p=>esc(p.name)).join(', ')}</i>`:''}</span></div></div>`; }
+function renderPages(){ const per=SH.per===4?4:6, cols=per===4?2:3, out=[];
+  const inLook=new Set(SH.looks.flatMap(lk=>lookStyles(lk).map(x=>x.id)));
+  const looks=SH.photo==='product'?[]:SH.looks;
+  const prods=SH.photo==='model'&&looks.length?SH.styles.filter(st=>!inLook.has(st.id)):SH.styles;
+  const head=`<div class="shd"><div class="bn">${SH.logo?`<img src="${SH.logo}" alt="">`:esc(SH.brand||'YOUR BRAND').toUpperCase()}</div><div class="ss"><b>${esc(SH.season||'Season')}</b><br>${esc([SH.delivery&&'Delivery '+SH.delivery,SH.contact].filter(Boolean).join(' · '))}</div></div>`;
+  const pages=[];
+  for(let p=0;p<Math.ceil(prods.length/per);p++){ const items=prods.slice(p*per,p*per+per);
+    pages.push(`${head}<div class="items" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))">${items.map(st=>styleCell(st,true)).join('')}</div>${packTable(packsOf(items))}`); }
+  looks.forEach(lk=>{ const pcs=lookStyles(lk);
+    pages.push(`${head}<div class="look"><button type="button" class="rmx" data-rml="${lk.id}" title="Remove this look" aria-label="Remove this look">✕</button>
+      <div class="pcs" style="grid-template-rows:repeat(${Math.max(1,pcs.length)},minmax(0,1fr))">${pcs.map(st=>styleCell(st,false)).join('')}</div>
+      <div class="mdl${lk.back?'':' one'}"><img src="${lk.front}" alt="">${lk.back?`<img src="${lk.back}" alt="">`:''}</div></div>${packTable(packsOf(pcs))}`); });
+  if(!pages.length) pages.push(`${head}<div class="blank">Add styles on the left — they appear here.</div>`);
+  pages.forEach((pg,k)=>out.push(`<div class="sheet"><div class="pg">${pg}<div class="sf"><span>${esc(SH.terms||'')}</span><span>Made with SPOOL · page ${k+1} / ${pages.length}</span></div></div></div>`));
+  $('#pages').innerHTML=out.join(''); $$('[data-rmx]').forEach(b=>b.onclick=()=>removeStyle(b.dataset.rmx)); $$('[data-rml]').forEach(b=>b.onclick=()=>removeLook(b.dataset.rml));
+  $('#pvInfo').textContent=`A4 landscape · ${pages.length} page${pages.length>1?'s':''}${looks.length?` · ${looks.length} look${looks.length>1?'s':''}`:''}`; }
+function removeLook(id){ const i=SH.looks.findIndex(x=>x.id===id); if(i<0) return; const [lk]=SH.looks.splice(i,1); save(); renderPages();
+  undoToast('Removed the look',()=>{ SH.looks.splice(i,0,lk); save(); renderPages(); }); }
 $('#pdf').onclick=()=>{ if(!SH.styles.length) return toast('Add at least one style first'); const t=document.title; document.title=[SH.brand,SH.season,'Line Sheet'].filter(Boolean).join(' — ');
   window.SPOOL_TRACK?.('linesheet_pdf',{styles:SH.styles.length,per:SH.per,photo:SH.photo});
   window.print();   // called right in the click: a delayed print() makes Safari ask "This webpage is trying to print"
@@ -284,27 +329,50 @@ $('#pdf').onclick=()=>{ if(!SH.styles.length) return toast('Add at least one sty
 
 /* ---------- add from My projects / model photos / upload ---------- */
 const projImg=p=>p?.sides?.front?.base||p?.sides?.front?.original||p?.pending?.ai?.front||null;
+const projBack=p=>p?.sides?.back?.base||p?.sides?.back?.original||p?.pending?.ai?.back||null;
+// same default the editor gives a new project, so the sheet and the tech pack print one style number
+const defaultNo=p=>{ const d=new Date(p.created||Date.now()); return 'SP'+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(p.id).slice(-3).toUpperCase(); };
+const fabricOf=B=>[B.fabric,B.gsm&&B.gsm+(/gsm|oz/i.test(B.gsm)?'':' GSM')].filter(Boolean).join(', ');
+const shootView=(s,v)=>s?((s.versions[s.cur||0]||s.versions[0])[v]||null):null;
+const shootFront=s=>shootView(s,'front');
 async function latestShoot(pid){ const all=(await modelDB.all('shoots'))||[]; return all.filter(s=>s.pid&&s.pid===pid).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created))[0]||null; }
-const shootFront=s=>s?(s.versions[s.cur||0]||s.versions[0]).front:null;
 async function fullProject(id){ let p=await edDB.get('projects',id); if((!p||(!projImg(p)))&&window.SPOOL_AUTH?.user){ try{ p=await window.SPOOL_AUTH.cloud.load(id)||p; }catch(e){} } return p; }
-async function addProject(id){ if(SH.styles.some(s=>s.pid===id)) return toast('Already on the sheet');
-  const p=await fullProject(id); if(!p) return toast('Could not open this project');
-  const s=await latestShoot(id), B=p.bodySpec||{}, Y=p.style||{};
-  const ty=['sweatpant','denim','shorts'].includes(p.body)?'bottoms':'tops';
-  SH.styles.push(newStyle({pid:id,shootId:s?.id||null,type:ty,sizes:[...DEF_SIZES[ty]],inseams:ty==='bottoms'?['32']:[],name:p.name||'Style',no:Y.no||'',fabric:[B.fabric,B.gsm&&B.gsm+(/gsm/i.test(B.gsm)?'':'gsm')].filter(Boolean).join(', '),colors:B.color||'',productImg:await shrink(projImg(p)),modelImg:await shrink(shootFront(s))}));
-  save(); renderStyles(); renderPages(); toast('Added: '+(p.name||'style')); }
+// the pieces in a model photo, main piece first
+const shootPids=s=>{ const ph=s.photos||[], m=ph.find(x=>x.id===s.main); return [m,...ph.filter(x=>x!==m)].map(x=>x&&x.pid).filter((x,i,a)=>x&&a.indexOf(x)===i).concat(ph.length?[]:[s.pid].filter(Boolean)); };
+async function upsertLook(s,sids){ const lk={id:s.id,front:await shrink(shootView(s,'front'),1400),back:await shrink(shootView(s,'back'),1400),pids:shootPids(s),sids:sids||[]};
+  const i=SH.looks.findIndex(x=>x.id===s.id); if(i>=0) SH.looks[i]=lk; else SH.looks.push(lk); }
+async function addProject(id,quiet){ const had=styleOfPid(id); if(had){ if(!quiet) toast('Already on the sheet'); return had; }
+  const p=await fullProject(id); if(!p){ toast('Could not open this project'); return null; }
+  const B=p.bodySpec||{}, Y=p.style||{}, ty=['sweatpant','denim','shorts'].includes(p.body)?'bottoms':'tops';
+  const st=newStyle({pid:id,type:ty,sizes:[...DEF_SIZES[ty]],inseams:ty==='bottoms'?['32']:[],name:p.name||'Style',no:Y.no||defaultNo(p),fabric:fabricOf(B),colors:B.color||'',productImg:await cutout(projImg(p)),productBack:await cutout(projBack(p)),cut:1});
+  SH.styles.push(st);
+  const s=await latestShoot(id); if(s&&!SH.looks.some(x=>x.id===s.id)){ await upsertLook(s); st.shootId=s.id; st.modelImg=await shrink(shootFront(s),400); }
+  save(); renderStyles(); renderPages(); if(!quiet) toast('Added: '+(p.name||'style')); return st; }
+// adding a model photo adds its look page and every piece in it
 async function addShoot(id){ const s=await modelDB.get('shoots',id); if(!s) return toast('Model photo not found');
-  const same=SH.styles.find(x=>x.shootId===id||(s.pid&&x.pid===s.pid));
-  if(same){ same.modelImg=await shrink(shootFront(s)); same.shootId=id; save(); renderStyles(); renderPages(); return toast('Model photo updated on the sheet'); }
-  if(s.pid) return addProject(s.pid);
-  SH.styles.push(newStyle({shootId:id,name:s.name||'Style',modelImg:await shrink(shootFront(s)),productImg:await shrink(s.garmentFront||s.garment)}));
-  save(); renderStyles(); renderPages(); toast('Added'); }
+  const pids=shootPids(s), sids=[];
+  for(const pid of pids) await addProject(pid,true);
+  if(!pids.length){ const st=SH.styles.find(x=>x.shootId===id)||newStyle({shootId:id,name:s.name||'Style',productImg:await cutout(s.garmentFront||s.garment),productBack:await cutout(s.garmentBack),cut:1}); if(!SH.styles.includes(st)) SH.styles.push(st); sids.push(st.id); }
+  const had=SH.looks.some(x=>x.id===id); await upsertLook(s,sids);
+  for(const pid of pids){ const st=styleOfPid(pid); if(st&&!st.modelImg){ st.shootId=id; st.modelImg=await shrink(shootFront(s),400); } }
+  if(SH.photo==='product'){ SH.photo='both'; segs(); }
+  save(); renderStyles(); renderPages(); toast(had?'Model photo updated on the sheet':'Look added'+(pids.length>1?` with ${pids.length} styles`:'')); }
+// style number lives on the project: the editor's tech pack reads the same one
+let noT={}; function pushNo(st,now){ if(!st.pid) return; clearTimeout(noT[st.id]); noT[st.id]=setTimeout(async()=>{ const no=st.no.trim(); if(!no) return;
+  const local=await edDB.get('projects',st.pid); if(local){ local.style={...(local.style||{}),no}; local.updated=Date.now(); await edDB.put('projects',local); }
+  const A=window.SPOOL_AUTH; if(!A?.user) return; try{ const p=await A.cloud.load(st.pid); if(!p) return; p.style={...(p.style||{}),no}; p.updated=Date.now();
+    const row=(await A.cloud.list()).find(c=>c.id===st.pid); await A.cloud.save(p,row?.thumb||p.thumb||null); }catch(e){ console.warn(e); } },now?0:600); }
+// sheets made before front/back + clean backgrounds: fetch both views again once
+async function refreshStyles(){ let n=0; for(const st of SH.styles){ if(st.cut||!st.pid) continue; const p=await fullProject(st.pid); if(!p) continue;
+    st.productImg=await cutout(projImg(p))||st.productImg; st.productBack=await cutout(projBack(p)); if(!st.no) st.no=(p.style||{}).no||defaultNo(p); st.fabric=st.fabric.replace(/(oz)gsm/i,'$1'); st.cut=1; n++; }
+  for(const st of SH.styles){ if(st.shootId&&!SH.looks.some(l=>l.id===st.shootId)){ const s=await modelDB.get('shoots',st.shootId); if(s){ await upsertLook(s); n++; } } }
+  if(n){ save(); renderStyles(); renderPages(); } }
 let mTab='projects';
 async function renderModal(){ $$('#mTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===mTab)); const L=$('#mList'); L.innerHTML='<div class="mempty">Loading…</div>';
   if(mTab==='upload'){ L.innerHTML='<div class="mempty"><button class="btn" id="upBtn">Choose a photo</button><br><br>A product photo of a style that isn’t in My projects.</div>'; $('#upBtn').onclick=()=>$('#upFile').click(); return; }
   if(mTab==='models'){ const all=((await modelDB.all('shoots'))||[]).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created));
     L.innerHTML=all.length?'':'<div class="mempty">No model photos yet. <a href="model.html">Make one →</a></div>';
-    all.forEach(s=>{ const b=document.createElement('button'); const on=SH.styles.some(x=>x.shootId===s.id); b.className='pick'+(on?' added':''); b.innerHTML=`<img src="${shootFront(s)}" alt=""><div><b>${esc(s.name)}</b><small>${on?'On the sheet':new Date(s.created).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div>`; b.onclick=async()=>{ await addShoot(s.id); renderModal(); }; L.appendChild(b); }); return; }
+    all.forEach(s=>{ const b=document.createElement('button'); const on=SH.looks.some(x=>x.id===s.id); b.className='pick'+(on?' added':''); b.innerHTML=`<img src="${shootFront(s)}" alt=""><div><b>${esc(s.name)}</b><small>${on?'On the sheet':new Date(s.created).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div>`; b.onclick=async()=>{ await addShoot(s.id); renderModal(); }; L.appendChild(b); }); return; }
   const local=((await edDB.all('projects'))||[]); let cloud=[]; if(window.SPOOL_AUTH?.user){ try{ cloud=await window.SPOOL_AUTH.cloud.list(); }catch(e){} }
   const map=new Map(); local.forEach(p=>map.set(p.id,{id:p.id,name:p.name,thumb:p.thumb||null,updated:p.updated||0}));
   cloud.forEach(c=>{ if(!map.has(c.id)) map.set(c.id,{id:c.id,name:c.name,thumb:c.thumb,updated:Date.parse(c.updated_at)||0}); });
@@ -321,10 +389,11 @@ $('#upFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; t
 
 /* ---------- start ---------- */
 window.SPOOL_AUTH?.mount($('#acct'));
-(async()=>{ const s=await sheetDB.get('kv','sheet'); if(s){ SH={...blankSheet(),...s}; SH.packs=SH.packs||[]; SH.styles=SH.styles.map(st=>({type:'tops',inseams:[],custom:'',packs:[],...st})); }
+(async()=>{ const s=await sheetDB.get('kv','sheet'); if(s){ SH={...blankSheet(),...s}; SH.packs=SH.packs||[]; SH.styles=SH.styles.map(st=>({type:'tops',inseams:[],custom:'',packs:[],productBack:null,...st})); SH.looks=SH.looks||[]; if(SH.per!==4) SH.per=6; }
   fill(); const q=new URLSearchParams(location.search);
   if(q.get('add')){ history.replaceState(null,'','linesheet.html'); await addShoot(q.get('add')); }
   if(q.get('project')){ history.replaceState(null,'','linesheet.html'); await addProject(q.get('project')); }
+  refreshStyles();
 })();
 </script>
 </body>

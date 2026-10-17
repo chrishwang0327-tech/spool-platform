@@ -199,7 +199,7 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .mob-more button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261016f"></script>
+<script src="auth.js?v=20261017a"></script>
 <script src="sample.js?v=20261016c"></script>
 </head>
 <body>
@@ -371,8 +371,8 @@ const edDB=IDB('spool-editor',db=>{db.createObjectStore('projects',{keyPath:'id'
 
 /* ================= state ================= */
 const defCal=()=>({x1:270,x2:730,y:430,hps:120});
-const GARMENT_NAME={tee:'Tee',hoodie:'Hoodie',zip:'Zip hoodie',crew:'Crewneck',trucker:'Jacket',sweatpant:'Sweatpants',denim:'Denim pants',shorts:'Shorts'};
-const guessBody=t=>{ t=String(t||'').toLowerCase(); return /zip/.test(t)?'zip':/hood/.test(t)?'hoodie':/crew|sweatshirt/.test(t)?'crew':/jacket|trucker|coach/.test(t)?'trucker':/sweatpant|jogger/.test(t)?'sweatpant':/short/.test(t)?'shorts':/jean|denim pant|trouser/.test(t)?'denim':/tee|t-shirt|shirt/.test(t)?'tee':''; };
+const GARMENT_NAME={tee:'Tee',hoodie:'Hoodie',zip:'Zip hoodie',crew:'Crewneck',trucker:'Jacket',sweatpant:'Sweatpants',denim:'Pants',shorts:'Shorts'};
+const guessBody=t=>{ t=String(t||'').toLowerCase().replace(/short[\s-]*sleeved?/g,'tee'); return /zip/.test(t)?'zip':/hood/.test(t)?'hoodie':/crew|sweatshirt/.test(t)?'crew':/jacket|trucker|coach/.test(t)?'trucker':/sweatpant|jogger|track ?pant/.test(t)?'sweatpant':/short/.test(t)?'shorts':/jean|denim pant|trouser|cargo|chino|\bpants?\b/.test(t)?'denim':/tee|t-shirt|shirt/.test(t)?'tee':''; };
 // garment proportions on a front/back product photo: chest width vs. full silhouette width, armpit line and HPS vs. silhouette height
 const CAL_SHAPE={tee:{w:.63,y:.28,h:.03},hoodie:{w:.63,y:.38,h:.16},zip:{w:.63,y:.38,h:.16},crew:{w:.63,y:.31,h:.04},trucker:{w:.62,y:.32,h:.06}};
 async function autoCal(s,body){ // find the garment outline and place the chest line + HPS on it
@@ -1124,7 +1124,7 @@ const placeTxt=(s,p)=>{ const ip=(+P.chestIn||21)/Math.max(40,s.cal.x2-s.cal.x1)
   if(sleeve){ // factories place sleeve prints by the wearer's side, measured from the shoulder point (front view: photo right = wearer's left)
     const right=fc>0, wearerLeft=s===P.sides.back?!right:right, d=Math.hypot(cxU-(right?s.cal.x2:s.cal.x1),p.b[1]-s.cal.hps)*ip;
     return [`Wearer's ${wearerLeft?'left':'right'} sleeve`,`About ${f1(d)} in from shoulder`]; }
-  return [fh<0?`${f1(-fh)} in above HPS`:`${f1(fh)} in down from HPS`, Math.abs(fc)<0.15?'Centered':`${f1(Math.abs(fc))} in ${fc>0?'right':'left'} of center`]; };
+  return [fh<0?`${f1(-fh)} in above HPS`:`${f1(fh)} in down from HPS`, Math.abs(fc)<0.15?'Centered':`${f1(Math.abs(fc))} in to wearer's ${(s===P.sides.back?fc<0:fc>0)?'left':'right'} of center`]; };
 const sizeTxt=(s,p)=>{ const sv=side; side=s===P.sides.back?'back':'front'; const t=`${f1(widthIn(p))} × ${f1(heightIn(p))} in`; side=sv; return t; };
 function bodyColorOf(c,s){ // most common color on the torso (the fabric)
   const t=canvas(64,64), tx=t.getContext('2d'), x0=s.cal.x1*k, y0=s.cal.hps*k, w=(s.cal.x2-s.cal.x1)*k, h=Math.min(PX-y0,(s.cal.y-s.cal.hps)*k*2.2);
