@@ -116,7 +116,7 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
 @media (max-width:520px){.pics{grid-template-columns:repeat(3,1fr)}.acts{flex-wrap:wrap}.genrow .chips{flex:1 1 100%}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261017a"></script>
+<script src="auth.js?v=20261017b"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -420,13 +420,14 @@ $('#fixGo').onclick=async()=>{ const v=curV(), note=$('#fixNote').value.trim(); 
   $('#fixNote').value=''; busy(false); renderResult(); };
 
 /* ---------- save + list ---------- */
-async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',clone(S.shoot)); saveDraft(); renderMine(); }
+async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',clone(S.shoot)); saveDraft(); renderMine();
+  window.SPOOL_AUTH?.cloud?.put(`shoots/${S.shoot.id}.json`,clone(S.shoot)); }   // also in the account, so other devices and the line sheet see it
 let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{v:3,photos:S.photos,main:S.main,mine:S.mine,ref:S.ref,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
 async function renderMine(){ const all=((await modelDB.all('shoots'))||[]).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created)), g=$('#mineGrid');
   g.innerHTML=all.length?'':'<div class="mine-empty">Your model photos will appear here.</div>';
   all.forEach(s=>{ const v=s.versions[s.cur||0], c=document.createElement('div'); c.className='mcard';
     c.innerHTML=`<img src="${v.front}" alt=""><div><b>${esc(s.name)}</b><small>${esc(modelName(s.settings))} · ${new Date(s.created).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div><button class="del" title="Delete" aria-label="Delete">✕</button>`;
-    c.onclick=e=>{ if(e.target.closest('.del')){ e.stopPropagation(); if(!confirm('Delete this model photo?')) return; modelDB.del('shoots',s.id).then(()=>{ if(S.shoot?.id===s.id){ S.shoot=null; renderResult(); } renderMine(); }); return; }
+    c.onclick=e=>{ if(e.target.closest('.del')){ e.stopPropagation(); if(!confirm('Delete this model photo?')) return; window.SPOOL_AUTH?.cloud?.drop(`shoots/${s.id}.json`); modelDB.del('shoots',s.id).then(()=>{ if(S.shoot?.id===s.id){ S.shoot=null; renderResult(); } renderMine(); }); return; }
       openShoot(s); window.scrollTo({top:0,behavior:'smooth'}); };
     g.appendChild(c); }); }
 // shoots and drafts from the earlier versions of this page (one garment, or outfit slots) → photos + a note
@@ -480,6 +481,8 @@ if(MOCK) $('#mockbar').classList.remove('hidden');
   if(q.get('pid')){ await window.SPOOL_AUTH?.ready; const piece=await pieceFromProject(q.get('pid')); if(piece) asMain(piece); else toast('Could not open that project'); history.replaceState(null,'','model.html'); }
   if(q.get('shoot')){ const s=await modelDB.get('shoots',q.get('shoot')); if(s) openShoot(s); }
   $('#note').value=S.note; renderAll(); renderResult(); renderMine();
+  // model photos made on another device (or before this was in the account) — copy both ways, then show them
+  const A=window.SPOOL_AUTH; if(A){ await A.ready; if(A.user){ const n=await A.cloud.sync('shoots',()=>modelDB.all('shoots'),x=>modelDB.put('shoots',x)); if(n) renderMine(); } }
 })();
 </script>
 </body>

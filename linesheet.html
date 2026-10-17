@@ -130,7 +130,7 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261017a"></script>
+<script src="auth.js?v=20261017b"></script>
 </head>
 <body>
 <header>
@@ -225,7 +225,10 @@ const packPcs=pk=>Object.values(pk.qty||{}).reduce((a,b)=>a+(+b||0),0);
 const packTxt=pk=>packSizes(pk).filter(z=>+pk.qty[z]>0).map(z=>(pk.type==='bottoms'||pk.type==='shoes'?z+'·':z)+pk.qty[z]).join(' ');
 const num=v=>{ const n=parseFloat(String(v||'').replace(/[^\d.]/g,'')); return isFinite(n)?n:null; };
 const nextPackName=()=>{ for(const c of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') if(!SH.packs.some(p=>p.name===c)) return c; return 'P'+(SH.packs.length+1); };
-let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>sheetDB.put('kv',SH,'sheet'),120); }
+// saved in this browser right away and in the account a moment later, so it opens on any device
+let saveT, cloudT; function save(){ SH.updated=Date.now(); clearTimeout(saveT); saveT=setTimeout(()=>sheetDB.put('kv',SH,'sheet'),120);
+  clearTimeout(cloudT); cloudT=setTimeout(()=>window.SPOOL_AUTH?.cloud?.put('sheets/current.json',SH),1500); }
+addEventListener('pagehide',()=>{ if(cloudT){ clearTimeout(cloudT); window.SPOOL_AUTH?.cloud?.put('sheets/current.json',SH); } });
 
 /* ---------- sheet fields ---------- */
 $$('[data-k]').forEach(i=>i.addEventListener('input',()=>{ SH[i.dataset.k]=i.value; save(); renderPages(); }));
@@ -410,7 +413,10 @@ $('#upFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; t
 
 /* ---------- start ---------- */
 window.SPOOL_AUTH?.mount($('#acct'));
-(async()=>{ const s=await sheetDB.get('kv','sheet'); if(s){ SH={...blankSheet(),...s}; SH.packs=SH.packs||[]; SH.styles=SH.styles.map(st=>({type:'tops',inseams:[],custom:'',packs:[],productBack:null,...st})); SH.looks=SH.looks||[]; if(SH.per!==4) SH.per=6; }
+(async()=>{ let s=await sheetDB.get('kv','sheet'); const A=window.SPOOL_AUTH;
+  if(A){ await A.ready; if(A.user){ const c=await A.cloud.get('sheets/current.json'); if(c&&(!s||(c.updated||0)>(s.updated||0))) s=c;
+    await A.cloud.sync('shoots',()=>modelDB.all('shoots'),x=>modelDB.put('shoots',x)); } }   // model photos from other devices, for the looks
+  if(s){ SH={...blankSheet(),...s}; SH.packs=SH.packs||[]; SH.styles=SH.styles.map(st=>({type:'tops',inseams:[],custom:'',packs:[],productBack:null,...st})); SH.looks=SH.looks||[]; if(SH.per!==4) SH.per=6; }
   fill(); const q=new URLSearchParams(location.search);
   if(q.get('add')){ history.replaceState(null,'','linesheet.html'); await addShoot(q.get('add')); }
   if(q.get('project')){ history.replaceState(null,'','linesheet.html'); await addProject(q.get('project')); }
