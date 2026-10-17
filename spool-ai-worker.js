@@ -72,7 +72,7 @@ export default {
           supabase = !r.ok ? `error ${r.status}` : rows.length ? 'ok' : 'not a secret key'; }
         catch { supabase = 'error'; }
       }
-      return json({ ok: true, artwork: true, detect2: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
+      return json({ ok: true, artwork: true, detect2: true, hires: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
     }
     if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
     if (!okOrigin) return json({ error: 'Origin not allowed' }, 403);
@@ -203,7 +203,9 @@ export default {
       const SIZES = { '3:4': '1024x1536', '4:3': '1536x1024', '3:2': '1536x1024', '1:1': '1024x1024' };
       const aspect = SIZES[body.aspect] ? body.aspect : body.wide === true ? '3:2' : '1:1';
       if (nOpenai) jobs.push(openai(env, prompt, images, { n: nOpenai, quality, size: SIZES[aspect] }));
-      for (let i = 0; i < nGemini; i++) jobs.push(gemini(env, prompt, images, aspect));
+      // body.size '2K' = bigger output (model photos); env MODEL_IMAGE_SIZE can set it to '1K' to save cost
+      const size = body.size === '2K' ? (env.MODEL_IMAGE_SIZE || '2K') : undefined;
+      for (let i = 0; i < nGemini; i++) jobs.push(gemini(env, prompt, images, aspect, size === '1K' ? undefined : size));
     }
     if (!jobs.length) return json({ error: 'No API keys configured on the Worker' }, 500);
 
@@ -247,7 +249,7 @@ async function openai(env, prompt, images, opt = {}) {
 }
 
 /* ---------- Gemini: one image per call ---------- */
-async function gemini(env, prompt, images, aspect = '1:1') {
+async function gemini(env, prompt, images, aspect = '1:1', size) {
   const model = env.GEMINI_MODEL || 'gemini-3.1-flash-image';
   const parts = [{ text: prompt }];
   for (const i of images) {
@@ -259,10 +261,12 @@ async function gemini(env, prompt, images, aspect = '1:1') {
     headers: { 'x-goog-api-key': env.GEMINI_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ role: 'user', parts }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: aspect } }
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: size ? { aspectRatio: aspect, imageSize: size } : { aspectRatio: aspect } }
     })
   });
   const data = await r.json().catch(() => ({}));
+  // a model without the bigger sizes rejects imageSize: ask again at its normal size
+  if (!r.ok && size && r.status === 400) return gemini(env, prompt, images, aspect);
   if (!r.ok) throw new Error(`Gemini ${r.status}: ${data?.error?.message || 'error'}`);
   const out = [];
   for (const c of data.candidates || []) {
