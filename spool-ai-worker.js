@@ -163,7 +163,8 @@ export default {
     if (freeFix) { const capErr = await dayCap(env, token, { apikey: SB_KEY, Authorization: `Bearer ${token}` }, 'fix', 6, 12, "Today's artwork checks are used up.", 'fix_limit'); if (capErr) return json(capErr, 429); await logUse(env, token, 'fix'); }
     if (who && !freeFix && (!body.task || body.task === 'design' || body.task === 'extract')) {
       const need = Math.max(1, Math.min(4, parseInt(body.n, 10) || 1)) * (body.size === '2K' ? 2 : 1);
-      const q = await spendCredits(env, token, body.task === 'extract' ? 'extract' : 'design', need);
+      // body.reserve: credits the whole job needs (a Create's front call reserves its back too) — checked, not charged
+      const q = await spendCredits(env, token, body.task === 'extract' ? 'extract' : 'design', need, Math.min(4, parseInt(body.reserve, 10) || 0));
       if (!q.ok) return json({ error: q.error, code: q.code, need: q.need, left: q.left }, q.code === 'quota_unavailable' ? 503 : 429);
       quota = q.info || null; charged = q.rows;
     }
@@ -446,13 +447,14 @@ async function creditInfo(env, token, fresh) {
   return { admin: adm === true, pro: !!plan.pro, renews: plan.renews || null, plan: planLeft, planTotal: plan.pro ? C.pro : 0, pool, left: planLeft + pool,
     today: u.today || 0, daily: C.daily, topupCredits: C.topup, topupPrice: C.topupCents / 100, sampleBonus: C.sample, techpackCredits: C.techpack };
 }
-async function spendCredits(env, token, kind, need) {
+async function spendCredits(env, token, kind, need, reserve = 0) {
   let c; try { c = await creditInfo(env, token); } catch (e) { console.error('credits', String(e)); return QUOTA_DOWN; }
   const uid = uidOf(token);
   if (c.admin) { const rows = [{ kind, user_id: uid, credits: need, src: 'admin' }]; await logRows(env, rows); return { ok: true, info: c, rows: [] }; }
   if (c.today + need > c.daily) return { ok: false, code: 'daily_limit', need, left: c.left, error: `You've used today's ${c.daily} credits. It resets at midnight UTC.` };
-  if (c.left < need) return { ok: false, code: 'no_credits', need, left: c.left,
-    error: c.left ? `This needs ${need} credits — you have ${c.left}.` : `You're out of credits. Add more, or request a sample to get ${c.sampleBonus} credits.` };
+  const must = Math.max(need, reserve);
+  if (c.left < must) return { ok: false, code: 'no_credits', need: must, left: c.left,
+    error: c.left ? `This needs ${must} credits — you have ${c.left}.` : `You're out of credits. Add more, or request a sample to get ${c.sampleBonus} credits.` };
   const fromPlan = Math.min(need, c.plan), rows = [];
   if (fromPlan) rows.push({ kind, user_id: uid, credits: fromPlan, src: 'plan' });
   if (need - fromPlan) rows.push({ kind, user_id: uid, credits: need - fromPlan, src: 'pool' });

@@ -903,7 +903,7 @@ async function generate(provider='gemini'){
   const pend=Object.values(cleanJobs).map(j=>j.p); if(pend.length){ setSpinPhase('Removing prints from your body photo'); await Promise.race([Promise.all(pend),new Promise(r=>setTimeout(r,45000))]); }
   if(!AI_ENDPOINT){ await new Promise(r=>setTimeout(r,1200)); return (await mockVariations()).slice(provider==='gemini'?1:0,provider==='gemini'?2:1); }
   const inv=await artInventory();
-  let fronts=await callAI({...(await frontJob(inv)),n:1,provider});
+  let fronts=await callAI({...(await frontJob(inv)),n:1,provider,reserve:2});   // front + back = 2 credits: don't start with only 1
   if(inv?.garment&&inv.items.length&&state.front.graphicUse==='full'){ setSpinPhase('Checking every artwork made it — sleeves too');
     fronts=await Promise.all(fronts.slice(0,2).map(f=>ensureArtwork(f,inv))); }
   setSpinPhase('Front done — now the back');
