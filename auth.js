@@ -128,7 +128,18 @@
       const up=await sb.storage.from('projects').upload(path,blob,{upsert:true,contentType:'application/json',cacheControl:'0'}); if(up.error){ console.warn(up.error); return false; }
       const {error}=await sb.from('projects').upsert({id:p.id,user_id:user.id,name:p.name||'Untitled design',thumb:thumb||null,updated_at:new Date(p.updated||Date.now()).toISOString()}); if(error){ console.warn(error); return false; } return true; },
     async load(id){ if(!user) return null; const {data,error}=await sb.storage.from('projects').download(`${user.id}/${id}.json`); if(error){ console.warn(error); return null; } return JSON.parse(await data.text()); },
-    async remove(id){ if(!user) return; await sb.storage.from('projects').remove([`${user.id}/${id}.json`]); await sb.from('projects').delete().eq('id',id); }
+    async remove(id){ if(!user) return; await sb.storage.from('projects').remove([`${user.id}/${id}.json`]); await sb.from('projects').delete().eq('id',id); },
+    // other saved things (line sheet, model photos) live as JSON files in the same private folder: <uid>/<dir>/<name>.json
+    async put(path,obj){ if(!user) return false; const {error}=await sb.storage.from('projects').upload(`${user.id}/${path}`,new Blob([JSON.stringify(obj)],{type:'application/json'}),{upsert:true,contentType:'application/json',cacheControl:'0'}); if(error) console.warn(error); return !error; },
+    async get(path){ if(!user) return null; const {data,error}=await sb.storage.from('projects').download(`${user.id}/${path}`); if(error) return null; try{ return JSON.parse(await data.text()); }catch(e){ return null; } },
+    async files(dir){ if(!user) return []; const {data,error}=await sb.storage.from('projects').list(`${user.id}/${dir}`,{limit:1000}); return error?[]:(data||[]).filter(f=>f.name.endsWith('.json')); },
+    async drop(path){ if(!user) return; await sb.storage.from('projects').remove([`${user.id}/${path}`]); },
+    // two-way copy between a local store and <uid>/<dir>: what only one side has goes to the other
+    async sync(dir,localAll,localPut){ if(!user) return 0; let n=0;
+      const files=await this.files(dir), local=(await localAll())||[], have=new Set(local.map(x=>x.id)), there=new Set(files.map(f=>f.name.replace(/\.json$/,'')));
+      for(const x of local) if(!there.has(x.id)&&await this.put(`${dir}/${x.id}.json`,x)) n++;
+      for(const id of there) if(!have.has(id)){ const x=await this.get(`${dir}/${id}.json`); if(x&&x.id){ await localPut(x); n++; } }
+      return n; }
   };
 
   /* ---------- usage events (Supabase table "events", write-only) ---------- */

@@ -116,7 +116,7 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
 @media (max-width:520px){.pics{grid-template-columns:repeat(3,1fr)}.acts{flex-wrap:wrap}.genrow .chips{flex:1 1 100%}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261017a"></script>
+<script src="auth.js?v=20261017b"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -333,7 +333,7 @@ async function buildJob(){ const mp=mainPhoto(), others=S.photos.filter(p=>p!==m
 
 /* ---------- AI (Gemini only — one call per photo) ---------- */
 async function callAI(body){ const tk=await window.SPOOL_AUTH?.token?.();
-  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,provider:'gemini',task:'design',n:1,quality:'high',images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
+  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,provider:'gemini',task:'design',n:1,quality:'high',size:'2K',images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
   const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length){ const er=new Error(d.error||d.errors?.[0]||'The AI could not finish this one — try again'); er.code=d.code||''; throw er; } return d.images[0]; }
 async function mockSheet(views,label){ const g=await loadImg(mainPhoto()?.front||S.shoot?.garment), n=views.length, CW=512, c=document.createElement('canvas'); c.width=CW*n; c.height=n===1?683:1024; const x=c.getContext('2d');
   x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',cream:'#efe6d2',black:'#2b2a28',street:'#c9ccd1',loft:'#e4ddd2',photo:'#cfc8bb'}[S.bg]||'#d9d9d6'; x.fillRect(0,0,c.width,c.height);
@@ -354,7 +354,7 @@ async function generate(){ if(!canGen()) return toast($('#genHint').textContent)
   window.SPOOL_TRACK?.('model_generate',{model:S.model,photos:S.photos.length,views:views.join('+'),bg:S.ref?'ref':S.bg,note:!!S.note.trim()});
   try{ let sheet;
     if(MOCK) sheet=await mockSheet(views,S.photos.length>1?`+ ${S.photos.length-1} more piece${S.photos.length>2?'s':''}`:'');
-    else { const job=await buildJob(); const r=await callAI({prompt:job.prompt,images:job.images,wide:job.views.length>1,aspect:job.aspect}); sheet=await shrink(r.src,2048,.92); }
+    else { const job=await buildJob(); const r=await callAI({prompt:job.prompt,images:job.images,wide:job.views.length>1,aspect:job.aspect}); sheet=await shrink(r.src,4096,.92); }
     const mp=mainPhoto(), crops=await cropViews(sheet,views);
     S.shoot={id:'m'+Date.now(),pid:mp.pid||null,name:mp.name||'Model photo',garment:await shrink(mp.front,300,.8),garmentFront:mp.front,garmentBack:mp.back||null,
       photos:clone(S.photos),main:mp.id,mine:isMine()?S.mine:null,ref:S.ref,settings:settingsOf(),created:Date.now(),versions:[{sheet,views,...crops,provider:'Gemini',note:''}],cur:0};
@@ -414,19 +414,20 @@ $('#fixGo').onclick=async()=>{ const v=curV(), note=$('#fixNote').value.trim(); 
         g?`Reference image ${g} is the main piece: its prints, text and details must stay exactly like it.`:'',
         others.length?`Reference image ${imgs.length} shows the rest of the outfit: keep those pieces exactly like that too.`:''].filter(Boolean).join('\n');
       const [w,h]=await sizeOf(v.sheet);
-      const r=await callAI({prompt,images:imgs,wide:vs.length>1,aspect:vs.length>1?ASPECT[vs.length]:(w>h*1.15?'4:3':'3:4')}); sheet=await shrink(r.src,2048,.92); }
+      const r=await callAI({prompt,images:imgs,wide:vs.length>1,aspect:vs.length>1?ASPECT[vs.length]:(w>h*1.15?'4:3':'3:4')}); sheet=await shrink(r.src,4096,.92); }
     const crops=await cropViews(sheet,vs); S.shoot.versions.push({sheet,views:vs,...crops,provider:'Gemini',note}); S.shoot.cur=S.shoot.versions.length-1; await saveShoot(); window.SPOOL_TRACK?.('model_fix');
   }catch(e){ failed(e); }
   $('#fixNote').value=''; busy(false); renderResult(); };
 
 /* ---------- save + list ---------- */
-async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',clone(S.shoot)); saveDraft(); renderMine(); }
+async function saveShoot(){ if(!S.shoot) return; S.shoot.updated=Date.now(); await modelDB.put('shoots',clone(S.shoot)); saveDraft(); renderMine();
+  window.SPOOL_AUTH?.cloud?.put(`shoots/${S.shoot.id}.json`,clone(S.shoot)); }   // also in the account, so other devices and the line sheet see it
 let draftT; function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>modelDB.put('kv',{v:3,photos:S.photos,main:S.main,mine:S.mine,ref:S.ref,...settingsOf(),shootId:S.shoot?.id||null},'draft'),300); }
 async function renderMine(){ const all=((await modelDB.all('shoots'))||[]).sort((a,b)=>(b.updated||b.created)-(a.updated||a.created)), g=$('#mineGrid');
   g.innerHTML=all.length?'':'<div class="mine-empty">Your model photos will appear here.</div>';
   all.forEach(s=>{ const v=s.versions[s.cur||0], c=document.createElement('div'); c.className='mcard';
     c.innerHTML=`<img src="${v.front}" alt=""><div><b>${esc(s.name)}</b><small>${esc(modelName(s.settings))} · ${new Date(s.created).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div><button class="del" title="Delete" aria-label="Delete">✕</button>`;
-    c.onclick=e=>{ if(e.target.closest('.del')){ e.stopPropagation(); if(!confirm('Delete this model photo?')) return; modelDB.del('shoots',s.id).then(()=>{ if(S.shoot?.id===s.id){ S.shoot=null; renderResult(); } renderMine(); }); return; }
+    c.onclick=e=>{ if(e.target.closest('.del')){ e.stopPropagation(); if(!confirm('Delete this model photo?')) return; window.SPOOL_AUTH?.cloud?.drop(`shoots/${s.id}.json`); modelDB.del('shoots',s.id).then(()=>{ if(S.shoot?.id===s.id){ S.shoot=null; renderResult(); } renderMine(); }); return; }
       openShoot(s); window.scrollTo({top:0,behavior:'smooth'}); };
     g.appendChild(c); }); }
 // shoots and drafts from the earlier versions of this page (one garment, or outfit slots) → photos + a note
@@ -480,6 +481,8 @@ if(MOCK) $('#mockbar').classList.remove('hidden');
   if(q.get('pid')){ await window.SPOOL_AUTH?.ready; const piece=await pieceFromProject(q.get('pid')); if(piece) asMain(piece); else toast('Could not open that project'); history.replaceState(null,'','model.html'); }
   if(q.get('shoot')){ const s=await modelDB.get('shoots',q.get('shoot')); if(s) openShoot(s); }
   $('#note').value=S.note; renderAll(); renderResult(); renderMine();
+  // model photos made on another device (or before this was in the account) — copy both ways, then show them
+  const A=window.SPOOL_AUTH; if(A){ await A.ready; if(A.user){ const n=await A.cloud.sync('shoots',()=>modelDB.all('shoots'),x=>modelDB.put('shoots',x)); if(n) renderMine(); } }
 })();
 </script>
 </body>
