@@ -333,7 +333,7 @@ async function buildJob(){ const mp=mainPhoto(), others=S.photos.filter(p=>p!==m
 
 /* ---------- AI (Gemini only — one call per photo) ---------- */
 async function callAI(body){ const tk=await window.SPOOL_AUTH?.token?.();
-  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,provider:'gemini',task:'design',n:1,quality:'high',size:'2K',images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
+  const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',...(tk?{Authorization:'Bearer '+tk}:{})},body:JSON.stringify({...body,provider:'gemini',task:'design',n:1,quality:'high',images:(body.images||[]).filter(Boolean).map(u=>({dataUrl:u}))})});
   const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length){ const er=new Error(d.error||d.errors?.[0]||'The AI could not finish this one — try again'); er.code=d.code||''; throw er; } return d.images[0]; }
 async function mockSheet(views,label){ const g=await loadImg(mainPhoto()?.front||S.shoot?.garment), n=views.length, CW=512, c=document.createElement('canvas'); c.width=CW*n; c.height=n===1?683:1024; const x=c.getContext('2d');
   x.fillStyle={grey:'#d9d9d6',white:'#f7f7f5',cream:'#efe6d2',black:'#2b2a28',street:'#c9ccd1',loft:'#e4ddd2',photo:'#cfc8bb'}[S.bg]||'#d9d9d6'; x.fillRect(0,0,c.width,c.height);
