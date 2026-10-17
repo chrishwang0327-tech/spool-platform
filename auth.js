@@ -125,7 +125,7 @@
     async list(){ if(!user) return []; const {data,error}=await sb.from('projects').select('id,name,thumb,updated_at').order('updated_at',{ascending:false}); if(error){ console.warn(error); return []; } return data||[]; },
     async save(p,thumb){ if(!user) return false;
       const path=`${user.id}/${p.id}.json`; const blob=new Blob([JSON.stringify(p)],{type:'application/json'});
-      const up=await sb.storage.from('projects').upload(path,blob,{upsert:true,contentType:'application/json'}); if(up.error){ console.warn(up.error); return false; }
+      const up=await sb.storage.from('projects').upload(path,blob,{upsert:true,contentType:'application/json',cacheControl:'0'}); if(up.error){ console.warn(up.error); return false; }
       const {error}=await sb.from('projects').upsert({id:p.id,user_id:user.id,name:p.name||'Untitled design',thumb:thumb||null,updated_at:new Date(p.updated||Date.now()).toISOString()}); if(error){ console.warn(error); return false; } return true; },
     async load(id){ if(!user) return null; const {data,error}=await sb.storage.from('projects').download(`${user.id}/${id}.json`); if(error){ console.warn(error); return null; } return JSON.parse(await data.text()); },
     async remove(id){ if(!user) return; await sb.storage.from('projects').remove([`${user.id}/${id}.json`]); await sb.from('projects').delete().eq('id',id); }
