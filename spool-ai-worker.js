@@ -72,7 +72,7 @@ export default {
           supabase = !r.ok ? `error ${r.status}` : rows.length ? 'ok' : 'not a secret key'; }
         catch { supabase = 'error'; }
       }
-      return json({ ok: true, artwork: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
+      return json({ ok: true, artwork: true, detect2: true, openai: !!env.OPENAI_API_KEY, gemini: !!env.GEMINI_API_KEY, stripe: !!env.STRIPE_SECRET_KEY, supabase });
     }
     if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
     if (!okOrigin) return json({ error: 'Origin not allowed' }, 403);
@@ -171,8 +171,9 @@ export default {
       if (!env.GEMINI_API_KEY) return json({ error: 'Detect needs GEMINI_API_KEY' }, 500);
       if (!images.length) return json({ error: 'Missing image' }, 400);
       { const hd = { apikey: SB_KEY, Authorization: `Bearer ${token}` }; const capErr = await dayCap(env, token, hd, 'detect', envInt(env.DETECT_DAILY, 200), envInt(env.DETECT_DAILY, 200) * 3, "You've reached today's limit for auto-detect. It resets at midnight UTC.", 'detect_limit'); if (capErr) return json(capErr, 429); await logUse(env, token, 'detect'); }
-      try { return json(await geminiDetect(env, images[0])); }
-      catch (e) { return json({ error: String(e?.message || e).slice(0, 300) }, 502); }
+      // one retry: Gemini now and then returns JSON we can't read
+      try { return json(await geminiDetect(env, images[0], String(body.hint || '').slice(0, 600))); }
+      catch (e) { try { return json(await geminiDetect(env, images[0], String(body.hint || '').slice(0, 600))); } catch (e2) { return json({ error: String(e2?.message || e2).slice(0, 300) }, 502); } }
     }
 
     // task "inventory": list every artwork on a reference photo (where, technique, look, size) — text, cheap
@@ -275,7 +276,8 @@ async function gemini(env, prompt, images, aspect = '1:1') {
 }
 
 /* ---------- Gemini: detect graphic areas (text answer) ---------- */
-async function geminiDetect(env, image) {
+const DETECT_TECH = ['print', 'puff', 'embroidery', 'chenille', 'patch', 'applique', 'rhinestone', 'studs', 'label', 'reflective'];
+async function geminiDetect(env, image, hint) {
   const model = env.GEMINI_TEXT_MODEL || 'gemini-flash-latest';
   const m = image.dataUrl.match(/^data:(image\/[a-z+.-]+);base64,(.+)$/i);
   if (!m) throw new Error('Bad image');
@@ -284,7 +286,9 @@ async function geminiDetect(env, image) {
     'Then find each separate design element ON the garment: printed graphics, text blocks, numbers, logos, patches, embroidery, chenille, appliqué — including self-fabric or tone-on-tone appliqué in the same color as the fabric — rhinestone or stud areas, and woven labels or badges. ' +
     'Check every area one by one: chest, center front, pocket, hood, collar, hem, and EACH sleeve separately (shoulder, upper arm, elbow, forearm, cuff) — big pieces on the sleeves count as much as the chest. ' +
     'Group letters of one word or one slogan together. Ignore the garment itself, seams, plain rib cuffs, plain hems, plain pockets, wrinkles, distressing and the background. ' +
-    'Return JSON: {"garment": "hoodie", "items": [{"label": "short name, 1-4 words", "box_2d": [ymin, xmin, ymax, xmax]}]} with at most 14 items and coordinates normalized 0-1000. Use "items": [] if there are none.';
+    'For each item also name how it is made, as exactly one of: print, puff, embroidery, chenille, patch, applique, rhinestone, studs, label, reflective. ' +
+    (hint ? `The designer's notes for this garment (use them to spell the text you read exactly, e.g. "B9" not "BG", and to name the technique): ${hint} ` : '') +
+    'Return JSON: {"garment": "hoodie", "items": [{"label": "short name, 1-4 words", "technique": "print", "box_2d": [ymin, xmin, ymax, xmax]}]} with at most 14 items and coordinates normalized 0-1000. Use "items": [] if there are none.';
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'x-goog-api-key': env.GEMINI_API_KEY, 'Content-Type': 'application/json' },
@@ -296,7 +300,8 @@ async function geminiDetect(env, image) {
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`Gemini ${r.status}: ${data?.error?.message || 'error'}`);
   const text = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-  let obj; try { obj = JSON.parse(text.replace(/^```(json)?|```$/g, '').trim()); } catch { throw new Error('Could not read the detect answer'); }
+  let obj; const raw = text.replace(/^```(json)?|```$/g, '').trim();
+  try { obj = JSON.parse(raw); } catch { const a = raw.indexOf('{'), z = raw.lastIndexOf('}'); try { obj = JSON.parse(raw.slice(a, z + 1)); } catch { throw new Error('Could not read the detect answer'); } }
   const arr = Array.isArray(obj) ? obj : (obj?.items || []);
   const g = String((!Array.isArray(obj) && obj?.garment) || '').toLowerCase();
   const garment = ['tee', 'hoodie', 'zip', 'crew', 'trucker', 'sweatpant', 'denim', 'shorts'].includes(g) ? g : null;
@@ -305,7 +310,8 @@ async function geminiDetect(env, image) {
     if (b.length !== 4 || b.some(v => !isFinite(v))) return null;
     const [y0, x0, y1, x1] = b.map(v => Math.max(0, Math.min(1000, v)));
     if (x1 - x0 < 8 || y1 - y0 < 8) return null;
-    return { label: String(o.label || 'Graphic').slice(0, 40), box: [x0, y0, x1 - x0, y1 - y0] }; // [x, y, w, h] in 0-1000
+    const t = String(o.technique || '').toLowerCase();
+    return { label: String(o.label || 'Graphic').slice(0, 40), box: [x0, y0, x1 - x0, y1 - y0], technique: DETECT_TECH.includes(t) ? t : 'print' }; // [x, y, w, h] in 0-1000
   }).filter(Boolean);
   return { parts, garment };
 }

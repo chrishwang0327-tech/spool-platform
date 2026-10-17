@@ -333,7 +333,10 @@ const optOf=(p,key)=>{const d=OPTS[p.tech].find(x=>x[0]===key); return p.opts[p.
 /* ================= helpers ================= */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
-const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800)};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.pointerEvents='';t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800)};
+// a toast with one action button (stays 8 s)
+const actToast=(m,label,fn)=>{const t=$('#toast');t.innerHTML=`${esc(m)} <u role="button" tabindex="0" style="color:var(--y);font-weight:600;margin-left:10px;cursor:pointer">${esc(label)}</u>`;t.style.pointerEvents='auto';t.classList.add('show');clearTimeout(t._t);
+  t.querySelector('u').onclick=()=>{ t.classList.remove('show'); fn(); }; t._t=setTimeout(()=>t.classList.remove('show'),8000)};
 const f1=n=>(Math.round(n*10)/10).toFixed(1);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=src;});
@@ -902,18 +905,25 @@ async function extractInto(p, fromImg){ // build p.layer from the current image 
 }
 
 /* ================= auto-detect ================= */
+// what the designer wrote (brand, name, studio notes) helps the AI spell the artwork right ("B9", not "BG") and name the technique
+function detectHint(){ const st=P.studio||{}, n=[st.front?.note?.graphic,st.back?.note?.graphic,st.front?.note?.trim,st.back?.note?.trim].filter(Boolean);
+  return [P.style?.brand&&'Brand: '+P.style.brand,P.name&&'Style: '+P.name.replace(/ · .*$/,''),st.direction&&'Idea: '+st.direction,n.length&&'Artwork notes: '+n.join(' / ')].filter(Boolean).join('. ').slice(0,600); }
 async function detectAPI(dataUrl){
   if(MOCK){ await wait(700); return [{label:'Main graphic',box:[260,260,440,380]},{label:'Small logo',box:[600,660,160,90]}]; }
-  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({task:'detect',prompt:'detect',images:[{dataUrl}]})});
-  const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||'Detect failed'); return d.parts||[];
+  for(let i=0;;i++){ const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({task:'detect',prompt:'detect',hint:detectHint(),images:[{dataUrl}]})});
+    const d=await r.json().catch(()=>({})); if(r.ok) return d.parts||[];
+    if(i||r.status===429||r.status===401||r.status===402) throw new Error(d.error||'Detect failed'); await wait(1200); } // one more try on a bad answer
 }
+// detected technique → editor technique, its option and a note for the tech pack
+const DET_TECH={print:['print'],puff:['puff'],embroidery:['emb'],chenille:['patch',{'patch|Type':'Chenille'}],patch:['patch'],applique:['app'],rhinestone:['rhine'],studs:['studs'],label:['label'],reflective:['print',{},'Reflective']};
 const inside=(a,b)=>{const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])), y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])); return (x*y)/(a[2]*a[3]||1);}; // share of box a that lies inside box b
 const iou=(a,b)=>{const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])), y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1])); const i=x*y; return i/(a[2]*a[3]+b[2]*b[3]-i);};
 async function detectSide(s){ // returns how many parts were added on this side
   const c=canvas(768); c.getContext('2d').drawImage(await (async()=>{const f=canvas(PX); await composite(f,s); return f;})(),0,0,768,768);
   const found=await detectAPI(c.toDataURL('image/jpeg',.85)); let added=0;
   for(const f of found){ const b=clampB(f.box.map(Number)); if(s.parts.some(q=>iou(q.b,b)>.5||inside(b,q.b)>.6||(q.orig&&inside(b,q.orig)>.6))||(s.ignored||[]).some(q=>iou(q,b)>.4)) continue;
-    const p={id:'a'+Date.now()+added+(s===P.sides.back?'b':'f'),kind:'graphic',num:0,name:f.label||'Artwork',b,tech:'print',opts:{},note:'',layer:null,hist:[]};
+    const [tech,opts,note]=DET_TECH[f.technique]||['print'];
+    const p={id:'a'+Date.now()+added+(s===P.sides.back?'b':'f'),kind:DT.includes(tech)?'detail':'graphic',num:0,name:f.label||'Artwork',b,tech,opts:{...(opts||{})},note:note||'',layer:null,hist:[]};
     s.parts.push(p); renumber(s); added++; }
   return added;
 }
@@ -922,10 +932,11 @@ $('#detBtn').onclick=async()=>{ if(isBusy()) return; snap();
   busy(true,'Finding the graphics',both?'AI looks at the front and the back and draws the boxes':'AI looks at the image and draws the boxes');
   try{
     const added=await detectSide(s); sel=s.parts[s.parts.length-added]||sel;
-    let addedOther=0; if(both){ try{ addedOther=await detectSide(other); }catch(e){ console.warn(e); } }
+    let addedOther=0, otherFail=false; if(both){ try{ addedOther=await detectSide(other); }catch(e){ console.warn(e); otherFail=true; } }
     const otherName=side==='front'?'back':'front';
-    toast(added||addedOther?`Found ${added} part${added===1?'':'s'} here${both?` and ${addedOther} on the ${otherName}`:''} — fix any box by dragging it, or add more with “＋ Select area”`:'No new artwork found. Add it with “＋ Select area”.');
-  }catch(e){ console.error(e); toast('Auto-detect failed: '+e.message); }
+    if(otherFail) actToast(`Found ${added} part${added===1?'':'s'} here, but couldn’t read the ${otherName}.`,`Try the ${otherName} again`,()=>{ $(`#sideSeg [data-v="${otherName}"]`).click(); $('#detBtn').click(); });
+    else toast(added||addedOther?`Found ${added} part${added===1?'':'s'} here${both?` and ${addedOther} on the ${otherName}`:''} — fix any box by dragging it, or add more with “＋ Select area”`:'No new artwork found. Add it with “＋ Select area”.');
+  }catch(e){ console.error(e); actToast('Couldn’t read the artwork on this side.','Try again',()=>$('#detBtn').click()); }
   busy(false); save(); render();
 };
 
@@ -1275,8 +1286,9 @@ $('#tpBtn').onclick=async()=>{
   const refsP=(P.refs||[]).filter(r=>r&&r.src);
   if(refsP.length) pages.push(`<div class="phead"><h1>REFERENCES</h1></div><div class="refs">${refsP.map(r=>`<figure><div class="rimg"><img src="${r.src}"></div><figcaption>${esc(refLabel(r))}</figcaption></figure>`).join('')}</div><p class="m" style="padding:0 16px 8px">Build the fit, silhouette and construction to the BODY reference, the wash and distress to the WASHING reference. Artwork follows the Artwork pages. References are for guidance only; artwork on them is not part of this order.</p>`);
   const arts=[]; for(const sd of sides){ const s=P.sides[sd]; for(const p of s.parts.filter(q=>kindOf(q)==='graphic')) arts.push({sd,s,p,src:await artDetail(fulls[sd],s,p),cols:inksOf(fulls[sd],p,bodyRGB[sd])}); }
+  const artCount=`${arts.length} artwork${arts.length===1?'':'s'} · `+sides.map(sd=>`${arts.filter(a=>a.sd===sd).length} ${sd}`).join(' · ')+' — check none is missing';
   for(let i=0;i<arts.length;i+=1){
-    pages.push(`<div class="phead"><h1>ARTWORK DETAIL</h1></div><div class="arts">${arts.slice(i,i+1).map(a=>{ const pl=placeTxt(a.s,a.p);
+    pages.push(`<div class="phead"><h1>ARTWORK DETAIL <small style="font-size:10px;font-weight:400;letter-spacing:.04em;color:#555">${artCount}</small></h1></div><div class="arts">${arts.slice(i,i+1).map(a=>{ const pl=placeTxt(a.s,a.p);
       const rows=[['Technique',TECH[a.p.tech]],...OPTS[a.p.tech].map(([kk])=>[kk,optOf(a.p,kk)]),['Size',sizeTxt(a.s,a.p)],['Placement',pl.join(' · ')],...(layerTxt(a.s,a.p)?[['Layering',layerTxt(a.s,a.p)]]:[]),['Notes',a.p.note||'—']];
       return `<div class="art"><div class="at"><span class="num">${lab(a.p)}</span><b>${esc(a.p.name.toUpperCase())}</b><em>${a.sd.toUpperCase()}</em></div><img src="${a.src}">
         <table>${rows.map(([k2,v])=>`<tr><th>${k2}</th><td>${esc(v)}</td></tr>`).join('')}
