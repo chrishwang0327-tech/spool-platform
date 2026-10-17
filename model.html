@@ -114,6 +114,7 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
   .models{grid-template-columns:repeat(5,1fr)}
 }
 @media (max-width:520px){.pics{grid-template-columns:repeat(3,1fr)}.acts{flex-wrap:wrap}.genrow .chips{flex:1 1 100%}}
+.batchbar{position:fixed;top:0;left:0;right:0;z-index:80;background:var(--ink);color:#FDFDF9;text-align:center;padding:12px;font-size:14px;font-weight:600}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="auth.js?v=20261018a"></script>
@@ -346,7 +347,7 @@ function busy(on,txt){ $('#spin').classList.toggle('hidden',!on); clearInterval(
   if(!on) return; $('#stEmpty').classList.add('hidden'); $('#spinT').textContent=txt||'One shot'; const t0=Date.now(); $('#spinBar').style.width='3%';
   spinT=setInterval(()=>{ const s=(Date.now()-t0)/1000; $('#spinTime').textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); $('#spinBar').style.width=Math.min(95,3+s*2)+'%'; },1000); }
 async function needSignIn(){ if(!window.SPOOL_AUTH) return true; const u=await window.SPOOL_AUTH.requireLogin('Sign in to make model photos. They are saved to your account.'); return !!u; }
-function failed(e){ console.error(e); if(['no_credits','free_limit','daily_limit'].includes(e.code)){ toast(e.message,6000); if(e.code!=='daily_limit') window.SPOOL_AUTH?.upgrade(e.message,{why:'model'}); } else toast('Couldn’t finish: '+e.message,5000); }
+let lastFail=''; function failed(e){ console.error(e); lastFail=e.code||'error'; if(['no_credits','free_limit','daily_limit'].includes(e.code)){ toast(e.message,6000); if(e.code!=='daily_limit') window.SPOOL_AUTH?.upgrade(e.message,{why:'model'}); } else toast('Couldn’t finish: '+e.message,5000); }
 const clone=o=>JSON.parse(JSON.stringify(o));
 const modelName=st=>st?.model==='mine'?'My photo':MODELS.find(m=>m.id===st?.model)?.name||'';
 async function generate(){ if(!canGen()) return toast($('#genHint').textContent); if(!(await needSignIn())) return;
@@ -471,7 +472,25 @@ $('#lb').onclick=()=>$('#lb').classList.remove('open'); document.addEventListene
 /* ---------- start: from the editor (?from=editor), a project (?pid=), a saved shoot (?shoot=id) or the last draft ---------- */
 window.SPOOL_AUTH?.mount($('#acct'));
 if(MOCK) $('#mockbar').classList.remove('hidden');
+/* looks for a whole line sheet (linesheet.html → model.html?batch=looks): each look = top + bottom on a model,
+   made one after another with the normal generator, then back to the line sheet with the new model photos */
+async function runLookBatch(){ const job=await modelDB.get('kv','lookBatch'); if(!job?.looks?.length) return false; await modelDB.put('kv',null,'lookBatch');
+  if(window.SPOOL_AUTH){ await window.SPOOL_AUTH.ready; if(!(await needSignIn())) return true; }
+  const bar=document.createElement('div'); bar.className='batchbar'; document.body.appendChild(bar); const made=[];
+  for(let i=0;i<job.looks.length;i++){ const lk=job.looks[i]; bar.textContent=`Making look ${i+1} of ${job.looks.length}…`;
+    const pieces=[]; for(const pid of [lk.top,lk.bottom].filter(Boolean)){ const pc=await pieceFromProject(pid); if(pc) pieces.push(pc); }
+    if(!pieces.length) continue;
+    Object.assign(S,{photos:pieces,main:pieces[0].id,mine:null,ref:null,shoot:null,model:lk.model,bg:lk.bg,note:job.note||'',back:job.back!==false&&!!pieces[0].back,side:false});
+    $('#note').value=S.note; renderAll(); renderResult(); lastFail='';
+    bar.textContent=`Making look ${i+1} of ${job.looks.length} · ${pieces.map(p=>p.name).join(' + ')}`;
+    await generate();
+    if(S.shoot) made.push(S.shoot.id); else if(['no_credits','free_limit','daily_limit'].includes(lastFail)) break; }
+  bar.textContent=made.length?`${made.length} look${made.length>1?'s':''} made — back to your line sheet…`:'No looks were made.';
+  window.SPOOL_TRACK?.('look_batch',{made:made.length,asked:job.looks.length});
+  if(made.length) setTimeout(()=>{ location.href='linesheet.html?looks='+made.join(','); },900);
+  return true; }
 (async()=>{
+  if(new URLSearchParams(location.search).get('batch')==='looks'){ history.replaceState(null,'','model.html'); if(await runLookBatch()) return; }
   const q=new URLSearchParams(location.search), d=await modelDB.get('kv','draft');
   if(d){ applySettings(d); if(d.v===3){ S.photos=d.photos||[]; S.main=d.main; S.mine=d.mine||null; S.ref=d.ref||null; } else { const r=fromOld(d); S.photos=r.photos; S.main=r.main; if(r.note) S.note=r.note; }
     if(S.model==='mine'&&!S.mine) S.model='marcus';

@@ -124,6 +124,9 @@ aside{border-left:1px solid var(--line);background:var(--bg);padding:18px;displa
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .kv label{font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 .note{font-size:11.5px;color:var(--muted);margin-top:6px}
+.cwr{display:flex;gap:8px;align-items:center;border:1.5px solid var(--line2);border-radius:12px;padding:5px;margin-top:6px;background:#fff}.cwr.main{border-color:var(--ink)}
+.cwr img,.cwr .ph{width:48px;height:48px;object-fit:contain;background:var(--soft);border-radius:8px;flex:none}.cwr>div{flex:1;min-width:0;display:flex;flex-direction:column}.cwr b{font-size:13px}.cwr em{font-style:normal;font-size:9px;background:var(--y);border-radius:99px;padding:0 6px;margin-left:4px}.cwr small{font-size:11px;color:var(--muted)}
+.cwadd{border:1.5px dashed #c9c3ad;border-radius:12px;padding:10px;margin-top:8px}
 .bsec{border-bottom:1px solid var(--line);padding:2px 0 10px;margin-bottom:10px}.bsec:last-child{border-bottom:0}
 .bsec>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;padding:8px 0 2px}.bsec>summary::-webkit-details-marker{display:none}
 .bsec>summary::after{content:'+';margin-left:auto;font-size:16px;line-height:1;color:var(--muted)}.bsec[open]>summary::after{content:'−'}
@@ -351,10 +354,10 @@ async function authHeaders(){
   const u=await window.SPOOL_AUTH.requireLogin('Sign in to use the AI tools. Your projects are saved to your account.'); if(!u) throw new Error('Sign in to continue');
   const tk=await window.SPOOL_AUTH.token(); return tk?{Authorization:'Bearer '+tk}:{};
 }
-async function ai(prompt,images){
+async function ai(prompt,images,o={}){
   if(MOCK) return mockAI(prompt,images);
-  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({prompt,n:1,quality:'low',provider:'openai',images:images.map(u=>({dataUrl:u}))})});
-  const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length) throw new Error(d.error||'The AI returned no image');
+  const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json',...(await authHeaders())},body:JSON.stringify({prompt,n:1,quality:'low',provider:o.provider||'openai',reserve:o.reserve||0,images:images.map(u=>({dataUrl:u}))})});
+  const d=await r.json().catch(()=>({})); if(!r.ok||!d.images?.length){ const er=new Error(d.error||'The AI returned no image'); er.code=d.code||''; throw er; }
   return d.images[0].src;
 }
 async function mockAI(prompt,images){
@@ -572,6 +575,46 @@ function washOf(sd){ const B=P.bodySpec||{}, typed=sd==='front'?B.washFront:(B.w
   if(typed) return typed; const sp=P.spec?.[sd]||{}; if(sp.wash&&!/^clean/i.test(sp.wash)) return [sp.wash,sp.washNote].filter(Boolean).join(', ');
   if(sd==='back') return washOf('front')?'Same as front':'';
   const t=[P.studio?.direction,B.color,P.spec?.color,P.name,sp.washNote].filter(Boolean).join(' '); const g=WASH_GUESS.find(([re])=>re.test(t)); return g?g[1]:(sp.wash||''); }
+/* ================= colorways: the same design in other body colors (AI recolor, front + back) ================= */
+const LIGHT_BODY=/white|bone|cream|ivory|ecru|natural|light|sand|beige|oat|stone|pastel|pink|yellow|grey|gray/i;
+const cwInk=c=>c.ink==='custom'?(c.inkText||'Custom'):{black:'Black',white:'White'}[c.ink]||'As designed';
+let cwForm={name:'',pantone:'',ink:'keep',inkText:''}, cwBusy=false;
+const cwSides=()=>['front','back'].filter(sd=>P.sides[sd].base);
+function cwPrompt(c){ const body=`${c.name}${c.pantone?' (Pantone '+c.pantone+')':''}`;
+  if(c.ink==='keep') return `BODY COLOR EDIT: Edit this garment product photo. Change ONLY the color of the garment fabric to ${body}. Keep every print, graphic, text, patch, trim, label, wash, distressing, fold, seam, the framing and the background exactly the same.`;
+  const ink=c.ink==='custom'?c.inkText:c.ink;
+  return `COLORWAY: Recolor this garment product photo. 1) The garment fabric becomes ${body}, keeping its texture and wash. 2) Every printed graphic, text and logo becomes solid ${ink} ink, clearly visible against the fabric — same shapes, fonts, sizes and positions. Keep patch shapes, trims, seams, the framing and the background the same.`; }
+function cwHTML(){ const B=P.bodySpec||{}, list=P.colorways||[], n=cwSides().length, light=LIGHT_BODY.test(cwForm.name)&&cwForm.ink==='keep';
+  const row=(img,name,pms,ink,tag,i)=>`<div class="cwr${tag?' main':''}">${img?`<img src="${img}" alt="">`:'<span class="ph"></span>'}<div><b>${esc(name)}${tag?' <em>MAIN</em>':''}</b><small>${pms?'Pantone '+esc(pms)+' · ':''}Artwork: ${esc(ink)}</small></div>${i==null?'':`<button type="button" class="btn sm" data-cwre="${i}" title="Make it again">↻</button><button type="button" class="btn sm" data-cwdel="${i}" title="Delete">✕</button>`}</div>`;
+  return `<div class="note" style="margin-top:0">The same design in other body colors. They go on the line sheet and get their own tech pack page.</div>
+   ${row(P.sides.front.base,B.color||'Main color',B.pantone,'As designed',true)}${list.map((c,i)=>row(c.front,c.name,c.pantone,cwInk(c),false,i)).join('')}
+   <div class="cwadd"><div class="kv" style="margin-top:0"><label>Body color<input class="field" id="cwName" value="${esc(cwForm.name)}" placeholder="e.g. Bone white"></label><label>Pantone (optional)<input class="field" id="cwPms" value="${esc(cwForm.pantone)}" placeholder="e.g. 11-0105 TCX"></label></div>
+    <div class="lbl" style="margin-top:8px">Artwork color</div><div class="chips" id="cwInks">${[['keep','Keep as is'],['black','Black'],['white','White'],['custom','Custom']].map(([v,l])=>`<button type="button" class="chip${cwForm.ink===v?' on':''}" data-ink="${v}">${l}</button>`).join('')}</div>
+    ${cwForm.ink==='custom'?`<input class="field" id="cwInkText" style="margin-top:6px" value="${esc(cwForm.inkText)}" placeholder="e.g. navy, metallic gold">`:''}
+    <div class="note" id="cwWarn"${light?'':' hidden'}>Light body: if your print is light too, it may disappear — pick Black.</div>
+    <button type="button" class="btn y" id="cwMake" style="width:100%;margin-top:10px"${cwBusy?' disabled':''}>${cwBusy?'Making the colorway…':`Make ${n>1?'front + back':cwSides()[0]||'it'} · ${n} credit${n===1?'':'s'}`}</button></div>`; }
+function bindColorways(el){
+  const nm=el.querySelector('#cwName'); if(!nm) return;
+  nm.oninput=()=>{ cwForm.name=nm.value; el.querySelector('#cwWarn').hidden=!(LIGHT_BODY.test(cwForm.name)&&cwForm.ink==='keep'); };
+  el.querySelector('#cwPms').oninput=e=>cwForm.pantone=e.target.value;
+  el.querySelectorAll('[data-ink]').forEach(b=>b.onclick=()=>{ cwForm.ink=b.dataset.ink; renderBody(); });
+  const it=el.querySelector('#cwInkText'); if(it) it.oninput=()=>cwForm.inkText=it.value;
+  el.querySelector('#cwMake').onclick=()=>{ if(!cwForm.name.trim()) return toast('Name the body color first'); if(cwForm.ink==='custom'&&!cwForm.inkText.trim()) return toast('Type the artwork color');
+    makeColorway({id:'c'+Date.now(),name:cwForm.name.trim(),pantone:cwForm.pantone.trim(),ink:cwForm.ink,inkText:cwForm.inkText.trim()}); };
+  el.querySelectorAll('[data-cwre]').forEach(b=>b.onclick=()=>makeColorway(P.colorways[+b.dataset.cwre],true));
+  el.querySelectorAll('[data-cwdel]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.cwdel, c=P.colorways[i]; if(!confirm(`Delete the ${c.name} colorway?`)) return; P.colorways.splice(i,1); save(); renderBody(); });
+}
+async function makeColorway(c,redo){ if(cwBusy||isBusy()) return; const sides=cwSides(); if(!sides.length) return toast('This project has no image yet');
+  cwBusy=true; renderBody(); busy(true,`Making the ${c.name} colorway`,`AI recolors the ${sides.join(' and ')} — about 20 seconds`);
+  try{ const out={};
+    for(let i=0;i<sides.length;i++){ const sd=sides[i]; const src=await finalURL(P.sides[sd]);   // what the design looks like now, lifted artwork included
+      out[sd]=await squareURL(await ai(cwPrompt(c),[src],{provider:c.ink==='keep'?'gemini':'openai',reserve:i?0:sides.length})); }   // printing a new ink color: ChatGPT follows it, Gemini doesn't
+    const cv=canvas(PX); cv.getContext('2d').drawImage(await img(out[sides[0]]),0,0,PX,PX);
+    Object.assign(c,out,{hex:hex(bodyColorOf(cv,P.sides[sides[0]])),made:Date.now()});
+    P.colorways=P.colorways||[]; if(!redo) P.colorways.push(c); if(!redo) cwForm={name:'',pantone:'',ink:'keep',inkText:''};
+    save(); toast(`${c.name} colorway ready — it’s on the line sheet and the tech pack`); window.SPOOL_TRACK?.('colorway_ok',{ink:c.ink});
+  }catch(e){ console.error(e); if(['no_credits','daily_limit'].includes(e.code)) upsell(e.message,'colorway'); else toast('Colorway failed: '+e.message); window.SPOOL_TRACK?.('colorway_fail'); }
+  cwBusy=false; busy(false); renderBody(); }
 function renderBody(){
   const B=P.bodySpec=Object.assign(blankBody(),P.bodySpec||{}); const s=S();
   const el=$('#bodyPane');
@@ -580,7 +623,8 @@ function renderBody(){
   const bot=isBottom(P.body), measList=()=>bot?BOTTOM_MEAS.filter(m=>!(P.body==='shorts'&&m[0]==='knee')):TOP_MEAS, tolOf=k2=>(B.tol||{})[k2]??TOL_STD[k2]??'';
   // long panel: each group folds, with a one-line summary when closed
   const sec=(k2,title,sum,html)=>`<details class="bsec" data-sec="${k2}"${BODY_OPEN.has(k2)?' open':''}><summary><span class="lbl">${title}</span>${sum?`<small>${esc(sum)}</small>`:''}</summary><div class="bsb">${html}</div></details>`;
-  el.innerHTML=`${sec('size','Size',(bot?'Waist ':'Chest ')+f1(+P.chestIn)+'"',`<div class="row" style="margin-top:8px"><span style="font-size:13px;white-space:nowrap">${bot?'Waist width':'Chest width'}</span><input class="field" id="chest" type="number" min="8" max="40" step="0.5" value="${esc(P.chestIn)}" style="width:90px"><span>in</span></div>
+  el.innerHTML=`${sec('colorways','Colorways',(P.colorways||[]).length?`${P.colorways.length+1} colorways`:'one color · add more',cwHTML())}
+   ${sec('size','Size',(bot?'Waist ':'Chest ')+f1(+P.chestIn)+'"',`<div class="row" style="margin-top:8px"><span style="font-size:13px;white-space:nowrap">${bot?'Waist width':'Chest width'}</span><input class="field" id="chest" type="number" min="8" max="40" step="0.5" value="${esc(P.chestIn)}" style="width:90px"><span>in</span></div>
    <div class="note">${bot?"Your blank's waistband, laid flat and relaxed.":"Your blank's chest width, laid flat."} Every inch on the tech pack is measured from it.</div>
    <div class="kv" style="margin-top:8px">${measList().map(([k2,l])=>`<label>${l}<input class="field" data-m="${k2}" value="${esc(Ms[k2]||'')}" placeholder="in — optional"></label>`).join('')}</div>
    <div class="note">Sample size measurements, laid flat. Leave blank and the factory uses their standard for your size.</div>
@@ -606,6 +650,7 @@ function renderBody(){
    <div class="row" style="gap:6px;margin-top:8px"><select class="field" id="refKind" style="width:auto">${REF_KINDS.map(([k2,l])=>`<option value="${k2}">${l.replace(/\.$/,'')}</option>`).join('')}</select><select class="field" id="refSide" style="width:auto"><option value="front">Front</option><option value="back">Back</option></select><label class="btn sm" style="cursor:pointer">Add photo<input type="file" accept="image/png,image/jpeg,image/webp" id="refUp" hidden></label></div>`)}
    ${sec('flats','Construction flats','',`<div class="note">AI flat sketches for the tech pack's Construction page. Artwork is never drawn on them.</div>
    <div class="row" style="gap:8px;margin-top:8px">${['front','back'].filter(sd=>P.sides[sd].base).map(sd=>{ const f=P.flats?.[sd], ok=flatReady(sd); return `<div style="flex:1;text-align:center;font-size:11px"><div style="border:1px solid #ddd;border-radius:8px;background:#fff;height:90px;display:flex;align-items:center;justify-content:center;overflow:hidden">${ok?`<img src="${f.src}" style="max-width:100%;max-height:100%">`:'<span style="color:#888">Drawn when you open the tech pack</span>'}</div>${sd.toUpperCase()}${ok&&f.flag?' · <b style="color:#b45309">Check this flat</b>':''}${ok&&f.user?' · yours':''}<div class="row" style="gap:4px;justify-content:center;margin-top:4px"><button class="btn sm" data-flatre="${sd}">Redraw</button><label class="btn sm" style="cursor:pointer">Upload<input type="file" accept="image/png,image/jpeg" data-flatup="${sd}" hidden></label></div></div>`; }).join('')}</div>`)}`;
+  bindColorways(el);
   bindForm(el,B); el.querySelectorAll('[data-s]').forEach(i=>i.oninput=()=>{ P.style[i.dataset.s]=i.value; save(); if(STYLE_KEEP.includes(i.dataset.s)) keepStyle(i.dataset.s,i.value); });
   el.querySelectorAll('[data-m]').forEach(i=>i.oninput=()=>{ Ms[i.dataset.m]=i.value; save(); });
   el.querySelectorAll('[data-tol]').forEach(i=>i.oninput=()=>{ B.tol={...(B.tol||{}),[i.dataset.tol]:i.value.trim()}; save(); });
@@ -1269,17 +1314,13 @@ $('#prodBtn').onclick=async()=>{
 async function planNote(fresh){ const A=window.SPOOL_AUTH, n=$('#planNote'); if(!A?.user||!n) return; const pl=await A.plan(fresh), c=pl.credits||{}, done=P&&(pl.techpacks?.projects||[]).includes(P.id);
   n.textContent=c.admin?'Admin: tech packs and production files are free.':`${done?'This tech pack is paid — open it any time.':`Tech pack: ${c.techpackCredits||3} credits the first time.`} You have ${c.left??'—'} credit${c.left===1?'':'s'}.${pl.pro?' Production files are included in SPOOL Studio.':' Production files come with SPOOL Studio or your sample.'}`; }
 window.SPOOL_AUTH?.ready.then(u=>{ if(u) planNote(); });
-$('#tpBtn').onclick=async()=>{
-  const A=window.SPOOL_AUTH; if(A&&!A.user){ await A.requireLogin('Sign in to download your tech pack.'); if(!A.user) return; }
-  const w=window.open('','_blank'); if(!w) return toast('Allow pop-ups to open the tech pack');
-  w.document.write('<p style="font-family:sans-serif;padding:20px">Building tech pack…</p>');
-  if(!(await techpackAllowed())){ w.close(); return; }
-  window.SPOOL_TRACK?.('techpack');
+// the open project's tech pack: { style, body (its pages), tot, title } — one tech pack or many in one document
+async function buildTechPack(say,opt={}){
   const sp=P.spec||{}, f=sp.front||{}, bk=sp.back||{}, B=Object.assign(blankBody(),P.bodySpec||{}), Lb=Object.assign(blankLabels(),P.labels||{}), St=Object.assign(blankStyle(),P.style||{});
   const sides=['front','back'].filter(sd=>P.sides[sd].base);
   const fulls={}, bodyRGB={}, ann={};
   for(const sd of sides){ const s=P.sides[sd]; const c=canvas(PX); c.getContext('2d').drawImage(await img(await finalURL(s)),0,0,PX,PX); fulls[sd]=c; bodyRGB[sd]=bodyColorOf(c,s); ann[sd]=await annotated(s,sd); }
-  const flatsOK={}; { const need=sides.filter(sd=>!flatReady(sd)); if(need.length){ try{ w.document.body.innerHTML='<p style="font-family:sans-serif;padding:20px">Drawing flat sketches… this takes about 30 seconds the first time.</p>'; }catch(_){}
+  const flatsOK={}; { const need=sides.filter(sd=>!flatReady(sd)); if(need.length){ try{ say('Drawing flat sketches… this takes about 30 seconds the first time.'); }catch(_){}
     await Promise.race([Promise.all(need.map(sd=>ensureFlat(sd))),wait(100000)]); } sides.forEach(sd=>flatsOK[sd]=flatReady(sd)); }
   const today=new Date().toLocaleDateString('en-US');
   const head=[['STYLE NO.',St.no],['SEASON',St.season||'—'],['STYLE NAME',P.name],['BRAND',St.brand||'—'],['DESIGNER',St.designer||P.email||'—']];
@@ -1295,6 +1336,14 @@ $('#tpBtn').onclick=async()=>{
   pages.push(`${header}<h1>FRONT &amp; BACK DETAIL</h1>
     <div class="views">${sides.map(sd=>`<figure style="flex:1 1 0"><img src="${fulls[sd].toDataURL('image/jpeg',.93)}"><figcaption>${sd.toUpperCase()} VIEW</figcaption></figure>`).join('')}</div>
     <div class="bottom"><div><h4>COLORWAY</h4>${colorway}</div><div><h4>FABRIC</h4><p>${esc(fabric)}</p><h4>WASH</h4><p>${esc([washOf('front')&&'Front: '+washOf('front'),washOf('back')&&'Back: '+washOf('back')].filter(Boolean).join(' / ')||'—')}</p></div></div>`);
+  // colorways: main + each recolor, 3 to a page
+  const cws=P.colorways||[];
+  if(cws.length&&opt.colorways!==false){ const mainInk=sw.filter(o=>o.label.startsWith('ART')).map(o=>o.h).slice(0,3).join(', '), shot=sd=>fulls[sd]?fulls[sd].toDataURL('image/jpeg',.85):null;
+    const rowsC=[{name:B.color||'Main color',main:true,hex:hex(bodyRGB[sides[0]]),pms:B.pantone,ink:'As designed'+(mainInk?` (${mainInk})`:''),f:shot('front'),b:shot('back')},
+      ...cws.map(c=>({name:c.name,hex:c.hex||'',pms:c.pantone,ink:cwInk(c)+(c.ink==='keep'&&mainInk?` (${mainInk})`:''),f:c.front,b:c.back}))];
+    for(let i=0;i<rowsC.length;i+=3) pages.push(`<div class="phead"><h1>COLORWAYS <small style="font-size:10px;font-weight:400;letter-spacing:.04em;color:#555">${rowsC.length} colorways · same construction, artwork placement and sizes as the main sample</small></h1></div>
+      <table class="cwt${rowsC.slice(i,i+3).length<3?' few':''}"><tr><th></th><th>COLORWAY</th><th>BODY COLOR</th><th>ARTWORK INK</th>${sides.map(sd=>`<th>${sd.toUpperCase()}</th>`).join('')}</tr>${rowsC.slice(i,i+3).map((r,j)=>`<tr><td class="k">${'ABCDEFGHIJ'[i+j]}</td><td><b>${esc(r.name)}</b>${r.main?' <em>MAIN</em>':''}</td><td>${r.hex?`<i class="sq" style="background:${r.hex}"></i>${r.hex}`:''}${r.pms?`<br><small>Pantone ${esc(r.pms)}</small>`:''}</td><td>${esc(r.ink)}</td>${sides.map(sd=>`<td class="im">${(sd==='front'?r.f:r.b)?`<img src="${sd==='front'?r.f:r.b}">`:''}</td>`).join('')}</tr>`).join('')}</table>
+      <p class="m" style="padding:0 14px">Colorway images are AI recolors for reference. Body and ink colors are confirmed with lab dips / strike-offs before bulk.</p>`); }
   const refsP=(P.refs||[]).filter(r=>r&&r.src);
   if(refsP.length) pages.push(`<div class="phead"><h1>REFERENCES</h1></div><div class="refs">${refsP.map(r=>`<figure><div class="rimg"><img src="${r.src}"></div><figcaption>${esc(refLabel(r))}</figcaption></figure>`).join('')}</div><p class="m" style="padding:0 16px 8px">Build the fit, silhouette and construction to the BODY reference, the wash and distress to the WASHING reference. Artwork follows the Artwork pages. References are for guidance only; artwork on them is not part of this order.</p>`);
   const arts=[]; for(const sd of sides){ const s=P.sides[sd]; for(const p of s.parts.filter(q=>kindOf(q)==='graphic')) arts.push({sd,s,p,src:await artDetail(fulls[sd],s,p),cols:inksOf(fulls[sd],p,bodyRGB[sd])}); }
@@ -1351,8 +1400,8 @@ $('#tpBtn').onclick=async()=>{
     <div${bot?' class="botc"':''}><h4>FLAT SKETCHES</h4><div class="flats">${sides.map(flatBox).join('')}</div>${bot?`<h4>HOW TO MEASURE</h4>${guide}`:''}
       <h4>APPROVAL</h4><div class="sign"><div>Designer</div><div>Factory</div><div>Date</div></div>
       <p class="m">Sizes and colors are estimated from the design image and confirmed on the first sample. Flat sketches are AI-drawn references; the factory builds from the photo and this spec.</p></div></div>`);
-  const tot=pages.length, label=i=>i===0?'OVERVIEW':(refsP.length&&i===1)?'REFERENCES':i===tot-1?'CONSTRUCTION':i===tot-2?'TRIMS & PACKAGING':'ARTWORK';
-  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Tech pack — ${esc(St.no)} ${esc(P.name)}</title><style>
+  const tot=pages.length, label=i=>i===0?'OVERVIEW':((pages[i].match(/<h1>([^<]+)/)||[])[1]||'ARTWORK').replace(/&amp;/g,'&').replace(/ DETAIL\s*$/,'').trim();   // each page's own title
+  const style=`
   @page{size:11in 8.5in;margin:0}
   *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#e9e7e1;font-family:Helvetica,Arial,sans-serif;color:#111;font-size:11px}
   .page{width:11in;height:8.5in;background:#fff;margin:18px auto;padding:.35in .4in .5in;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.15);page-break-after:always}
@@ -1382,6 +1431,7 @@ $('#tpBtn').onclick=async()=>{
   .flats{display:flex;gap:10px;justify-content:center}.flats figure{flex:1 1 0}.flat{height:3.1in;width:100%;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;color:#888;font-size:10px}.flat img{max-width:100%;max-height:100%;object-fit:contain}.flats figcaption{font-size:9px;font-weight:400;color:#555;text-align:center}
   .pom th{width:auto;font-size:9px;letter-spacing:.05em}.pom td.pc{color:#D0312D;font-weight:700;width:16px}.pom td.c,.pom th:nth-child(n+3){text-align:center;white-space:nowrap}.pnote{font-size:9px;color:#666;margin-top:6px}
   .botc .flat{height:1.95in}.guide{display:block;width:100%;height:2.7in;border:1px solid #ddd;padding:4px;margin-bottom:4px}
+  .cwt{margin:6px 14px;width:calc(100% - 28px)}.cwt th{width:auto;font-size:9.5px;letter-spacing:.05em;border-bottom:2px solid #111}.cwt td{vertical-align:middle;padding:6px 8px}.cwt td.k{color:#D0312D;font-weight:700;font-size:14px;width:20px}.cwt em{font-style:normal;font-size:8.5px;background:#FEE32B;padding:1px 5px;border-radius:99px}.cwt .sq{display:inline-block;width:13px;height:13px;border:1px solid #999;vertical-align:-2px;margin-right:6px}.cwt td.im{width:1.9in;text-align:center}.cwt td.im img{height:1.6in;max-width:100%;object-fit:contain}.cwt.few td.im{width:2.6in}.cwt.few td.im img{height:2.45in}
   .tphead{display:flex;align-items:center;justify-content:space-between}.lg{font-size:9.5px;margin-right:12px;display:flex;gap:6px;align-items:center}
   .tpg{flex:1;display:grid;grid-template-columns:2.3in 1fr;min-height:0}.tpl{padding:4px 14px;border-right:1px solid #ccc;overflow:hidden}.tpr{padding:2px 14px 0}.cap{text-align:center;font-weight:700;letter-spacing:.1em;font-size:10px;margin:2px 0 6px}
   .fdw{position:relative;width:100%}.fdw img{width:100%;display:block}.dot{position:absolute;transform:translate(-50%,-50%);background:#111;color:#FEE32B;border-radius:99px;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
@@ -1401,10 +1451,41 @@ $('#tpBtn').onclick=async()=>{
   .m{color:#666;font-size:9.5px}small{color:#555}
   .bar{position:sticky;top:0;background:#111;color:#fff;padding:10px;text-align:center;z-index:5}.bar button{padding:8px 18px;border-radius:99px;border:0;background:#FEE32B;font-weight:700;cursor:pointer;margin-left:10px}
   @media print{body{background:#fff}.page{margin:0;box-shadow:none}.bar{display:none}}
-  </style></head><body><div class="bar">${tot} pages · Letter landscape <button onclick="print()">Save as PDF / Print</button></div>
-  ${pages.map((pg,i)=>`<div class="page"><div class="frame">${pg}</div><div class="strip"><b>SPOOL</b><span>${esc(St.no)} · ${esc(P.name)}</span><span>${label(i)}</span><span>${i+1} / ${tot}</span></div></div>`).join('')}</body></html>`;
-  w.document.open(); w.document.write(html); w.document.close();
+`;
+  const body=pages.map((pg,i)=>`<div class="page"><div class="frame">${pg}</div><div class="strip"><b>SPOOL</b><span>${esc(St.no)} · ${esc(P.name)}</span><span>${label(i)}</span><span>${i+1} / ${tot}</span></div></div>`).join('');
+  return {style,body,tot,title:`${St.no} ${P.name}`};
+}
+const tpDoc=(t,title,note)=>`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${t.style}</style></head><body><div class="bar">${note?esc(note)+' · ':''}${t.tot} pages · Letter landscape <button onclick="print()">Save as PDF / Print</button></div>${t.body}</body></html>`;
+$('#tpBtn').onclick=async()=>{
+  const A=window.SPOOL_AUTH; if(A&&!A.user){ await A.requireLogin('Sign in to download your tech pack.'); if(!A.user) return; }
+  const w=window.open('','_blank'); if(!w) return toast('Allow pop-ups to open the tech pack');
+  w.document.write('<p style="font-family:sans-serif;padding:20px">Building tech pack…</p>');
+  if(!(await techpackAllowed())){ w.close(); return; }
+  window.SPOOL_TRACK?.('techpack');
+  const t=await buildTechPack(m=>{ try{ w.document.body.innerHTML=`<p style="font-family:sans-serif;padding:20px">${m}</p>`; }catch(_){} });
+  w.document.open(); w.document.write(tpDoc(t,`Tech pack — ${t.title}`)); w.document.close();
 };
+/* tech packs for a whole line sheet (linesheet.html opens editor.html?batch=techpacks in a new tab):
+   each project is opened here, its artwork auto-detected if none is marked, charged once (reopening is free),
+   and all packs end up in this tab as one document to save as PDF */
+async function runTechpackBatch(){ const job=await edDB.get('kv','tpBatch'); if(!job?.ids?.length) return false; await edDB.put('kv',null,'tpBatch');
+  const A=window.SPOOL_AUTH; if(A){ await A.ready; if(!A.user){ await A.requireLogin('Sign in to make your tech packs.'); if(!A.user) return true; } }
+  const out=[], skipped=[]; let style='';
+  for(let i=0;i<job.ids.length;i++){ const id=job.ids[i], tag=`${i+1} of ${job.ids.length}`;
+    busy(true,`Tech pack ${tag}`,'Opening the project');
+    try{ let p=await edDB.get('projects',id); if(A?.user){ const c=await within(A.cloud.load(id),10000); if(c&&(!p||(c.updated||0)>=(p.updated||0))){ p=c; await edDB.put('projects',p); } }
+      if(!p){ skipped.push(id); continue; }
+      await openProject(p); busy(true,`Tech pack ${tag} · ${P.name}`,'Getting the artwork');
+      if(!['front','back'].some(sd=>P.sides[sd].parts.some(q=>kindOf(q)==='graphic'))) for(const sd of ['front','back']) if(P.sides[sd].base){ try{ await detectSide(P.sides[sd]); }catch(e){ console.warn('detect',e); } }
+      if(!(await techpackAllowed())){ skipped.push(P.name); break; }   // out of credits: stop here, keep what's made
+      busy(true,`Tech pack ${tag} · ${P.name}`,'Building the pages');
+      const t=await buildTechPack(m=>busy(true,`Tech pack ${tag} · ${P.name}`,m),{colorways:job.colorways!==false}); style=style||t.style; out.push(t); await flushSave();
+    }catch(e){ console.error(e); skipped.push(id); } }
+  busy(false); window.SPOOL_TRACK?.('techpack_batch',{made:out.length,asked:job.ids.length});
+  if(!out.length){ toast('No tech packs were made'+(skipped.length?' — check your credits':'')); return true; }
+  const all={style,body:out.map(t=>t.body).join(''),tot:out.reduce((m,t)=>m+t.tot,0)};
+  const note=`${out.length} tech pack${out.length>1?'s':''}${skipped.length?` · ${skipped.length} skipped`:''}`;
+  document.open(); document.write(tpDoc(all,`Tech packs — ${job.title||'line sheet'}`,note)); document.close(); return true; }
 
 $('#sampleBtn').onclick=async()=>{
   const sides=['front','back'].filter(sd=>P.sides[sd].base); if(!sides.length) return toast('Add a design first');
@@ -1560,6 +1641,7 @@ window.SPOOL_AUTH?.onChange(u=>{ loadKit(); if(u&&P) cloudSave(); });
 (async()=>{
   if(MOCK) $('#mockbar').classList.remove('hidden');
   loadKit(); const q=new URLSearchParams(location.search); let opened=false;
+  if(q.get('batch')==='techpacks'&&await runTechpackBatch()) return;
   if(q.get('from')==='studio') opened=await fromStudio();
   if(!opened){ const last=await edDB.get('kv','last'); if(last){ const p=await edDB.get('projects',last); if(p){ await openProject(p); opened=true; } } }
   if(!opened) render();
