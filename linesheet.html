@@ -88,6 +88,8 @@ h1{font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;text-
 .it .fl{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:.7cqw;margin-top:.7cqw}.it .fl.one{grid-template-columns:1fr}
 .it .fl img{width:100%;height:100%;min-height:0;object-fit:contain}
 .it .mt{display:flex;justify-content:space-between;gap:.7cqw;font-size:.88cqw;color:var(--muted);margin-top:.4cqw;white-space:nowrap}.it .mt span{overflow:hidden;text-overflow:ellipsis}
+.cws{display:grid;gap:.5cqw;margin-top:.4cqw}.cwi{border:.1cqw solid #e8e4d8;border-radius:.3cqw;padding:.25cqw;display:flex;flex-direction:column;align-items:center;gap:.2cqw;min-width:0}
+.cwi img{height:3.6cqw;width:100%;object-fit:contain}.cwi span{font-size:.7cqw;color:#4a473e;display:flex;align-items:center;gap:.3cqw;white-space:nowrap;overflow:hidden;max-width:100%}.cwi i{width:.75cqw;height:.75cqw;border-radius:50%;border:.07cqw solid #0003;flex:none}
 .it .mt i{font-style:normal;background:#FBEF9C;color:var(--ink);padding:0 .4cqw;border-radius:.2cqw;font-weight:600}
 .rmx{position:absolute;top:0;right:0;width:2.2cqw;height:2.2cqw;min-width:24px;min-height:24px;border-radius:50%;background:rgba(253,253,249,.95);border:1px solid var(--line);font-size:max(.9cqw,11px);display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.12)}.rmx:hover{background:var(--ink);color:#fff}
 .pks{display:flex;align-items:center;gap:1.35cqw;margin-top:1cqw;justify-content:flex-end}
@@ -309,13 +311,14 @@ function packTable(pks){ if(!pks.length) return '';
   return `<div class="pks"><span class="pl">Prepacks</span>${pks.map(p=>{ const z=packSizes(p).filter(k=>+p.qty[k]>0||p.type!=='custom'&&(DEF_SIZES[p.type]||[]).includes(k));
     return `<table class="pkt"><tr><th rowspan="2" class="pn">${esc(p.name)}<small>${esc((TYPES.find(t=>t[0]===p.type)||[])[1]||'')}</small></th>${z.map(k=>`<th>${esc(k)}</th>`).join('')}<th>TTL</th></tr><tr>${z.map(k=>`<td>${+p.qty[k]||0}</td>`).join('')}<td><b>${packPcs(p)}</b> pcs</td></tr></table>`; }).join('')}</div>`; }
 const packsOf=list=>SH.packs.filter(p=>list.some(st=>st.packs.includes(p.id)));
-function styleCell(st,rm){ const pks=st.packs.map(id=>SH.packs.find(p=>p.id===id)).filter(Boolean), f=st.productImg||st.modelImg, b=st.productImg?st.productBack:null;
+function styleCell(st,rm){ const cw=st.colorways||[], pks=st.packs.map(id=>SH.packs.find(p=>p.id===id)).filter(Boolean), f=st.productImg||st.modelImg, b=st.productImg?st.productBack:null;
   const sz=[sizeRange(st),st.type==='bottoms'&&st.inseams.length?'Inseam '+st.inseams.slice().sort((a,b)=>a-b).join(' / '):'',st.moq&&'MOQ '+st.moq].filter(Boolean).join(' · ');
   return `<div class="it">${rm?`<button type="button" class="rmx" data-rmx="${st.id}" title="Remove from sheet" aria-label="Remove from sheet">✕</button>`:''}
     <div class="no">${esc(st.no||'')}</div><div class="nm">${esc(st.name||'Style')}</div>
     <div class="pr">${st.whl?`<span>Wholesale <b>${esc(money(st.whl))}</b></span>`:''}${st.msrp?`<span>MSRP <b>${esc(money(st.msrp))}</b></span>`:''}${st.fabric?`<span>${esc(st.fabric)}</span>`:''}</div>
     <div class="fl${b?'':' one'}">${f?`<img src="${f}" alt="">`:''}${b?`<img src="${b}" alt="">`:''}</div>
-    <div class="mt"><span>${esc(st.colors||'')}</span><span>${esc(sz)}${pks.length?`${sz?' · ':''}<i>Pack ${pks.map(p=>esc(p.name)).join(', ')}</i>`:''}</span></div></div>`; }
+    ${cw.length?`<div class="cws" style="grid-template-columns:repeat(${Math.min(cw.length,4)},1fr)">${cw.slice(0,4).map(c=>`<div class="cwi">${c.img?`<img src="${c.img}" alt="">`:''}<span><i style="background:${c.hex}"></i>${esc(c.name)}</span></div>`).join('')}</div>`:''}
+    <div class="mt"><span>${esc(cw.length?`${cw.length} colorways`:st.colors||'')}</span><span>${esc(sz)}${pks.length?`${sz?' · ':''}<i>Pack ${pks.map(p=>esc(p.name)).join(', ')}</i>`:''}</span></div></div>`; }
 function renderPages(){ const per=SH.per===4?4:6, cols=per===4?2:3, out=[];
   const inLook=new Set(SH.looks.flatMap(lk=>lookStyles(lk).map(x=>x.id)));
   const looks=SH.photo==='product'?[]:SH.looks;
@@ -344,9 +347,10 @@ $('#csv').onclick=()=>{ if(!SH.styles.length) return toast('Add at least one sty
   const q=v=>{ v=String(v??''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
   const rows=[['Style #','Name','Color','Fabric','Size type','Sizes','Inseam','Wholesale','MSRP','MOQ','Prepack','Pack sizes','Pcs / pack','Wholesale / pack']];
   for(const st of SH.styles){ const pks=st.packs.map(id=>SH.packs.find(p=>p.id===id)).filter(Boolean), w=num(st.whl);
-    const base=[st.no,st.name,st.colors,st.fabric,(TYPES.find(t=>t[0]===st.type)||[])[1]||st.type,styleSizes(st).join(' / '),st.type==='bottoms'?st.inseams.slice().sort((a,b)=>a-b).join(' / '):'',num(st.whl)??'',num(st.msrp)??'',st.moq];
+   for(const color of (st.colorways||[]).length?st.colorways.map(c=>c.name):[st.colors]){
+    const base=[st.no,st.name,color,st.fabric,(TYPES.find(t=>t[0]===st.type)||[])[1]||st.type,styleSizes(st).join(' / '),st.type==='bottoms'?st.inseams.slice().sort((a,b)=>a-b).join(' / '):'',num(st.whl)??'',num(st.msrp)??'',st.moq];
     if(!pks.length) rows.push([...base,'','','','']);
-    for(const p of pks) rows.push([...base,p.name,packTxt(p),packPcs(p),w&&packPcs(p)?(w*packPcs(p)).toFixed(2):'']); }
+    for(const p of pks) rows.push([...base,p.name,packTxt(p),packPcs(p),w&&packPcs(p)?(w*packPcs(p)).toFixed(2):'']); } }
   const csv='\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'), a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download=[SH.brand,SH.season,'line sheet'].filter(Boolean).join(' - ')+'.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   window.SPOOL_TRACK?.('linesheet_csv',{styles:SH.styles.length}); };
@@ -365,11 +369,20 @@ async function fullProject(id){ let p=await edDB.get('projects',id); if((!p||(!p
 const shootPids=s=>{ const ph=s.photos||[], m=ph.find(x=>x.id===s.main); return [m,...ph.filter(x=>x!==m)].map(x=>x&&x.pid).filter((x,i,a)=>x&&a.indexOf(x)===i).concat(ph.length?[]:[s.pid].filter(Boolean)); };
 async function upsertLook(s,sids){ const lk={id:s.id,front:await shrink(shootView(s,'front'),1400),back:await shrink(shootView(s,'back'),1400),pids:shootPids(s),sids:sids||[]};
   const i=SH.looks.findIndex(x=>x.id===s.id); if(i>=0) SH.looks[i]=lk; else SH.looks.push(lk); }
+// colorways from the editor: main color first, each with a small clean front and a swatch
+async function swatchOf(src){ try{ const i=await loadImg(src), c=document.createElement('canvas'); c.width=c.height=40; const x=c.getContext('2d'); x.drawImage(i,i.width*.35,i.height*.3,i.width*.3,i.height*.25,0,0,40,40);
+  const d=x.getImageData(0,0,40,40).data, bins=new Map(); for(let j=0;j<d.length;j+=4){ const k=(d[j]>>4)+'-'+(d[j+1]>>4)+'-'+(d[j+2]>>4), o=bins.get(k)||{n:0,r:0,g:0,b:0}; o.n++; o.r+=d[j]; o.g+=d[j+1]; o.b+=d[j+2]; bins.set(k,o); }
+  const o=[...bins.values()].sort((a,b)=>b.n-a.n)[0]; return '#'+[o.r,o.g,o.b].map(v=>Math.round(v/o.n).toString(16).padStart(2,'0')).join(''); }catch(e){ return '#cccccc'; } }
+async function colorwaysOf(p,front){ const L=p.colorways||[]; if(!L.length) return [];
+  const B=p.bodySpec||{}, main={name:B.color||'Main color',hex:await swatchOf(front),img:await cutout(front,360)};
+  return [main,...await Promise.all(L.map(async c=>({name:c.name,hex:c.hex||await swatchOf(c.front),img:await cutout(c.front,360)})))]; }
+async function pullProject(st,p){ const f=projImg(p); st.productImg=await cutout(f)||st.productImg; st.productBack=await cutout(projBack(p)); st.colorways=await colorwaysOf(p,f);
+  if(st.colorways.length) st.colors=st.colorways.map(c=>c.name).join(', '); st.cut=1; st.syncedAt=Date.now(); }
 async function addProject(id,quiet){ const had=styleOfPid(id); if(had){ if(!quiet) toast('Already on the sheet'); return had; }
   const p=await fullProject(id); if(!p){ toast('Could not open this project'); return null; }
   const B=p.bodySpec||{}, Y=p.style||{}, ty=['sweatpant','denim','shorts'].includes(p.body)?'bottoms':'tops';
-  const st=newStyle({pid:id,type:ty,sizes:[...DEF_SIZES[ty]],inseams:ty==='bottoms'?['32']:[],name:p.name||'Style',no:Y.no||defaultNo(p),fabric:fabricOf(B),colors:B.color||'',productImg:await cutout(projImg(p)),productBack:await cutout(projBack(p)),cut:1});
-  SH.styles.push(st);
+  const st=newStyle({pid:id,type:ty,sizes:[...DEF_SIZES[ty]],inseams:ty==='bottoms'?['32']:[],name:p.name||'Style',no:Y.no||defaultNo(p),fabric:fabricOf(B),colors:B.color||''});
+  await pullProject(st,p); SH.styles.push(st);
   const s=await latestShoot(id); if(s&&!SH.looks.some(x=>x.id===s.id)){ await upsertLook(s); st.shootId=s.id; st.modelImg=await shrink(shootFront(s),400); }
   save(); renderStyles(); renderPages(); if(!quiet) toast('Added: '+(p.name||'style')); return st; }
 // adding a model photo adds its look page and every piece in it
@@ -387,8 +400,10 @@ let noT={}; function pushNo(st,now){ if(!st.pid) return; clearTimeout(noT[st.id]
   const A=window.SPOOL_AUTH; if(!A?.user) return; try{ const p=await A.cloud.load(st.pid); if(!p) return; p.style={...(p.style||{}),no}; p.updated=Date.now();
     const row=(await A.cloud.list()).find(c=>c.id===st.pid); await A.cloud.save(p,row?.thumb||p.thumb||null); }catch(e){ console.warn(e); } },now?0:600); }
 // sheets made before front/back + clean backgrounds: fetch both views again once
-async function refreshStyles(){ let n=0; for(const st of SH.styles){ if(st.cut||!st.pid) continue; const p=await fullProject(st.pid); if(!p) continue;
-    st.productImg=await cutout(projImg(p))||st.productImg; st.productBack=await cutout(projBack(p)); if(!st.no) st.no=(p.style||{}).no||defaultNo(p); st.fabric=st.fabric.replace(/(oz)gsm/i,'$1'); st.cut=1; n++; }
+async function refreshStyles(){ let n=0; const A=window.SPOOL_AUTH; let rows=[]; if(A?.user){ try{ rows=await A.cloud.list(); }catch(e){} }
+  const changed=st=>{ const r=rows.find(x=>x.id===st.pid); return r&&Date.parse(r.updated_at)>(st.syncedAt||0)+5000; };
+  for(const st of SH.styles){ if(!st.pid||(st.cut&&!changed(st))) continue; const p=await fullProject(st.pid); if(!p) continue;
+    await pullProject(st,p); if(!st.no) st.no=(p.style||{}).no||defaultNo(p); st.fabric=st.fabric.replace(/(oz)gsm/i,'$1'); n++; }
   for(const st of SH.styles){ if(st.shootId&&!SH.looks.some(l=>l.id===st.shootId)){ const s=await modelDB.get('shoots',st.shootId); if(s){ await upsertLook(s); n++; } } }
   if(n){ save(); renderStyles(); renderPages(); } }
 let mTab='projects';
