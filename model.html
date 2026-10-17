@@ -116,7 +116,7 @@ main{max-width:1400px;margin:0 auto;padding:24px 32px 40px}
 @media (max-width:520px){.pics{grid-template-columns:repeat(3,1fr)}.acts{flex-wrap:wrap}.genrow .chips{flex:1 1 100%}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261017b"></script>
+<script src="auth.js?v=20261018a"></script>
 </head>
 <body>
 <div class="mockbar hidden" id="mockbar">Preview mode — AI is simulated here. Real AI runs on spoolnyc.com.</div>
@@ -346,7 +346,7 @@ function busy(on,txt){ $('#spin').classList.toggle('hidden',!on); clearInterval(
   if(!on) return; $('#stEmpty').classList.add('hidden'); $('#spinT').textContent=txt||'One shot'; const t0=Date.now(); $('#spinBar').style.width='3%';
   spinT=setInterval(()=>{ const s=(Date.now()-t0)/1000; $('#spinTime').textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); $('#spinBar').style.width=Math.min(95,3+s*2)+'%'; },1000); }
 async function needSignIn(){ if(!window.SPOOL_AUTH) return true; const u=await window.SPOOL_AUTH.requireLogin('Sign in to make model photos. They are saved to your account.'); return !!u; }
-function failed(e){ console.error(e); if(e.code==='free_limit'||e.code==='daily_limit'){ toast(e.message,6000); if(e.code==='free_limit') window.SPOOL_AUTH?.upgrade(e.message,{why:'model'}); } else toast('Couldn’t finish: '+e.message,5000); }
+function failed(e){ console.error(e); if(['no_credits','free_limit','daily_limit'].includes(e.code)){ toast(e.message,6000); if(e.code!=='daily_limit') window.SPOOL_AUTH?.upgrade(e.message,{why:'model'}); } else toast('Couldn’t finish: '+e.message,5000); }
 const clone=o=>JSON.parse(JSON.stringify(o));
 const modelName=st=>st?.model==='mine'?'My photo':MODELS.find(m=>m.id===st?.model)?.name||'';
 async function generate(){ if(!canGen()) return toast($('#genHint').textContent); if(!(await needSignIn())) return;

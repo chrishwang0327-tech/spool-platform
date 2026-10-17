@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(-
 </main>
 <div id="lb"><img alt=""></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="auth.js?v=20261017b"></script>
+<script src="auth.js?v=20261018a"></script>
 <script>
 (async()=>{
 'use strict';
@@ -72,7 +72,7 @@ async function users(){
   const rows=(data||[]).filter(r=>!filt()||(r.email||'').toLowerCase().includes(filt()));
   const cols=['email','signed_up','last_active','designs_created','create_errors','saved','editor_opens','techpacks','samples_requested','cloud_projects'];
   out.innerHTML=`<div class="wrap"><table><tr>${cols.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr>${rows.map(r=>`<tr>${cols.map(c=>`<td>${esc(c==='last_active'&&r[c]?when(r[c]):r[c])}</td>`).join('')}</tr>`).join('')}</table></div>
-    <p class="meta" style="margin-top:10px">To give someone more free designs: Supabase → Table Editor → credits → Insert row → email + extra_designs.</p>`;
+    <p class="meta" style="margin-top:10px">To give someone credits: Supabase → Table Editor → credits → Insert row → email + extra_designs (each = 2 credits).</p>`;
 }
 async function funnel(){
   const {data,error}=await A.sb.rpc('admin_funnel');
